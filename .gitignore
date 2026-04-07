@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# local files
+.claude
+AGENTS.md
+CLAUDE.md
+DATA.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*
