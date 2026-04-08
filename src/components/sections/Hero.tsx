@@ -11,13 +11,16 @@ export default function Hero({ onVideoEnd }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const welcomeRef = useRef<HTMLDivElement>(null);
+  const blackoutRef = useRef<HTMLDivElement>(null);
+  const hasLeftRef = useRef(false);
 
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
     const welcome = welcomeRef.current;
+    const blackout = blackoutRef.current;
 
-    if (!container || !video || !welcome) return;
+    if (!container || !video || !welcome || !blackout) return;
 
     // Start video paused
     video.pause();
@@ -45,7 +48,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
           scrub: 0.5,
           onUpdate: (self) => {
             if (video.duration) {
-              // Set video currentTime based on scroll progress
               video.currentTime = self.progress * video.duration;
             }
             // Fade welcome text
@@ -53,9 +55,20 @@ export default function Hero({ onVideoEnd }: HeroProps) {
               opacity: Math.max(0, 1 - self.progress * 3),
               duration: 0.1,
             });
+
+            // If scrolling back into hero section
+            if (hasLeftRef.current && self.progress < 0.9) {
+              hasLeftRef.current = false;
+              gsap.to(blackout, {
+                opacity: 0,
+                duration: 0.3,
+              });
+            }
           },
           onLeave: () => {
-            // Video section ended - cleanup
+            // Anlık siyahlık
+            hasLeftRef.current = true;
+            blackout.style.opacity = '1';
             video.pause();
             onVideoEnd();
           },
@@ -63,7 +76,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       }, container);
     };
 
-    // Wait for video to be ready
     if (video.readyState >= 1) {
       setupScrollTrigger();
     } else {
@@ -90,6 +102,11 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         preload="auto"
       />
       <div className="absolute inset-0 bg-black/30" />
+      <div
+        ref={blackoutRef}
+        className="absolute inset-0 bg-black z-20"
+        style={{ opacity: 0 }}
+      />
       <div
         ref={welcomeRef}
         className="absolute inset-0 flex flex-col items-center justify-center z-10"

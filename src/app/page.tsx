@@ -14,8 +14,10 @@ export default function Home() {
     <>
       <Hero onVideoEnd={() => setShowContent(true)} />
       <div
-        className={`transition-opacity duration-700 ${
-          showContent ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`transition-all duration-1000 ${
+          showContent
+            ? 'opacity-100 blur-0 translate-y-0'
+            : 'opacity-0 blur-md -translate-y-8 pointer-events-none'
         }`}
       >
         <About />
