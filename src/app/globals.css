@@ -151,3 +151,33 @@ h1, h2, h3, h4, h5, h6 {
 .dark .project-card:hover {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
+
+/* Corner glow animation for stat cards */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Hero to About transition - enhanced blur fade */
+@keyframes blurFadeIn {
+  0% {
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+  }
+  60% {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  100% {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+
+.transition-blur-fade {
+  animation: blurFadeIn 1.8s ease-out forwards;
+}

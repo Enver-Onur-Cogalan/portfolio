@@ -75,3 +75,24 @@ export const techStack = [
 ];
 
 export const bio = `Biyoloji disipliniyle yetişmiş, yazılıma gönül vermiş bir geliştiriciyim. React Native ile akıcı ve samimi kullanıcı deneyimleri tasarlarken, AI Researcher heyecanımla yapay zekayı projelerime değer katan bir yol arkadaşı olarak dahil ediyorum. Karmaşık problemleri basit çözümlere dönüştürmeyi, öğrenmeyi ve paylaşmayı seviyorum. Veriyi kullanıcı dostu hikayelere dönüştürmek için kod yazıyorum.`;
+
+export const aboutStats = [
+  { value: 1, suffix: '+', label: 'Yıllık Deneyim', color: '#22C55E' },
+  { value: 14, suffix: '', label: 'Proje', color: '#3B82F6' },
+  { value: '∞', suffix: '', label: 'İçilen Kahve', color: '#8B5CF6' },
+];
+
+export const aboutPrinciples = [
+  {
+    title: 'Karmaşıklığı Sadeleştirmek',
+    quote: 'Karmaşıklığı sadeleştirmek bir tercih değil, bir sanat biçimidir.',
+  },
+  {
+    title: 'En İyi Kod',
+    quote: 'En iyi kod, yazılmasına gerek kalmayan koddur.',
+  },
+  {
+    title: 'Biyolojik Düzen',
+    quote: 'Hücrelerin mükemmel düzenini, yazdığım her satıra taşımayı hedefliyorum.',
+  },
+];

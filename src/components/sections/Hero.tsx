@@ -55,22 +55,19 @@ export default function Hero({ onVideoEnd }: HeroProps) {
               opacity: Math.max(0, 1 - self.progress * 3),
               duration: 0.1,
             });
-
-            // If scrolling back into hero section
-            if (hasLeftRef.current && self.progress < 0.9) {
-              hasLeftRef.current = false;
-              gsap.to(blackout, {
-                opacity: 0,
-                duration: 0.3,
-              });
-            }
           },
           onLeave: () => {
-            // Anlık siyahlık
             hasLeftRef.current = true;
             blackout.style.opacity = '1';
             video.pause();
             onVideoEnd();
+          },
+          onEnterBack: () => {
+            hasLeftRef.current = false;
+            blackout.style.opacity = '0';
+          },
+          onLeaveBack: () => {
+            hasLeftRef.current = false;
           },
         });
       }, container);
@@ -104,13 +101,11 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       <div className="absolute inset-0 bg-black/30" />
       <div
         ref={blackoutRef}
-        className="absolute inset-0 bg-black z-20"
-        style={{ opacity: 0 }}
+        className="absolute inset-0 bg-black z-20 opacity-0"
       />
       <div
         ref={welcomeRef}
-        className="absolute inset-0 flex flex-col items-center justify-center z-10"
-        style={{ opacity: 0 }}
+        className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0"
       >
         <h1 className="text-5xl md:text-7xl font-bold text-white font-heading">
           Hoş Geldiniz
