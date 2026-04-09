@@ -114,30 +114,25 @@ export default function About() {
         }
       );
 
-      // Tech blob animation
-      const blobs = section.querySelectorAll('.tech-blob');
-      const centerIndex = Math.floor(blobs.length / 2);
-
-      gsap.set(blobs, { opacity: 0, scale: 0, y: 30 });
-
-      blobs.forEach((blob, index) => {
-        const distanceFromCenter = Math.abs(index - centerIndex);
-        const delay = distanceFromCenter * 0.1;
-
-        gsap.to(blob, {
+      // Tech card animation
+      const techCards = section.querySelectorAll('.tech-card');
+      gsap.fromTo(
+        techCards,
+        { opacity: 0, y: 40, scale: 0.9 },
+        {
           opacity: 1,
-          scale: 1,
           y: 0,
-          duration: 0.6,
-          delay: delay,
-          ease: 'back.out(1.5)',
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'back.out(1.4)',
           scrollTrigger: {
-            trigger: section.querySelector('.tech-blobs-container'),
-            start: 'top 85%',
+            trigger: section.querySelector('.tech-grid-container'),
+            start: 'top 80%',
             toggleActions: 'play none none reverse',
           },
-        });
-      });
+        }
+      );
     }, section);
 
     return () => ctx.revert();
@@ -261,64 +256,77 @@ export default function About() {
           ))}
         </div>
 
-        {/* Tech Stack - Organic Blobs */}
-        <div className="tech-blobs-container">
+        {/* Tech Stack - Neon Grid Matrix */}
+        <div className="tech-grid-container relative">
           <h3
-            className="text-2xl font-bold font-heading text-center mb-8"
+            className="text-2xl font-bold font-heading text-center mb-12"
             style={{ color: 'var(--foreground)' }}
           >
             Teknik Yetenekler
           </h3>
 
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-            {techStack.map((tech, index) => (
-              <div
-                key={tech}
-                className="tech-blob relative cursor-pointer"
-                onMouseEnter={(e) => {
-                  const inner = e.currentTarget.querySelector('.blob-inner');
-                  if (inner) {
-                    gsap.to(inner, {
-                      scale: 1.15,
-                      duration: 0.15,
-                      yoyo: true,
-                      repeat: 3,
-                      ease: 'power2.out',
-                    });
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  const inner = e.currentTarget.querySelector('.blob-inner');
-                  if (inner) {
-                    gsap.to(inner, {
-                      scale: 1,
-                      duration: 0.4,
-                      ease: 'elastic.out(1, 0.5)',
-                    });
-                  }
-                }}
-              >
+          {/* Tech Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {techStack.map((tech, index) => {
+              const colors = ['#22C55E', '#3B82F6', '#8B5CF6', '#F59E0B'];
+              const color = colors[index % colors.length];
+
+              return (
                 <div
-                  className="blob-inner relative px-5 py-3 transition-transform duration-300"
-                  style={{
-                    borderRadius: '60% 40% 70% 30% / 50% 60% 40% 50%',
-                    background: `linear-gradient(135deg,
-                      color-mix(in srgb, ${index % 3 === 0 ? 'var(--accent)' : index % 3 === 1 ? 'var(--secondary)' : 'var(--muted)'} 12%, transparent)
-                    )`,
-                    border: `1px solid color-mix(in srgb, ${index % 3 === 0 ? 'var(--accent)' : index % 3 === 1 ? 'var(--secondary)' : 'var(--muted)'
-                      } 35%, transparent)`,
-                    backdropFilter: 'blur(8px)',
-                  }}
+                  key={tech}
+                  className="tech-card group relative"
                 >
-                  <span
-                    className="relative z-10 text-sm font-medium"
-                    style={{ color: 'var(--foreground)' }}
+                  {/* Glow effect */}
+                  <div
+                    className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500"
+                    style={{
+                      background: `linear-gradient(135deg, ${color}60, transparent)`,
+                    }}
+                  />
+
+                  {/* Card */}
+                  <div
+                    className="relative p-4 rounded-xl border transition-all duration-300 group-hover:translate-y-[-4px]"
+                    style={{
+                      background: 'color-mix(in srgb, var(--background) 80%, transparent)',
+                      borderColor: `${color}30`,
+                    }}
                   >
-                    {tech}
-                  </span>
+                    {/* Top accent line */}
+                    <div
+                      className="absolute top-0 left-4 right-4 h-0.5 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+                      style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
+                    />
+
+                    {/* Icon placeholder - first letter */}
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 text-lg font-bold"
+                      style={{
+                        background: `${color}15`,
+                        color: color,
+                        border: `1px solid ${color}30`,
+                      }}
+                    >
+                      {tech.charAt(0)}
+                    </div>
+
+                    {/* Tech name */}
+                    <p
+                      className="text-sm font-medium leading-tight"
+                      style={{ color: 'var(--foreground)' }}
+                    >
+                      {tech}
+                    </p>
+
+                    {/* Bottom accent */}
+                    <div
+                      className="absolute bottom-0 left-0 h-0.5 rounded-full w-0 group-hover:w-full transition-all duration-500"
+                      style={{ background: color }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
