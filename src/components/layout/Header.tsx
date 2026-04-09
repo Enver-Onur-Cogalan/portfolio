@@ -2,6 +2,13 @@
 
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
+const navItems = [
+  { label: 'Hakkımda', id: 'hakkimda' },
+  { label: 'Projeler', id: 'projeler' },
+  { label: 'Deneyimler', id: 'deneyimler' },
+  { label: 'İletişim', id: 'iletisim' },
+];
+
 export default function Header() {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -17,14 +24,14 @@ export default function Header() {
     >
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <nav className="hidden md:flex gap-6">
-          {['Hakkımda', 'Projeler', 'Deneyimler', 'İletişim'].map((item) => (
+          {navItems.map((item) => (
             <button
-              key={item}
-              onClick={() => scrollToSection(item.toLowerCase().replace('ı', 'i'))}
+              key={item.label}
+              onClick={() => scrollToSection(item.id)}
               className="text-sm font-medium transition-colors hover:text-[var(--accent)]"
               style={{ color: 'var(--foreground)' }}
             >
-              {item}
+              {item.label}
             </button>
           ))}
         </nav>
