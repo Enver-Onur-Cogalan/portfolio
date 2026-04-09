@@ -11,7 +11,10 @@ export default function Hero({ onVideoEnd }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const welcomeRef = useRef<HTMLDivElement>(null);
+  const glassCardRef = useRef<HTMLDivElement>(null);
   const blackoutRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
   const hasLeftRef = useRef(false);
 
   useEffect(() => {
@@ -19,8 +22,10 @@ export default function Hero({ onVideoEnd }: HeroProps) {
     const video = videoRef.current;
     const welcome = welcomeRef.current;
     const blackout = blackoutRef.current;
+    const nameEl = nameRef.current;
+    const subtitle = subtitleRef.current;
 
-    if (!container || !video || !welcome || !blackout) return;
+    if (!container || !video || !welcome || !blackout || !glassCardRef.current) return;
 
     // Start video paused
     video.pause();
@@ -32,6 +37,61 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power2.out' }
     );
+
+    // Glass card animation - fade in with slight scale
+    gsap.fromTo(
+      glassCardRef.current,
+      { opacity: 0, x: -50, scale: 0.9 },
+      { opacity: 1, x: 0, scale: 1, duration: 0.8, delay: 0.8, ease: 'power2.out' }
+    );
+
+    // Typewriter effect for name
+    if (nameEl) {
+      const name = 'Enver Onur Çoğalan';
+      nameEl.textContent = '';
+      const chars = name.split('');
+      chars.forEach((char, i) => {
+        const span = document.createElement('span');
+        span.textContent = char;
+        span.className = 'name-char';
+        span.style.opacity = '0';
+        nameEl.appendChild(span);
+      });
+
+      gsap.to('.name-char', {
+        opacity: 1,
+        duration: 0.05,
+        stagger: 0.08,
+        delay: 1,
+        ease: 'none',
+      });
+    }
+
+    // Glitch effect for subtitle - random word glitches
+    if (subtitle) {
+      const words = subtitle.textContent?.split(' ') || [];
+      subtitle.textContent = words.join(' ');
+
+      const glitchWord = () => {
+        const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`';
+        const randomIndex = Math.floor(Math.random() * words.length);
+        const originalWord = words[randomIndex];
+        const glitchedWord = originalWord.split('').map(c =>
+          Math.random() > 0.7 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : c
+        ).join('');
+
+        const tempText = words.map((w, i) => i === randomIndex ? glitchedWord : w).join(' ');
+        subtitle.textContent = tempText;
+
+        setTimeout(() => {
+          subtitle.textContent = words.join(' ');
+        }, 150);
+
+        setTimeout(glitchWord, 2000 + Math.random() * 3000);
+      };
+
+      setTimeout(glitchWord, 2500);
+    }
 
     let ctx: gsap.Context;
 
@@ -50,8 +110,12 @@ export default function Hero({ onVideoEnd }: HeroProps) {
             if (video.duration) {
               video.currentTime = self.progress * video.duration;
             }
-            // Fade welcome text
+            // Fade welcome text and glass card together
             gsap.to(welcome, {
+              opacity: Math.max(0, 1 - self.progress * 3),
+              duration: 0.1,
+            });
+            gsap.to(glassCardRef.current, {
               opacity: Math.max(0, 1 - self.progress * 3),
               duration: 0.1,
             });
@@ -103,17 +167,50 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         ref={blackoutRef}
         className="absolute inset-0 bg-background z-20 opacity-0"
       />
+
+      {/* Welcome Text - Center */}
       <div
         ref={welcomeRef}
         className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0"
       >
+        {/* Glass Card - Above Welcome */}
+        <div
+          ref={glassCardRef}
+          className="glass-card relative px-8 py-5 rounded-2xl border border-white/20 backdrop-blur-md mb-6"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05)',
+          }}
+        >
+          {/* Decorational corners */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/30 rounded-tl-xl" />
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/30 rounded-tr-xl" />
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/30 rounded-bl-xl" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/30 rounded-br-xl" />
+
+          {/* Name */}
+          <h2
+            ref={nameRef}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-white tracking-wide text-center"
+          />
+
+          {/* Subtitle */}
+          <p
+            ref={subtitleRef}
+            className="text-sm md:text-base text-[var(--accent)] tracking-widest uppercase mt-1 text-center"
+          >
+            Mobile Developer & AI Researcher
+          </p>
+        </div>
+
         <h1 className="text-5xl md:text-7xl font-bold text-white font-heading">
           Hoş Geldiniz
         </h1>
-        <p className="text-white/70 mt-4 text-lg">
+        <p className="text-white/70 mt-8 text-lg">
           Keşfetmek için aşağı kaydır
         </p>
       </div>
+
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
         <div className="animate-bounce">
           <svg
