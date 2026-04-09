@@ -101,7 +101,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       <div className="absolute inset-0 bg-black/30" />
       <div
         ref={blackoutRef}
-        className="absolute inset-0 bg-black z-20 opacity-0"
+        className="absolute inset-0 bg-background z-20 opacity-0"
       />
       <div
         ref={welcomeRef}
