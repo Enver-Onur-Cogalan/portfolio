@@ -32,6 +32,35 @@ export default function Experience() {
             },
           }
         );
+
+        // Wind sway animation - flag in the wind effect (on hover)
+        const card = item.querySelector('.experience-card');
+        if (card) {
+          let tween: gsap.core.Tween | null = null;
+
+          card.addEventListener('mouseenter', () => {
+            tween = gsap.to(card, {
+              x: 18,
+              skewX: 6,
+              duration: 0.6,
+              ease: 'sine.inOut',
+              yoyo: true,
+              repeat: -1,
+            });
+          });
+
+          card.addEventListener('mouseleave', () => {
+            if (tween) {
+              tween.kill();
+            }
+            gsap.to(card, {
+              x: 0,
+              skewX: 0,
+              duration: 0.4,
+              ease: 'power2.out',
+            });
+          });
+        }
       });
     }, section);
 
@@ -52,13 +81,12 @@ export default function Experience() {
             {experiences.map((exp, index) => (
               <div
                 key={index}
-                className={`timeline-item relative flex items-center ${
-                  index % 2 === 0 ? 'justify-start' : 'justify-end'
-                }`}
+                className={`timeline-item relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'
+                  }`}
               >
                 <div className={`w-5/12 ${index % 2 === 0 ? 'text-right pr-8' : 'text-left pl-8'}`}>
                   <div
-                    className="rounded-2xl p-6 border"
+                    className="experience-card rounded-2xl p-6 border transition-transform duration-300"
                     style={{
                       backgroundColor: 'var(--background)',
                       borderColor: 'var(--muted)',

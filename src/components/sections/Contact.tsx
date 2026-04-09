@@ -14,7 +14,7 @@ export default function Contact() {
           className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
           style={{ color: 'var(--muted)' }}
         >
-          Beni aşağıdaki kanallardan anyasabilir veya e-posta göndererek iletişime geçebilirsiniz.
+          Beni aşağıdaki kanallardan takip edebilir veya e-posta göndererek iletişime geçebilirsiniz.
         </p>
         <a
           href={`mailto:${socialLinks.email}`}
@@ -30,7 +30,7 @@ export default function Contact() {
           className="mt-20 pt-8 border-t text-sm"
           style={{ borderColor: 'var(--muted)', color: 'var(--muted)' }}
         >
-          <p>&copy; {new Date().getFullYear()} Onur Coşkun. Tüm hakları saklıdır.</p>
+          <p>&copy; {new Date().getFullYear()} Enver Onur Çoğalan. Tüm hakları saklıdır.</p>
         </footer>
       </div>
     </SectionWrapper>
