@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import Header from "@/components/layout/Header";
 import MusicPlayer from "@/components/ui/MusicPlayer";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,6 +36,7 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
           <MusicPlayer />
+          <ChatWidget />
         </ThemeProvider>
       </body>
     </html>
