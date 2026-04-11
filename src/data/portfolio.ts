@@ -55,8 +55,8 @@ export const experiences = [
   },
   {
     period: 'Aralık 2025 - Devam Ediyor',
-    title: 'AI Researcher & Mobile Developer',
-    subtitle: 'Current Position',
+    title: 'Envagro',
+    subtitle: 'AI Researcher & Mobile Developer',
     description:
       'STT, TTS ve LLM modelleri üzerine detaylı saha ve literatür araştırmaları yapmak. Farklı açık kaynak ve ticari AI modellerini karşılaştırmak, benchmark çalışmaları yürütmek.',
     type: 'work' as const,

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, X, MessageCircle, Bot, User, Check, SkipForward } from 'lucide-react';
 import { quickReplies } from '@/lib/chat/responses';
+import ChatMessage from './ChatMessage';
 
 interface Message {
   id: string;
@@ -139,6 +140,10 @@ export default function ChatWidget() {
       });
 
       const data = await response.json();
+      const typingDelay = data.typingDelay || 500;
+
+      // Typing indicator göster, sonra mesajı ekle
+      await new Promise((r) => setTimeout(r, typingDelay));
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -273,6 +278,10 @@ export default function ChatWidget() {
       });
 
       const data = await response.json();
+      const typingDelay = data.typingDelay || 500;
+
+      // Typing indicator göster, sonra mesajı ekle
+      await new Promise((r) => setTimeout(r, typingDelay));
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -418,7 +427,7 @@ export default function ChatWidget() {
                           : 'var(--foreground)',
                     }}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <ChatMessage content={message.content} isUser={message.role === 'user'} />
                     <p
                       className="text-[10px] mt-1.5 opacity-50 text-right"
                       style={{

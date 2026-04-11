@@ -15,10 +15,15 @@ export async function POST(request: NextRequest) {
 
     const result = findBestMatch(message);
 
+    // Yanıt uzunluğuna göre simüle edilmiş typing delay (ms)
+    const responseLength = result.response.length;
+    const typingDelay = Math.min(300 + responseLength * 3, 2000);
+
     return NextResponse.json({
       response: result.response,
       showOptions: result.showOptions,
       autoScrollDelay: result.autoScrollDelay,
+      typingDelay,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
