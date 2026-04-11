@@ -18,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Onur Coşkun | AI Researcher & Mobile Developer",
+  title: "Enver Onur Çoğalan | AI Researcher & Mobile Developer",
   description:
     "Biyoloji disipliniyle yetişmiş, AI araştırmaları ve React Native geliştirme ile ilgilenen yazılım geliştiricisi.",
 };
