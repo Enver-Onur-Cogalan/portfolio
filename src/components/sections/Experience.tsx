@@ -5,9 +5,11 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { experiences } from '@/data/portfolio';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Experience() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -67,10 +69,24 @@ export default function Experience() {
     return () => ctx.revert();
   }, []);
 
+  const expTranslations: Record<string, { subtitle: string; desc: string }> = {
+    'Ege Üniversitesi': { subtitle: t('experience.ege.subtitle'), desc: t('experience.ege.desc') },
+    'Patika+ React Native Bootcamp': { subtitle: t('experience.patika.subtitle'), desc: t('experience.patika.desc') },
+    'Appisode': { subtitle: t('experience.appisode.subtitle'), desc: t('experience.appisode.desc') },
+    'Envagro': { subtitle: t('experience.current.subtitle'), desc: t('experience.current.desc') },
+  };
+
+  const periodTranslations: Record<string, string> = {
+    '2020 - 2024': t('exp.period.2020-2024'),
+    '2025': t('exp.period.2025'),
+    'Ağustos 2025 - Eylül 2025': t('exp.period.aug-sep-2025'),
+    'Aralık 2025 - Devam Ediyor': t('exp.period.dec-present'),
+  };
+
   return (
     <SectionWrapper>
       <div ref={sectionRef} id="deneyimler">
-        <SectionTitle>Deneyimler</SectionTitle>
+        <SectionTitle>{t('experience.title')}</SectionTitle>
         <div className="relative">
           {/* Timeline line */}
           <div
@@ -96,7 +112,7 @@ export default function Experience() {
                       className="text-sm font-medium"
                       style={{ color: 'var(--accent)' }}
                     >
-                      {exp.period}
+                      {periodTranslations[exp.period] || exp.period}
                     </span>
                     <h3
                       className="text-xl font-bold mt-1 font-heading"
@@ -108,13 +124,13 @@ export default function Experience() {
                       className="text-sm mt-1"
                       style={{ color: 'var(--secondary)' }}
                     >
-                      {exp.subtitle}
+                      {expTranslations[exp.title]?.subtitle || exp.subtitle}
                     </p>
                     <p
                       className="text-sm mt-3"
                       style={{ color: 'var(--muted)' }}
                     >
-                      {exp.description}
+                      {expTranslations[exp.title]?.desc || exp.description}
                     </p>
                   </div>
                 </div>

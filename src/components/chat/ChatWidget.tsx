@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, X, MessageCircle, Bot, User, Check, SkipForward } from 'lucide-react';
 import { quickReplies } from '@/lib/chat/responses';
 import ChatMessage from './ChatMessage';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ export default function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const mainInputRef = useRef<HTMLInputElement>(null);
+  const { lang, t } = useLanguage();
 
   const isWaitingForName = chatState === 'waiting_for_name';
 
@@ -46,7 +48,7 @@ export default function ChatWidget() {
         {
           id: '1',
           role: 'assistant',
-          content: 'Merhaba! Ben Onur\'un portfolyo chatbotuyum. Sana daha yakından hitap edebilmem için ismini öğrenebilir miyim?',
+          content: t('chat.greeting'),
           timestamp: new Date(),
           showOptions: false,
           isNameRequest: true,
@@ -124,7 +126,7 @@ export default function ChatWidget() {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: option.label,
+      content: option.label[lang],
       timestamp: new Date(),
       showOptions: false,
     };
@@ -136,7 +138,7 @@ export default function ChatWidget() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: option.label }),
+        body: JSON.stringify({ message: option.label[lang], lang }),
       });
 
       const data = await response.json();
@@ -167,7 +169,7 @@ export default function ChatWidget() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.',
+        content: t('chat.error'),
         timestamp: new Date(),
         showOptions: false,
       };
@@ -196,7 +198,7 @@ export default function ChatWidget() {
       const responseMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Mükemmel, ${trimmed}! Artık seni daha yakından tanıyorum. Sana nasıl yardımcı olabilirim ${trimmed}?`,
+        content: t('chat.nameSuccess').replace(/\{name\}/g, trimmed),
         timestamp: new Date(),
         showOptions: true,
       };
@@ -210,7 +212,7 @@ export default function ChatWidget() {
         const responseMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Neden ismini girmedin ki? Sadece seninle daha yakından konuşmak istiyordum. Bir şans daha veriyorum...',
+          content: t('chat.nameRetry'),
           timestamp: new Date(),
           showOptions: false,
           isNameRequest: true,
@@ -229,7 +231,7 @@ export default function ChatWidget() {
     const responseMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
-      content: 'Peki, sıkıntı yok! İsmin olmadan da sana yardımcı olabilirim. Sana nasıl yardımcı olabilirim?',
+      content: t('chat.nameSkip'),
       timestamp: new Date(),
       showOptions: true,
     };
@@ -274,7 +276,7 @@ export default function ChatWidget() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.content }),
+        body: JSON.stringify({ message: userMessage.content, lang }),
       });
 
       const data = await response.json();
@@ -306,7 +308,7 @@ export default function ChatWidget() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.',
+        content: t('chat.error'),
         timestamp: new Date(),
         showOptions: false,
       };
@@ -326,7 +328,7 @@ export default function ChatWidget() {
           background: 'var(--accent)',
           color: '#fff',
         }}
-        aria-label="Sohbeti aç"
+        aria-label={t('chat.open')}
       >
         {isOpen ? (
           <X className="w-6 h-6 transition-transform duration-200" />
@@ -368,10 +370,10 @@ export default function ChatWidget() {
             </h3>
             <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>
               {userName
-                ? `${userName} ile sohbet`
+                ? `${userName} ${t('chat.chattingWith')}`
                 : isWaitingForName
-                  ? 'İsmini öğreniyorum...'
-                  : 'Sana nasıl yardımcı olabilirim?'}
+                  ? t('chat.learningName')
+                  : t('chat.howCanIHelp')}
             </p>
           </div>
         </div>
@@ -449,7 +451,7 @@ export default function ChatWidget() {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="İsminizi yazın..."
+                        placeholder={t('chat.namePlaceholder')}
                         className="flex-1 px-3 py-2 rounded-lg text-sm outline-none transition-all"
                         style={{
                           background: 'color-mix(in srgb, var(--muted) 12%, transparent)',
@@ -467,7 +469,7 @@ export default function ChatWidget() {
                         onClick={handleNameSubmit}
                         className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
                         style={{ background: 'var(--accent)' }}
-                        title="Onayla"
+                        title={t('chat.confirm')}
                       >
                         <Check className="w-4 h-4 text-white" strokeWidth={3} />
                       </button>
@@ -481,7 +483,7 @@ export default function ChatWidget() {
                             background: 'color-mix(in srgb, var(--muted) 20%, transparent)',
                             border: '1px solid var(--muted)',
                           }}
-                          title="Geç"
+                          title={t('chat.skip')}
                         >
                           <SkipForward className="w-4 h-4" style={{ color: 'var(--muted)' }} />
                         </button>
@@ -513,7 +515,7 @@ export default function ChatWidget() {
                         >
                           {option.id}
                         </span>
-                        <span className="truncate">{option.label}</span>
+                        <span className="truncate">{option.label[lang]}</span>
                       </button>
                     ))}
                   </div>
@@ -574,8 +576,8 @@ export default function ChatWidget() {
               }}
               placeholder={
                 isWaitingForName
-                  ? 'Yukarıdan ismini gir...'
-                  : 'Mesajınızı yazın...'
+                  ? t('chat.nameFromAbove')
+                  : t('chat.messagePlaceholder')
               }
               className="flex-1 px-4 py-2 rounded-full text-sm outline-none transition-all"
               style={{

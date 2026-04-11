@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findBestMatch } from '@/lib/chat/matcher';
+import type { Language } from '@/context/LanguageContext';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { message } = body;
+    const { message, lang } = body;
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -13,9 +14,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = findBestMatch(message);
+    const currentLang: Language = lang === 'en' ? 'en' : 'tr';
+    const result = findBestMatch(message, currentLang);
 
-    // Yanıt uzunluğuna göre simüle edilmiş typing delay (ms)
     const responseLength = result.response.length;
     const typingDelay = Math.min(300 + responseLength * 3, 2000);
 
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API Error:', error);
     return NextResponse.json(
-      { error: 'Bir hata olustu.' },
+      { error: 'Bir hata oluştu.' },
       { status: 500 }
     );
   }

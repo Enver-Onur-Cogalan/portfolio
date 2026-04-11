@@ -5,9 +5,11 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { projects } from '@/data/portfolio';
 import { gsap } from '@/lib/gsap';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Projects() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { lang, t } = useLanguage();
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -131,10 +133,16 @@ export default function Projects() {
     }
   };
 
+  const projectDescKeys: Record<string, string> = {
+    'Jarvis': 'projects.jarvis.desc',
+    'ChatApp': 'projects.chatapp.desc',
+    'MovieApp': 'projects.movieapp.desc',
+  };
+
   return (
     <SectionWrapper>
       <div ref={sectionRef} id="projeler">
-        <SectionTitle>Projeler</SectionTitle>
+        <SectionTitle>{t('projects.title')}</SectionTitle>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((project, index) => {
@@ -210,7 +218,7 @@ export default function Projects() {
                     className="text-sm leading-relaxed mb-5"
                     style={{ color: 'var(--muted)' }}
                   >
-                    {project.description}
+                    {t(projectDescKeys[project.title]) || project.description}
                   </p>
 
                   {/* Tech Stack - Full display */}

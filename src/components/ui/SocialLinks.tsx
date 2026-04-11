@@ -1,6 +1,7 @@
 'use client';
 
 import { socialLinks } from '@/data/portfolio';
+import { useLanguage } from '@/context/LanguageContext';
 
 const socialData = [
   {
@@ -45,11 +46,12 @@ const socialData = [
       </svg>
     ),
     color: 'var(--foreground)',
-    tooltip: 'E-posta',
+    tooltipKey: 'social.email',
   },
 ];
 
 export default function SocialLinks() {
+  const { t } = useLanguage();
   return (
     <div className="flex gap-6">
       {socialData.map((social) => (
@@ -76,7 +78,7 @@ export default function SocialLinks() {
           <span
             className="absolute -bottom-8 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap px-2 py-1 rounded bg-black/80 text-white"
           >
-            {social.tooltip}
+            {social.tooltipKey ? t(social.tooltipKey) : social.tooltip}
           </span>
         </a>
       ))}

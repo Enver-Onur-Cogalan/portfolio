@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface HeroProps {
   onVideoEnd: () => void;
@@ -16,6 +17,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
   const nameRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const hasLeftRef = useRef(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -27,30 +29,26 @@ export default function Hero({ onVideoEnd }: HeroProps) {
 
     if (!container || !video || !welcome || !blackout || !glassCardRef.current) return;
 
-    // Start video paused
     video.pause();
     video.currentTime = 0;
 
-    // Welcome text animation
     gsap.fromTo(
       welcome,
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power2.out' }
     );
 
-    // Glass card animation - fade in with slight scale
     gsap.fromTo(
       glassCardRef.current,
       { opacity: 0, x: -50, scale: 0.9 },
       { opacity: 1, x: 0, scale: 1, duration: 0.8, delay: 0.8, ease: 'power2.out' }
     );
 
-    // Typewriter effect for name
     if (nameEl) {
       const name = 'Enver Onur Çoğalan';
       nameEl.textContent = '';
       const chars = name.split('');
-      chars.forEach((char, i) => {
+      chars.forEach((char) => {
         const span = document.createElement('span');
         span.textContent = char;
         span.className = 'name-char';
@@ -67,7 +65,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       });
     }
 
-    // Glitch effect for subtitle - random word glitches
     if (subtitle) {
       const words = subtitle.textContent?.split(' ') || [];
       subtitle.textContent = words.join(' ');
@@ -99,7 +96,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       if (!video.duration) return;
 
       ctx = gsap.context(() => {
-        // Main scroll trigger for video control
         ScrollTrigger.create({
           trigger: container,
           start: 'top top',
@@ -110,7 +106,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
             if (video.duration) {
               video.currentTime = self.progress * video.duration;
             }
-            // Fade welcome text and glass card together
             gsap.to(welcome, {
               opacity: Math.max(0, 1 - self.progress * 3),
               duration: 0.1,
@@ -168,12 +163,10 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         className="absolute inset-0 bg-background z-20 opacity-0"
       />
 
-      {/* Welcome Text - Center */}
       <div
         ref={welcomeRef}
         className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0"
       >
-        {/* Glass Card - Above Welcome */}
         <div
           ref={glassCardRef}
           className="glass-card relative px-8 py-5 rounded-2xl border border-white/20 backdrop-blur-md mb-6"
@@ -182,32 +175,29 @@ export default function Hero({ onVideoEnd }: HeroProps) {
             boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05)',
           }}
         >
-          {/* Decorational corners */}
           <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/30 rounded-tl-xl" />
           <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/30 rounded-tr-xl" />
           <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/30 rounded-bl-xl" />
           <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/30 rounded-br-xl" />
 
-          {/* Name */}
           <h2
             ref={nameRef}
             className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-white tracking-wide text-center"
           />
 
-          {/* Subtitle */}
           <p
             ref={subtitleRef}
             className="text-sm md:text-base text-[var(--accent)] tracking-widest uppercase mt-1 text-center"
           >
-            Mobile Developer & AI Researcher
+            {t('hero.subtitle')}
           </p>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold text-white font-heading">
-          Hoş Geldiniz
+          {t('hero.welcome')}
         </h1>
         <p className="text-white/70 mt-8 text-lg">
-          Keşfetmek için aşağı kaydır
+          {t('hero.scroll')}
         </p>
       </div>
 

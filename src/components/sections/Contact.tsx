@@ -4,17 +4,19 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import SocialLinks from '@/components/ui/SocialLinks';
 import { socialLinks } from '@/data/portfolio';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Contact() {
+  const { t } = useLanguage();
   return (
     <SectionWrapper>
       <div id="iletisim" className="text-center">
-        <SectionTitle>İletişim</SectionTitle>
+        <SectionTitle>{t('contact.title')}</SectionTitle>
         <p
           className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
           style={{ color: 'var(--muted)' }}
         >
-          Beni aşağıdaki kanallardan takip edebilir veya e-posta göndererek iletişime geçebilirsiniz.
+          {t('contact.desc')}
         </p>
         <a
           href={`mailto:${socialLinks.email}`}
@@ -30,7 +32,7 @@ export default function Contact() {
           className="mt-20 pt-8 border-t text-sm"
           style={{ borderColor: 'var(--muted)', color: 'var(--muted)' }}
         >
-          <p>&copy; {new Date().getFullYear()} Enver Onur Çoğalan. Tüm hakları saklıdır.</p>
+          <p>&copy; {new Date().getFullYear()} Enver Onur Çoğalan. {t('contact.footer')}</p>
         </footer>
       </div>
     </SectionWrapper>

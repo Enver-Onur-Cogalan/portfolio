@@ -1,15 +1,19 @@
 'use client';
 
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import LanguageToggle from '@/components/ui/LanguageToggle';
+import { useLanguage } from '@/context/LanguageContext';
 
-const navItems = [
-  { label: 'Hakkımda', id: 'hakkimda' },
-  { label: 'Projeler', id: 'projeler' },
-  { label: 'Deneyimler', id: 'deneyimler' },
-  { label: 'İletişim', id: 'iletisim' },
+const navKeys = [
+  { key: 'nav.about', id: 'hakkimda' },
+  { key: 'nav.projects', id: 'projeler' },
+  { key: 'nav.experience', id: 'deneyimler' },
+  { key: 'nav.contact', id: 'iletisim' },
 ];
 
 export default function Header() {
+  const { t } = useLanguage();
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
@@ -24,18 +28,21 @@ export default function Header() {
     >
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <nav className="hidden md:flex gap-6">
-          {navItems.map((item) => (
+          {navKeys.map((item) => (
             <button
-              key={item.label}
+              key={item.id}
               onClick={() => scrollToSection(item.id)}
               className="text-sm font-medium transition-colors hover:text-[var(--accent)]"
               style={{ color: 'var(--foreground)' }}
             >
-              {item.label}
+              {t(item.key)}
             </button>
           ))}
         </nav>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

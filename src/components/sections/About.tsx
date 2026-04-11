@@ -3,7 +3,8 @@
 import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
-import { bio, techStack, aboutStats, aboutPrinciples } from '@/data/portfolio';
+import { techStack } from '@/data/portfolio';
+import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
 import { Brain, Code, Coffee } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const statIcons: Record<string, typeof Brain> = {
 };
 
 export default function About() {
+  const { t } = useLanguage();
   const sectionRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const principlesRef = useRef<HTMLDivElement>(null);
@@ -141,14 +143,20 @@ export default function About() {
   return (
     <SectionWrapper>
       <div ref={sectionRef} id="hakkimda">
-        <SectionTitle>Hakkımda</SectionTitle>
+        <SectionTitle>{t('about.title')}</SectionTitle>
 
         {/* Stats Cards */}
         <div
           ref={statsRef}
           className="grid grid-cols-3 gap-4 md:gap-6 mb-12"
         >
-          {aboutStats.map((stat, i) => {
+          {(() => {
+            const stats = [
+              { value: '1+', suffix: '', label: t('about.stat.experience'), color: '#22C55E' },
+              { value: '14', suffix: '', label: t('about.stat.projects'), color: '#3B82F6' },
+              { value: '∞', suffix: '', label: t('about.stat.coffee'), color: '#8B5CF6' },
+            ];
+            return stats.map((stat, i) => {
             const IconComponent = statIcons[stat.color] || Brain;
             return (
               <div
@@ -193,7 +201,8 @@ export default function About() {
                 </div>
               </div>
             );
-          })}
+            });
+          })()}
         </div>
 
         {/* bio Section */}
@@ -202,7 +211,7 @@ export default function About() {
           className="mb-16 max-w-4xl mx-auto text-center"
         >
           <p className="text-xl md:text-2xl leading-relaxed mb-8">
-            {bio}
+            {t('about.bio')}
           </p>
 
           {/* Signature element */}
@@ -215,7 +224,13 @@ export default function About() {
 
         {/* Principles / Philosophy Cards */}
         <div ref={principlesRef} className="grid md:grid-cols-3 gap-6 mb-20">
-          {aboutPrinciples.map((principle, i) => (
+          {(() => {
+            const principles = [
+              { title: t('about.principle1.title'), quote: t('about.principle1.quote') },
+              { title: t('about.principle2.title'), quote: t('about.principle2.quote') },
+              { title: t('about.principle3.title'), quote: t('about.principle3.quote') },
+            ];
+            return principles.map((principle, i) => (
             <div
               key={i}
               className="principle-card group relative p-6 rounded-2xl border cursor-pointer"
@@ -250,10 +265,11 @@ export default function About() {
                 >
                   {principle.title}
                 </h4>
-                <p className="text-sm opacity-70 italic">"{principle.quote}"</p>
+                <p className="text-sm opacity-70 italic">&ldquo;{principle.quote}&rdquo;</p>
               </div>
             </div>
-          ))}
+            ));
+          })()}
         </div>
 
         {/* Tech Stack - Neon Grid Matrix */}
@@ -262,7 +278,7 @@ export default function About() {
             className="text-2xl font-bold font-heading text-center mb-12"
             style={{ color: 'var(--foreground)' }}
           >
-            Teknik Yetenekler
+            {t('about.techTitle')}
           </h3>
 
           {/* Tech Grid */}

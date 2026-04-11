@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import Header from "@/components/layout/Header";
 import MusicPlayer from "@/components/ui/MusicPlayer";
 import ChatWidget from "@/components/chat/ChatWidget";
@@ -33,10 +34,12 @@ export default function RootLayout({
         className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <ThemeProvider>
-          <Header />
-          <main>{children}</main>
-          <MusicPlayer />
-          <ChatWidget />
+          <LanguageProvider>
+            <Header />
+            <main>{children}</main>
+            <MusicPlayer />
+            <ChatWidget />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
