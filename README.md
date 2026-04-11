@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Website
+
+A modern, responsive portfolio website built with Next.js 16, featuring a glass-brutalist design aesthetic with smooth GSAP animations and interactive chatbot.
+
+**Live Demo:** https://portfolio-sand-two-79.vercel.app
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 16 (App Router) |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS |
+| **Animations** | GSAP |
+| **Icons** | Lucide React |
+| **Deployment** | Vercel |
+
+### Dependencies
+
+- `next` - React framework with App Router
+- `react` / `react-dom` - UI library
+- `gsap` - Animation library
+- `lucide-react` - Icon library
+- `tailwindcss` - Utility-first CSS framework
+
+---
+
+## Project Structure
+
+```
+portfolio/
+├── public/
+│   └── portfolio-music.mp3      # Background music track
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── chat/
+│   │   │       └── route.ts     # Chatbot API endpoint
+│   │   ├── layout.tsx           # Root layout
+│   │   ├── page.tsx             # Homepage
+│   │   └── globals.css           # Global styles + CSS variables
+│   ├── components/
+│   │   ├── chat/
+│   │   │   ├── ChatMessage.tsx  # Chat message component
+│   │   │   └── ChatWidget.tsx   # Interactive chatbot widget
+│   │   ├── layout/
+│   │   │   ├── Footer.tsx       # Footer section
+│   │   │   └── Header.tsx       # Header with mobile hamburger menu
+│   │   ├── sections/
+│   │   │   ├── About.tsx        # About section
+│   │   │   ├── Contact.tsx      # Contact section
+│   │   │   ├── Experience.tsx   # Experience timeline
+│   │   │   ├── Hero.tsx         # Hero section
+│   │   │   ├── Philosophy.tsx   # Philosophy quotes
+│   │   │   ├── Projects.tsx     # Projects showcase
+│   │   │   └── Skills.tsx       # Skills grid
+│   │   └── ui/
+│   │       ├── LanguageToggle.tsx   # Language switcher (TR/EN)
+│   │       ├── MusicPlayer.tsx      # Audio player with lyrics
+│   │       └── ThemeToggle.tsx      # Light/Dark theme switcher
+│   ├── context/
+│   │   ├── LanguageContext.tsx  # i18n context provider
+│   │   └── ThemeContext.tsx     # Theme context provider
+│   ├── data/
+│   │   └── music.ts             # Music lyrics data
+│   ├── lib/
+│   │   ├── chat/
+│   │   │   ├── matcher.ts       # Keyword matching engine
+│   │   │   └── responses.ts     # Q&A response data
+│   │   └── gsap.ts              # GSAP configuration
+│   └── types/
+│       └── index.ts              # TypeScript type definitions
+├── next.config.ts                # Next.js configuration
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+## Features
+
+- **Responsive Design** - Mobile-first approach with hamburger menu
+- **Dark/Light Theme** - System preference detection with manual toggle
+- **Bilingual Support** - Turkish and English languages
+- **Smooth Animations** - GSAP-powered scroll and entrance animations
+- **Interactive Chatbot** - Rule-based FAQ chatbot
+- **Music Player** - Background music with synchronized lyrics
+- **Glass UI Elements** - Frosted glass aesthetic with backdrop blur
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm / yarn / pnpm / bun
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Enver-Onur-Cogalan/portfolio.git
+cd portfolio
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Sections
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Section | Description |
+|---------|-------------|
+| **Hero** | Introduction with role title and CTA |
+| **About** | Personal stats and biography |
+| **Philosophy** | Three guiding principles |
+| **Skills** | Technical stack grid |
+| **Projects** | Featured work showcase |
+| **Experience** | Education and work timeline |
+| **Contact** | Email and social links |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## API Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### POST `/api/chat`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Send a message to the chatbot.
+
+**Request:**
+```json
+{
+  "message": "Projelerin hakkında bilgi ver",
+  "lang": "tr"
+}
+```
+
+**Response:**
+```json
+{
+  "response": "Portfolio' da 3 proje bulunuyor...",
+  "typingDelay": 500,
+  "showOptions": true
+}
+```
+
+---
+
+## License
+
+MIT License - feel free to use this template for your own portfolio.
