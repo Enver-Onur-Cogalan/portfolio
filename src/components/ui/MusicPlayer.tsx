@@ -225,7 +225,7 @@ export default function MusicPlayer() {
   }, [showCard]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-4 md:right-6 z-50">
       {/* Info Tooltip */}
       <div
         ref={infoRef}
@@ -256,7 +256,7 @@ export default function MusicPlayer() {
       {/* Music Player Card */}
       <div
         ref={cardRef}
-        className={`absolute bottom-full right-0 mb-3 w-80 rounded-3xl p-5 transition-all duration-300 ${
+        className={`absolute bottom-full right-0 mb-3 w-72 md:w-80 rounded-3xl p-5 transition-all duration-300 ${
           showCard ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
         style={{

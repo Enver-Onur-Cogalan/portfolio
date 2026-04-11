@@ -90,7 +90,7 @@ export default function ThemeToggle() {
     <button
       ref={buttonRef}
       onClick={handleToggle}
-      className="p-2 rounded-full transition-all hover:scale-110"
+      className="min-w-[44px] min-h-[44px] p-2.5 rounded-full transition-all hover:scale-110 active:scale-95 flex items-center justify-center"
       style={{ backgroundColor: 'var(--muted)', color: 'var(--background)' }}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
     >

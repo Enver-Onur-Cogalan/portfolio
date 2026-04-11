@@ -323,7 +323,7 @@ export default function ChatWidget() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+        className="fixed bottom-6 left-4 md:left-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
         style={{
           background: 'var(--accent)',
           color: '#fff',
@@ -339,7 +339,7 @@ export default function ChatWidget() {
 
       {/* Chat Window */}
       <div
-        className={`fixed bottom-24 left-6 z-50 w-80 md:w-96 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-left ${
+        className={`fixed bottom-24 left-4 md:left-6 z-50 w-[calc(100vw-2rem)] md:w-96 max-w-80 md:max-w-96 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-left ${
           isOpen
             ? 'opacity-100 scale-100 pointer-events-auto'
             : 'opacity-0 scale-75 pointer-events-none'

@@ -51,7 +51,7 @@ export default function LanguageToggle() {
       onClick={handleToggle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all duration-300 overflow-hidden"
+      className="relative flex items-center justify-center gap-1.5 px-4 py-2.5 min-w-[44px] min-h-[44px] rounded-full text-xs font-bold tracking-wide transition-all duration-300 overflow-hidden"
       style={{
         background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
         color: 'var(--accent)',
