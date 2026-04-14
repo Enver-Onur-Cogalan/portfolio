@@ -323,10 +323,11 @@ export default function ChatWidget() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 left-4 md:left-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+        className="fixed bottom-4 left-3 md:bottom-6 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
         style={{
           background: 'var(--accent)',
           color: '#fff',
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px) + 0.5rem)',
         }}
         aria-label={t('chat.open')}
       >
@@ -339,7 +340,7 @@ export default function ChatWidget() {
 
       {/* Chat Window */}
       <div
-        className={`fixed bottom-24 left-4 md:left-6 z-50 w-[calc(100vw-2rem)] md:w-96 max-w-80 md:max-w-96 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-left ${
+        className={`fixed left-3 md:left-6 z-50 w-[calc(100vw-1.5rem)] sm:w-80 md:w-96 md:max-w-96 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-left ${
           isOpen
             ? 'opacity-100 scale-100 pointer-events-auto'
             : 'opacity-0 scale-75 pointer-events-none'
@@ -347,7 +348,8 @@ export default function ChatWidget() {
         style={{
           background: 'var(--background)',
           border: '1px solid color-mix(in srgb, var(--muted) 30%, transparent)',
-          maxHeight: '500px',
+          maxHeight: 'min(500px, calc(100dvh - 6rem))',
+          bottom: 'max(4.5rem, env(safe-area-inset-bottom, 0px) + 4rem)',
         }}
       >
         {/* Header */}
@@ -380,8 +382,8 @@ export default function ChatWidget() {
 
         {/* Messages */}
         <div
-          className="overflow-y-auto p-4 space-y-3"
-          style={{ maxHeight: '340px', minHeight: '340px' }}
+          className="overflow-y-auto p-3 md:p-4 space-y-3"
+          style={{ maxHeight: 'min(340px, calc(100dvh - 14rem))', minHeight: '200px' }}
         >
           {messages.map((message) => (
             <div

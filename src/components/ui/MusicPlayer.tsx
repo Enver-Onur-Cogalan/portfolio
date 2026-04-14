@@ -225,17 +225,18 @@ export default function MusicPlayer() {
   }, [showCard]);
 
   return (
-    <div className="fixed bottom-6 right-4 md:right-6 z-50">
+    <div className="fixed right-3 md:right-6 z-50" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom, 0px) + 0.5rem)' }}>
       {/* Info Tooltip */}
       <div
         ref={infoRef}
-        className={`absolute bottom-full right-0 mb-3 px-5 py-4 rounded-2xl text-sm leading-relaxed transition-all duration-300 ${
+        className={`absolute bottom-full right-0 mb-3 px-4 py-3 md:px-5 md:py-4 rounded-2xl text-sm leading-relaxed transition-all duration-300 ${
           showInfo ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
         style={{
           backgroundColor: 'var(--foreground)',
           color: 'var(--background)',
-          minWidth: '280px',
+          minWidth: '240px',
+          maxWidth: 'calc(100vw - 2rem)',
           boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
           zIndex: 60,
         }}
@@ -256,7 +257,7 @@ export default function MusicPlayer() {
       {/* Music Player Card */}
       <div
         ref={cardRef}
-        className={`absolute bottom-full right-0 mb-3 w-72 md:w-80 rounded-3xl p-5 transition-all duration-300 ${
+        className={`fixed bottom-20 right-3 md:absolute md:bottom-full md:right-0 md:mb-3 w-[calc(100vw-1.5rem)] sm:w-72 md:w-80 rounded-3xl p-4 md:p-5 transition-all duration-300 ${
           showCard ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
         style={{
@@ -390,7 +391,7 @@ export default function MusicPlayer() {
       {/* Main Button */}
       <button
         onClick={toggleCard}
-        className="p-4 rounded-full transition-all hover:scale-110 active:scale-95 shadow-lg"
+        className="p-3 md:p-4 rounded-full transition-all hover:scale-110 active:scale-95 shadow-lg"
         style={{
           backgroundColor: isPlaying ? 'var(--accent)' : 'var(--muted)',
           color: isPlaying ? '#000' : '#fff',

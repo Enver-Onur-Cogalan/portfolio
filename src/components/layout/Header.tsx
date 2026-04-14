@@ -64,7 +64,7 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-40 px-6 py-4"
+        className="fixed top-0 left-0 right-0 z-40 px-3 py-3 md:px-6 md:py-4"
         style={{ backgroundColor: 'rgba(var(--background), 0.8)', backdropFilter: 'blur(10px)' }}
       >
         <div className="max-w-6xl mx-auto flex justify-between items-center">

@@ -19,6 +19,20 @@ export default function Hero({ onVideoEnd }: HeroProps) {
   const hasLeftRef = useRef(false);
   const { t } = useLanguage();
 
+  // Set correct video source in effect (avoids render-time window access)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const mobile = window.innerWidth < 768;
+    const correctSrc = mobile ? '/scroll-video-mobile.mp4' : '/scroll-video-opt.mp4';
+
+    if (!video.src.endsWith(correctSrc)) {
+      video.src = correctSrc;
+      video.load();
+    }
+  }, []);
+
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
@@ -28,6 +42,8 @@ export default function Hero({ onVideoEnd }: HeroProps) {
     const subtitle = subtitleRef.current;
 
     if (!container || !video || !welcome || !blackout || !glassCardRef.current) return;
+
+    const mobile = window.innerWidth < 768;
 
     video.pause();
     video.currentTime = 0;
@@ -100,9 +116,9 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         ScrollTrigger.create({
           trigger: container,
           start: 'top top',
-          end: '+=3000',
+          end: mobile ? '+=1800' : '+=3000',
           pin: true,
-          scrub: 0.5,
+          scrub: mobile ? 1 : 0.5,
           onUpdate: (self) => {
             cancelAnimationFrame(rafId);
             rafId = requestAnimationFrame(() => {
@@ -154,10 +170,10 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       className="relative w-full h-screen"
       style={{ backgroundColor: '#000' }}
     >
+      {/* Video src is set via useEffect — fallback to desktop version for SSR */}
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
-        src="/scroll-video-opt.mp4"
         muted
         playsInline
         preload="auto"
@@ -170,11 +186,11 @@ export default function Hero({ onVideoEnd }: HeroProps) {
 
       <div
         ref={welcomeRef}
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0"
+        className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0 px-4"
       >
         <div
           ref={glassCardRef}
-          className="glass-card relative px-8 py-5 rounded-2xl border border-white/20 backdrop-blur-md mb-6"
+          className="glass-card relative px-5 py-4 md:px-8 md:py-5 rounded-2xl border border-white/20 backdrop-blur-sm md:backdrop-blur-md mb-4 md:mb-6 max-w-[90vw]"
           style={{
             backgroundColor: 'rgba(255,255,255,0.05)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05)',
@@ -187,21 +203,21 @@ export default function Hero({ onVideoEnd }: HeroProps) {
 
           <h2
             ref={nameRef}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-white tracking-wide text-center"
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-white tracking-wide text-center"
           />
 
           <p
             ref={subtitleRef}
-            className="text-sm md:text-base text-[var(--accent)] tracking-widest uppercase mt-1 text-center"
+            className="text-xs sm:text-sm md:text-base text-[var(--accent)] tracking-widest uppercase mt-1 text-center"
           >
             {t('hero.subtitle')}
           </p>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold text-white font-heading">
+        <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white font-heading text-center">
           {t('hero.welcome')}
         </h1>
-        <p className="text-white/70 mt-8 text-lg">
+        <p className="text-white/70 mt-6 md:mt-8 text-base md:text-lg text-center">
           {t('hero.scroll')}
         </p>
       </div>
@@ -209,7 +225,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
         <div className="animate-bounce">
           <svg
-            className="w-8 h-8 text-white"
+            className="w-6 h-6 md:w-8 md:h-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
