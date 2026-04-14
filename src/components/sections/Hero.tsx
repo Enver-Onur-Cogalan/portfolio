@@ -19,7 +19,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
   const hasLeftRef = useRef(false);
   const { t } = useLanguage();
 
-  // Set correct video source in effect (avoids render-time window access)
+  // Set correct video source based on device
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -108,6 +108,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
 
     let ctx: gsap.Context;
     let rafId: number;
+    let lastProgress = 0;
 
     const setupScrollTrigger = () => {
       if (!video.duration) return;
@@ -116,10 +117,14 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         ScrollTrigger.create({
           trigger: container,
           start: 'top top',
-          end: mobile ? '+=1800' : '+=3000',
+          end: mobile ? '+=1500' : '+=3000',
           pin: true,
-          scrub: mobile ? 1 : 0.5,
+          scrub: mobile ? 2 : 0.5,
           onUpdate: (self) => {
+            // On mobile, skip tiny progress changes to reduce decode calls
+            if (mobile && Math.abs(self.progress - lastProgress) < 0.008) return;
+            lastProgress = self.progress;
+
             cancelAnimationFrame(rafId);
             rafId = requestAnimationFrame(() => {
               if (video.duration) {
@@ -170,7 +175,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       className="relative w-full h-screen"
       style={{ backgroundColor: '#000' }}
     >
-      {/* Video src is set via useEffect — fallback to desktop version for SSR */}
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"

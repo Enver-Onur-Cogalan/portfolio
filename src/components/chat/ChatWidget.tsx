@@ -323,11 +323,10 @@ export default function ChatWidget() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 left-3 md:bottom-6 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
+        className="fixed bottom-5 left-3 md:bottom-6 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95"
         style={{
           background: 'var(--accent)',
           color: '#fff',
-          bottom: 'max(1rem, env(safe-area-inset-bottom, 0px) + 0.5rem)',
         }}
         aria-label={t('chat.open')}
       >
@@ -349,7 +348,7 @@ export default function ChatWidget() {
           background: 'var(--background)',
           border: '1px solid color-mix(in srgb, var(--muted) 30%, transparent)',
           maxHeight: 'min(500px, calc(100dvh - 6rem))',
-          bottom: 'max(4.5rem, env(safe-area-inset-bottom, 0px) + 4rem)',
+          bottom: '4.5rem',
         }}
       >
         {/* Header */}

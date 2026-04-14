@@ -225,7 +225,7 @@ export default function MusicPlayer() {
   }, [showCard]);
 
   return (
-    <div className="fixed right-3 md:right-6 z-50" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom, 0px) + 0.5rem)' }}>
+    <div className="fixed bottom-5 right-3 md:bottom-6 md:right-6 z-50">
       {/* Info Tooltip */}
       <div
         ref={infoRef}
