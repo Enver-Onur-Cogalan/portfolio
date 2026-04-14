@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API Error:', error);
     return NextResponse.json(
-      { error: currentLang === 'en' ? 'An error occurred.' : 'Bir hata oluştu.' },
+      { error: 'An error occurred.' },
       { status: 500 }
     );
   }

@@ -177,25 +177,27 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>('tr');
+  // Initialize with stored value or browser language
+  const [lang, setLangState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('lang') as Language | null;
+      if (stored && (stored === 'tr' || stored === 'en')) {
+        return stored;
+      }
+      const browserLang = navigator.language.toLowerCase();
+      return browserLang.startsWith('tr') ? 'tr' : 'en';
+    }
+    return 'tr';
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem('lang') as Language | null;
-    if (stored && (stored === 'tr' || stored === 'en')) {
-      setLangState(stored);
-    } else {
-      // Tarayıcı diline göre otomatik algıla
-      const browserLang = navigator.language.toLowerCase();
-      const detectedLang: Language = browserLang.startsWith('tr') ? 'tr' : 'en';
-      setLangState(detectedLang);
-    }
-  }, []);
+    // Sync HTML lang attribute with state
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
     localStorage.setItem('lang', newLang);
-    // HTML lang attribute güncelle
-    document.documentElement.lang = newLang;
   };
 
   const t = (key: string): string => {
