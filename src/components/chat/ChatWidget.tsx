@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, X, MessageCircle, Bot, User, Check, SkipForward } from 'lucide-react';
 import { quickReplies } from '@/lib/chat/responses';
+import { containsProfanity } from '@/lib/chat/profanity';
 import ChatMessage from './ChatMessage';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -13,10 +14,11 @@ interface Message {
   timestamp: Date;
   showOptions: boolean;
   isNameRequest?: boolean;
-  optionsUsed?: boolean; // quick reply'lar kullanıldı mı
+  optionsUsed?: boolean;
+  isError?: boolean;
 }
 
-type ChatState = 'initial' | 'waiting_for_name' | 'name_entered' | 'name_skipped';
+type ChatState = 'initial' | 'waiting_for_name' | 'name_entered' | 'name_skipped' | 'name_blocked';
 
 const sectionIds: Record<string, string> = {
   '1': 'hakkimda',
@@ -34,12 +36,14 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [shakeInput, setShakeInput] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const mainInputRef = useRef<HTMLInputElement>(null);
   const { lang, t } = useLanguage();
 
   const isWaitingForName = chatState === 'waiting_for_name';
+  const isNameBlocked = chatState === 'name_blocked';
 
   // Initialize with greeting when chat opens for the first time
   useEffect(() => {
@@ -191,6 +195,31 @@ export default function ChatWidget() {
     const trimmed = input.trim();
 
     if (trimmed) {
+      // Argo/küfür kontrolü
+      if (containsProfanity(trimmed)) {
+        setShakeInput(true);
+        setTimeout(() => setShakeInput(false), 500);
+
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: lang === 'en'
+            ? 'Error 403: No manners found. Please update your dictionary and try again.'
+            : 'Hata 403: Terbiye bulunamadı. Lütfen lügatini güncelleyip tekrar dene.',
+          timestamp: new Date(),
+          showOptions: false,
+          isNameRequest: false,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+
+        // Mesaj göründükten sonra input'u kapat
+        setTimeout(() => {
+          setChatState('name_blocked');
+          setInput('');
+        }, 1500);
+        return;
+      }
+
       setUserName(trimmed);
       setChatState('name_entered');
       setInput('');
@@ -280,6 +309,25 @@ export default function ChatWidget() {
       });
 
       const data = await response.json();
+
+      // Eğer küfür tespit edildiyse input'u salla ve hata mesajı göster
+      if (data.profanityDetected) {
+        setIsLoading(false);
+        setShakeInput(true);
+        setTimeout(() => setShakeInput(false), 500);
+
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          showOptions: data.showOptions ?? false,
+          isError: true,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        return;
+      }
+
       const typingDelay = data.typingDelay || 500;
 
       // Typing indicator göster, sonra mesajı ekle
@@ -418,7 +466,7 @@ export default function ChatWidget() {
                       message.role === 'user'
                         ? 'rounded-tr-sm'
                         : 'rounded-tl-sm'
-                    }`}
+                    } ${message.isError ? 'animate-[borderPulse_0.5s_ease-in-out_3]' : ''}`}
                     style={{
                       background:
                         message.role === 'user'
@@ -428,6 +476,9 @@ export default function ChatWidget() {
                         message.role === 'user'
                           ? '#fff'
                           : 'var(--foreground)',
+                      borderWidth: message.isError ? '2px' : '0px',
+                      borderStyle: 'solid',
+                      borderColor: 'rgba(239, 68, 68, 0.5)',
                     }}
                   >
                     <ChatMessage content={message.content} isUser={message.role === 'user'} />
@@ -561,12 +612,13 @@ export default function ChatWidget() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Main Input */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-3 border-t"
-          style={{ borderColor: 'color-mix(in srgb, var(--muted) 25%, transparent)' }}
-        >
+        {/* Main Input - gizle eğer isim girişi engellendiyse */}
+        {!isNameBlocked && (
+          <form
+            onSubmit={handleSubmit}
+            className="p-3 border-t"
+            style={{ borderColor: 'color-mix(in srgb, var(--muted) 25%, transparent)' }}
+          >
           <div className="flex gap-2">
             <input
               ref={mainInputRef}
@@ -580,7 +632,7 @@ export default function ChatWidget() {
                   ? t('chat.nameFromAbove')
                   : t('chat.messagePlaceholder')
               }
-              className="flex-1 px-4 py-2 rounded-full text-sm outline-none transition-all"
+              className={`flex-1 px-4 py-2 rounded-full text-sm outline-none transition-all ${shakeInput ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
               style={{
                 background: 'color-mix(in srgb, var(--muted) 8%, transparent)',
                 color: 'var(--foreground)',
@@ -600,6 +652,7 @@ export default function ChatWidget() {
             </button>
           </div>
         </form>
+        )}
       </div>
 
       {/* CSS Animation */}
@@ -612,6 +665,21 @@ export default function ChatWidget() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+          20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        @keyframes borderPulse {
+          0%, 100% {
+            border-color: rgba(239, 68, 68, 0);
+            box-shadow: none;
+          }
+          50% {
+            border-color: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
           }
         }
       `}</style>
