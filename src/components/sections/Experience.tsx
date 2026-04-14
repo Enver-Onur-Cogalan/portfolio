@@ -41,9 +41,10 @@ export default function Experience() {
           let tween: gsap.core.Tween | null = null;
 
           card.addEventListener('mouseenter', () => {
+            const mobile = window.innerWidth < 768;
             tween = gsap.to(card, {
-              x: 18,
-              skewX: 6,
+              x: mobile ? 6 : 18,
+              skewX: mobile ? 2 : 6,
               duration: 0.6,
               ease: 'sine.inOut',
               yoyo: true,

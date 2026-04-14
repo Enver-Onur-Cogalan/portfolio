@@ -17,6 +17,15 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+import type { Viewport } from "next";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Enver Onur Çoğalan | AI Researcher & Mobile Developer",
   description:
