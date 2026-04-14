@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { message, lang, quickReplyId } = body;
 
+    const currentLang: Language = lang === 'en' ? 'en' : 'tr';
+
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
-        { error: 'Mesaj gereklidir.' },
+        { error: currentLang === 'en' ? 'Message is required.' : 'Mesaj gereklidir.' },
         { status: 400 }
       );
     }
-
-    const currentLang: Language = lang === 'en' ? 'en' : 'tr';
 
     // Argo/küfür kontrolü
     if (containsProfanity(message)) {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API Error:', error);
     return NextResponse.json(
-      { error: 'Bir hata oluştu.' },
+      { error: currentLang === 'en' ? 'An error occurred.' : 'Bir hata oluştu.' },
       { status: 500 }
     );
   }

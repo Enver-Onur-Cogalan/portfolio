@@ -16,8 +16,6 @@ const navKeys = [
 export default function Header() {
   const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useState<HTMLDivElement | null>(null)[1];
-  const overlayRef = useState<HTMLDivElement | null>(null)[1];
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);

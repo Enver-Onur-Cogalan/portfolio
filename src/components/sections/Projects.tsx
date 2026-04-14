@@ -134,6 +134,7 @@ export default function Projects() {
   };
 
   const projectDescKeys: Record<string, string> = {
+    'Portfolio': 'projects.portfolio.desc',
     'Jarvis': 'projects.jarvis.desc',
     'ChatApp': 'projects.chatapp.desc',
     'MovieApp': 'projects.movieapp.desc',

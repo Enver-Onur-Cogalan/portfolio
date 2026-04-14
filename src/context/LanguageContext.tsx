@@ -44,6 +44,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Projects
     'projects.title': 'Projeler',
+    'projects.portfolio.desc': 'Modern animasyonlar ve interaktif sohbet botu ile kişisel portfolyo websitesi. Hakkımda, projeler, deneyimler ve iletişim bölümlerini içeren Next.js uygulaması.',
     'projects.jarvis.desc': 'Jarvis Assistant, günlük işlerinizi kolaylaştırmak ve sesli komutlarla mobil cihazınızla etkileşim kurmanıza olanak sağlamak üzere tasarlanmış akıllı bir kişisel asistandır.',
     'projects.chatapp.desc': 'ChatApp, React Native CLI ve Socket.IO ile geliştirilmiş, gerçek zamanlı bire bir ve grup sohbet uygulamasıdır.',
     'projects.movieapp.desc': 'React Native ile geliştirilmiş film izleme uygulaması.',
@@ -56,7 +57,7 @@ const translations: Record<Language, Record<string, string>> = {
     'experience.patika.desc': 'Seçkin ve yoğun içerikli bir yazılım bootcamp\'ini başarıyla tamamladım. React Native, JavaScript ve Git teknolojilerine odaklanarak, gerçek dünya problemlerine çözüm sağlayan mobil uygulama projeleri geliştirdim.',
     'experience.appisode.subtitle': 'Freelance React Native FullStack Developer',
     'experience.appisode.desc': 'London, UK (Remote). React Native tabanlı Expo framework\'ü kullanarak mobil uygulama geliştirme üzerinde çalıştım. Yeni özellikler geliştirdim, UI/UX iyileştirmeleri ve performans optimizasyonları yaptım.',
-    'experience.current.subtitle': 'Current Position',
+    'experience.current.subtitle': 'Mobile Developer & AI Researcher',
     'experience.current.desc': 'Konuşmayı Metne (STT), Metni Sese (TTS) ve Büyük Dil Modelleri (LLM) üzerine detaylı saha ve literatür araştırmaları yapmak. Farklı açık kaynak ve ticari AI modellerini karşılaştırmak, benchmark çalışmaları yürütmek.',
     'exp.period.2020-2024': '2020 - 2024',
     'exp.period.2025': '2025',
@@ -123,6 +124,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Projects
     'projects.title': 'Projects',
+    'projects.portfolio.desc': 'Personal portfolio website with modern animations and interactive chat bot. A Next.js application featuring About, Projects, Experience and Contact sections.',
     'projects.jarvis.desc': 'Jarvis Assistant is a smart personal assistant designed to simplify daily tasks and enable voice-controlled interaction with your mobile device.',
     'projects.chatapp.desc': 'ChatApp is a real-time one-on-one and group chat application built with React Native CLI and Socket.IO.',
     'projects.movieapp.desc': 'A movie browsing application built with React Native.',
@@ -135,7 +137,7 @@ const translations: Record<Language, Record<string, string>> = {
     'experience.patika.desc': 'Successfully completed an intensive software bootcamp. Developed mobile application projects solving real-world problems, focusing on React Native, JavaScript, and Git technologies.',
     'experience.appisode.subtitle': 'Freelance React Native FullStack Developer',
     'experience.appisode.desc': 'London, UK (Remote). Worked on mobile app development using React Native with Expo framework. Developed new features, UI/UX improvements, and performance optimizations.',
-    'experience.current.subtitle': 'Current Position',
+    'experience.current.subtitle': 'Mobile Developer & AI Researcher',
     'experience.current.desc': 'Conducting detailed field and literature research on Speech-to-Text (STT), Text-to-Speech (TTS) and Large Language Models (LLM). Comparing various open-source and commercial AI models, running benchmark studies.',
     'exp.period.2020-2024': '2020 - 2024',
     'exp.period.2025': '2025',

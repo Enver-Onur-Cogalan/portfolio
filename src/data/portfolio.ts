@@ -7,6 +7,13 @@ export const socialLinks = {
 
 export const projects = [
   {
+    title: 'Portfolio',
+    description:
+      'Modern animasyonlar ve interaktif sohbet botu ile kişisel portfolyo websitesi. Hakkımda, projeler, deneyimler ve iletişim bölümlerini içeren Next.js uygulaması.',
+    technologies: ['Next.js', 'React', 'TypeScript', 'TailwindCSS', 'GSAP'],
+    github: 'https://github.com/Enver-Onur-Cogalan/portfolio',
+  },
+  {
     title: 'Jarvis',
     description:
       'Jarvis Assistant, günlük işlerinizi kolaylaştırmak ve sesli komutlarla mobil cihazınızla etkileşim kurmanıza olanak sağlamak üzere tasarlanmış akıllı bir kişisel asistandır.',
