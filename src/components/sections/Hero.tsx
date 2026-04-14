@@ -91,6 +91,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
     }
 
     let ctx: gsap.Context;
+    let rafId: number;
 
     const setupScrollTrigger = () => {
       if (!video.duration) return;
@@ -103,16 +104,19 @@ export default function Hero({ onVideoEnd }: HeroProps) {
           pin: true,
           scrub: 0.5,
           onUpdate: (self) => {
-            if (video.duration) {
-              video.currentTime = self.progress * video.duration;
-            }
-            gsap.to(welcome, {
-              opacity: Math.max(0, 1 - self.progress * 3),
-              duration: 0.1,
-            });
-            gsap.to(glassCardRef.current, {
-              opacity: Math.max(0, 1 - self.progress * 3),
-              duration: 0.1,
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+              if (video.duration) {
+                video.currentTime = self.progress * video.duration;
+              }
+              gsap.to(welcome, {
+                opacity: Math.max(0, 1 - self.progress * 3),
+                duration: 0.1,
+              });
+              gsap.to(glassCardRef.current, {
+                opacity: Math.max(0, 1 - self.progress * 3),
+                duration: 0.1,
+              });
             });
           },
           onLeave: () => {
@@ -139,6 +143,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
     }
 
     return () => {
+      cancelAnimationFrame(rafId);
       if (ctx) ctx.revert();
     };
   }, [onVideoEnd]);
@@ -152,7 +157,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover"
-        src="/scroll-video.mp4"
+        src="/scroll-video-opt.mp4"
         muted
         playsInline
         preload="auto"
