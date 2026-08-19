@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/ui/LanguageToggle';
 import { useLanguage } from '@/context/LanguageContext';
+import { scrollToSection as smoothScrollToSection } from '@/lib/scroll';
 
 const navKeys = [
   { key: 'nav.about', id: 'hakkimda' },
@@ -16,48 +17,57 @@ const navKeys = [
 export default function Header() {
   const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const firstMenuItemRef = useRef<HTMLButtonElement>(null);
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Ortak yardımcı: sabitlenmiş (pin) bölümlerin yol açtığı konum
+    // kaymasını da hesaba katıyor.
+    smoothScrollToSection(id);
     setIsMenuOpen(false);
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen((prev) => !prev);
   };
 
+  // Menü animasyonu — global sınıf seçicileri yerine ref'ler kullanılıyor,
+  // böylece animasyon bu bileşenin kendi düğümleriyle sınırlı kalıyor.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
     if (isMenuOpen) {
-      gsap.to('.mobile-menu-overlay', {
-        opacity: 1,
-        duration: 0.3,
-        ease: 'power2.out',
-      });
-      gsap.to('.mobile-menu-panel', {
-        x: 0,
-        duration: 0.4,
-        ease: 'power3.out',
-      });
+      gsap.to(overlayRef.current, { opacity: 1, duration: 0.3, ease: 'power2.out' });
+      gsap.to(panelRef.current, { x: 0, duration: 0.4, ease: 'power3.out' });
       document.body.style.overflow = 'hidden';
-    } else {
-      gsap.to('.mobile-menu-overlay', {
-        opacity: 0,
-        duration: 0.3,
-        ease: 'power2.in',
-      });
-      gsap.to('.mobile-menu-panel', {
-        x: '100%',
-        duration: 0.4,
-        ease: 'power3.in',
-      });
-      document.body.style.overflow = '';
+      const focusTimer = setTimeout(() => firstMenuItemRef.current?.focus(), 150);
+      return () => clearTimeout(focusTimer);
     }
+
+    gsap.to(overlayRef.current, { opacity: 0, duration: 0.3, ease: 'power2.in' });
+    gsap.to(panelRef.current, { x: '100%', duration: 0.4, ease: 'power3.in' });
+    document.body.style.overflow = '';
   }, [isMenuOpen]);
+
+  // Menü açıkken Escape kapatır ve odak hamburger düğmesine döner
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+        hamburgerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isMenuOpen]);
+
+  // Bileşen kaldırılırsa sayfa kaydırması kilitli kalmasın
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
     <>
@@ -68,10 +78,13 @@ export default function Header() {
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           {/* Hamburger Button - Mobile Only */}
           <button
+            ref={hamburgerRef}
             onClick={toggleMenu}
             className="md:hidden flex flex-col justify-center items-center w-11 h-11 gap-1.5 rounded-lg transition-colors"
             style={{ backgroundColor: 'color-mix(in srgb, var(--muted) 20%, transparent)' }}
-            aria-label="Menu"
+            aria-label={t('nav.menu')}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             <span
               className={`block w-6 h-0.5 rounded-full transition-all duration-300 ${
@@ -119,17 +132,24 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className="mobile-menu-overlay fixed inset-0 z-50 md:hidden"
+        ref={overlayRef}
+        className="fixed inset-0 z-50 md:hidden"
         style={{
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
           opacity: 0,
           pointerEvents: isMenuOpen ? 'auto' : 'none',
         }}
         onClick={() => setIsMenuOpen(false)}
+        aria-hidden={!isMenuOpen}
       >
         {/* Menu Panel */}
         <div
-          className="mobile-menu-panel fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] p-6 flex flex-col"
+          ref={panelRef}
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('nav.menu')}
+          className="fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] p-6 flex flex-col"
           style={{
             backgroundColor: 'var(--background)',
             transform: 'translateX(100%)',
@@ -140,10 +160,13 @@ export default function Header() {
           {/* Close Button */}
           <div className="flex justify-end mb-8">
             <button
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuOpen(false);
+                hamburgerRef.current?.focus();
+              }}
               className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
               style={{ backgroundColor: 'color-mix(in srgb, var(--muted) 15%, transparent)' }}
-              aria-label="Close menu"
+              aria-label={t('nav.closeMenu')}
             >
               <svg
                 className="w-5 h-5"
@@ -167,6 +190,7 @@ export default function Header() {
             {navKeys.map((item, index) => (
               <button
                 key={item.id}
+                ref={index === 0 ? firstMenuItemRef : undefined}
                 onClick={() => scrollToSection(item.id)}
                 className="flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 style={{

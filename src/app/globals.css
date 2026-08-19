@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  /* Light Theme */
+  /* Açık tema */
   --background: #FAFAF8;
   --foreground: #1A1A1A;
   --accent: #22C55E;
   --secondary: #3B82F6;
   --muted: #6B7280;
+  color-scheme: light;
 }
 
 .dark {
@@ -15,6 +16,7 @@
   --accent: #22C55E;
   --secondary: #3B82F6;
   --muted: #9CA3AF;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -27,10 +29,10 @@
   --font-heading: var(--font-space-grotesk);
 }
 
+/* Kaydırma çubuğu */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--muted) transparent;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, fill 0.3s ease, stroke 0.3s ease;
 }
 
 ::-webkit-scrollbar {
@@ -47,7 +49,12 @@
 }
 
 html, body {
-  overflow-x: hidden;
+  /*
+    `overflow-x: hidden` body'yi kaydırma konteynerine çevirdiği için
+    `position: sticky` kullanan her şeyi sessizce bozuyordu. `clip` aynı
+    yatay taşma korumasını verir ama sticky çalışmaya devam eder.
+  */
+  overflow-x: clip;
   width: 100%;
 }
 
@@ -58,6 +65,24 @@ body {
   position: relative;
 }
 
+/*
+  Tema geçişi. Eskiden bu kural `*` seçicisiyle sayfadaki HER elemana
+  beş özellikte geçiş tanımlıyordu; bu hem gereksiz bir maliyet hem de
+  GSAP animasyonlarıyla çakışma kaynağıydı. Artık yalnızca tema
+  değiştiğinde rengi gerçekten değişen kapsayıcılar hedefleniyor.
+*/
+body,
+header,
+section,
+article,
+footer,
+nav,
+button,
+input,
+a {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
@@ -66,86 +91,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
 
-/* Hero Video Styles */
-.hero-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
-.hero-blackout {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  z-index: 2;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 300ms ease-out;
-}
-
-.hero-blackout.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* Section reveal animation */
-.section-hidden {
-  opacity: 0;
-  transform: translateY(50px);
-}
-
-.section-visible {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-/* Timeline styles */
-.timeline-item {
-  opacity: 0;
-  transform: translateX(-60px);
-}
-
-.timeline-item.from-right {
-  transform: translateX(60px);
-}
-
-.timeline-item.visible {
-  opacity: 1;
-  transform: translateX(0);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-/* Tech tag animation */
-.tech-tag {
-  opacity: 0;
-  transform: scale(0.8);
-}
-
-.tech-tag.visible {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-}
-
-/* Project card hover */
+/* Proje kartı hover */
 .project-card {
   transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
@@ -159,32 +105,340 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Corner glow animation for stat cards */
+/* İstatistik kartlarındaki köşe parıltısı */
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Elektrik kenarlık (Teknik Yetenekler kartları) ───────────
+   React Bits / @BalintFerenczy uyarlaması. Parıltı katmanları yalnızca
+   .is-active iken görünür; imleç karttan ayrılınca yumuşakça söner.
+   Orijinaldeki `oklch(from ...)` bağıl renk sözdizimi yerine `color-mix`
+   kullanılıyor — aynı sonucu daha geniş tarayıcı desteğiyle veriyor. */
+.electric-border {
+  position: relative;
+  border-radius: inherit;
+  overflow: visible;
+  isolation: isolate;
+  /* Yükseklik flex ile aktarılıyor. Yüzde (`height: 100%`) kullanıldığında
+     zincir burada kopuyordu: yüzde yükseklik, ata elemanın yüksekliği
+     "kesin" değilse çözümlenmez ve eleman içeriğine göre büzülür. */
+  display: flex;
+  flex-direction: column;
+}
+
+.eb-canvas-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.electric-border.is-active .eb-canvas-container {
+  opacity: 1;
+}
+
+.eb-canvas {
+  display: block;
+}
+
+.eb-content {
+  position: relative;
+  border-radius: inherit;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.eb-layers {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.electric-border.is-active .eb-layers {
+  opacity: 1;
+}
+
+.eb-glow-1,
+.eb-glow-2,
+.eb-background-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.eb-glow-1 {
+  border: 2px solid color-mix(in srgb, var(--electric-border-color) 60%, transparent);
+  filter: blur(1px);
+}
+
+.eb-glow-2 {
+  border: 2px solid var(--electric-border-color);
+  filter: blur(4px);
+}
+
+.eb-background-glow {
+  z-index: -1;
+  transform: scale(1.08);
+  filter: blur(32px);
+  opacity: 0.28;
+  background: linear-gradient(
+    -30deg,
+    var(--electric-border-color),
+    transparent,
+    var(--electric-border-color)
+  );
+}
+
+/* Hareket azaltma tercihinde parıltı sabit kalır, titreşim olmaz */
+@media (prefers-reduced-motion: reduce) {
+  .electric-border.is-active .eb-canvas-container {
+    opacity: 0;
   }
 }
 
-/* Hero to About transition - enhanced blur fade */
-@keyframes blurFadeIn {
-  0% {
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-  }
-  60% {
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-  }
-  100% {
-    backdrop-filter: blur(0px);
-    -webkit-backdrop-filter: blur(0px);
+/* ─── Neo-brutalist yetenek etiketi ────────────────────────────
+   Sert ofset gölge, üzerine gelince gölge kaybolup etiket o kadar
+   kayıyor — düğmeye basılmış hissi. Gölge rengi kategori renginden
+   geliyor, her kart kendi kimliğini koruyor. */
+.neo-chip {
+  box-shadow: 3px 3px 0 var(--chip-shadow);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.neo-chip:hover,
+.neo-chip:focus-visible {
+  box-shadow: 0 0 0 var(--chip-shadow);
+  transform: translate(3px, 3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neo-chip:hover,
+  .neo-chip:focus-visible {
+    transform: none;
   }
 }
 
-.transition-blur-fade {
-  animation: blurFadeIn 1.8s ease-out forwards;
+/* ─── CV klasörü ───────────────────────────────────────────────
+   React Bits / Folder uyarlaması. Kapalıyken üzerinde etiket taşır,
+   açılınca içindeki kâğıtlar yelpaze gibi dağılır. */
+.folder {
+  position: relative;
+  transition: transform 0.2s ease-in;
+  cursor: pointer;
+}
+
+.folder__label {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 26%;
+  transform: translateX(-50%);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: #06210f;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.folder.open .folder__label {
+  opacity: 0;
+}
+
+.folder:not(.open):hover {
+  transform: translateY(-8px);
+}
+
+.folder:not(.open):hover .paper {
+  transform: translate(-50%, 0%);
+}
+
+.folder:not(.open):hover .folder__front {
+  transform: skew(15deg) scaleY(0.6);
+}
+
+.folder:not(.open):hover .right {
+  transform: skew(-15deg) scaleY(0.6);
+}
+
+.folder.open {
+  transform: translateY(-8px);
+}
+
+.folder.open .paper:nth-child(1) {
+  transform: translate(-108%, -72%) rotateZ(-13deg);
+}
+
+.folder.open .paper:nth-child(2) {
+  transform: translate(8%, -72%) rotateZ(13deg);
+  height: 80%;
+}
+
+/* Açık klasördeki kâğıtlar tıklanabilir. Hangisinin hedeflendiği tereddütsüz
+   anlaşılmalı: kâğıt aksan rengine boyanıyor, kalın halka alıyor, öne çıkıyor
+   ve büyüyor. Vurgu .is-hovered sınıfıyla geliyor (bkz. Folder.tsx). */
+/* Klasör kapalıyken kâğıtlar hover'da görünüyor ama tıklanmamalı:
+   aksi halde daha klasörü açmadan içerideki düğmeler tetikleniyordu. */
+.folder:not(.open) .paper {
+  pointer-events: none;
+}
+
+.folder.open .paper {
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.28s ease-in-out,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.folder.open .paper.is-hovered {
+  z-index: 6;
+  background: var(--folder-color);
+  box-shadow:
+    0 0 0 4px #0A0A0A,
+    0 0 0 7px var(--folder-color),
+    0 22px 44px rgba(0, 0, 0, 0.55);
+}
+
+.folder.open .paper:nth-child(1).is-hovered {
+  transform: translate(-116%, -82%) rotateZ(-10deg) scale(1.18);
+}
+
+.folder.open .paper:nth-child(2).is-hovered {
+  transform: translate(16%, -82%) rotateZ(10deg) scale(1.18);
+}
+
+.folder.open .paper:nth-child(3).is-hovered {
+  transform: translate(-50%, -108%) rotateZ(3deg) scale(1.18);
+}
+
+/* Üçüncü kâğıt yalnızca üç öğe verildiğinde oluşur */
+.folder.open .paper:nth-child(3) {
+  transform: translate(-50%, -98%) rotateZ(4deg);
+  height: 80%;
+}
+
+.folder.open .folder__front {
+  transform: skew(15deg) scaleY(0.6);
+}
+
+.folder.open .right {
+  transform: skew(-15deg) scaleY(0.6);
+}
+
+.folder__back {
+  position: relative;
+  width: 100px;
+  height: 80px;
+  background: var(--folder-back-color);
+  border-radius: 0 10px 10px 10px;
+}
+
+.folder__back::after {
+  position: absolute;
+  z-index: 0;
+  bottom: 98%;
+  left: 0;
+  content: '';
+  width: 30px;
+  height: 10px;
+  background: var(--folder-back-color);
+  border-radius: 5px 5px 0 0;
+}
+
+.paper {
+  position: absolute;
+  z-index: 2;
+  bottom: 10%;
+  left: 50%;
+  transform: translate(-50%, 10%);
+  width: 70%;
+  height: 80%;
+  background: var(--paper-1);
+  border-radius: 10px;
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.paper:nth-child(2) {
+  background: var(--paper-2);
+  width: 80%;
+  height: 70%;
+}
+
+.paper:nth-child(3) {
+  background: var(--paper-3);
+  width: 90%;
+  height: 60%;
+}
+
+.folder__front {
+  position: absolute;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  background: var(--folder-color);
+  border-radius: 5px 10px 10px 10px;
+  transform-origin: bottom;
+  transition: transform 0.3s ease-in-out;
+}
+
+.folder:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder,
+  .folder .paper,
+  .folder__front {
+    transition: none;
+  }
+}
+
+/* Sabit üst çubuk hedef bölümün başlığını kapatmasın */
+[id] {
+  scroll-margin-top: 6rem;
+}
+
+/* Klavye ile gezinenler için görünür odak halkası */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+  Hareket duyarlılığı olan ziyaretçiler için: animasyonlar ve geçişler
+  neredeyse anlık hale gelir. GSAP tarafındaki karşılığı bileşenlerde
+  matchMedia ile kontrol ediliyor.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
