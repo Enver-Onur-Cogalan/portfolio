@@ -1,21 +1,20 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import HeroPhone from '@/components/ui/HeroPhone';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface HeroProps {
-  onVideoEnd: () => void;
+  /** Video kaydırması bittiğinde tetiklenir */
+  onVideoEnd?: () => void;
 }
 
 export default function Hero({ onVideoEnd }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const welcomeRef = useRef<HTMLDivElement>(null);
-  const glassCardRef = useRef<HTMLDivElement>(null);
   const blackoutRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
   const hasLeftRef = useRef(false);
   const { t } = useLanguage();
 
@@ -38,10 +37,8 @@ export default function Hero({ onVideoEnd }: HeroProps) {
     const video = videoRef.current;
     const welcome = welcomeRef.current;
     const blackout = blackoutRef.current;
-    const nameEl = nameRef.current;
-    const subtitle = subtitleRef.current;
 
-    if (!container || !video || !welcome || !blackout || !glassCardRef.current) return;
+    if (!container || !video || !welcome || !blackout) return;
 
     const mobile = window.innerWidth < 768;
 
@@ -53,58 +50,6 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power2.out' }
     );
-
-    gsap.fromTo(
-      glassCardRef.current,
-      { opacity: 0, x: -50, scale: 0.9 },
-      { opacity: 1, x: 0, scale: 1, duration: 0.8, delay: 0.8, ease: 'power2.out' }
-    );
-
-    if (nameEl) {
-      const name = 'Enver Onur Çoğalan';
-      nameEl.textContent = '';
-      const chars = name.split('');
-      chars.forEach((char) => {
-        const span = document.createElement('span');
-        span.textContent = char;
-        span.className = 'name-char';
-        span.style.opacity = '0';
-        nameEl.appendChild(span);
-      });
-
-      gsap.to('.name-char', {
-        opacity: 1,
-        duration: 0.05,
-        stagger: 0.08,
-        delay: 1,
-        ease: 'none',
-      });
-    }
-
-    if (subtitle) {
-      const words = subtitle.textContent?.split(' ') || [];
-      subtitle.textContent = words.join(' ');
-
-      const glitchWord = () => {
-        const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`';
-        const randomIndex = Math.floor(Math.random() * words.length);
-        const originalWord = words[randomIndex];
-        const glitchedWord = originalWord.split('').map(c =>
-          Math.random() > 0.7 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : c
-        ).join('');
-
-        const tempText = words.map((w, i) => i === randomIndex ? glitchedWord : w).join(' ');
-        subtitle.textContent = tempText;
-
-        setTimeout(() => {
-          subtitle.textContent = words.join(' ');
-        }, 150);
-
-        setTimeout(glitchWord, 2000 + Math.random() * 3000);
-      };
-
-      setTimeout(glitchWord, 2500);
-    }
 
     let ctx: gsap.Context;
     let rafId: number;
@@ -119,6 +64,8 @@ export default function Hero({ onVideoEnd }: HeroProps) {
           start: 'top top',
           end: mobile ? '+=1500' : '+=3000',
           pin: true,
+          // Sayfadaki ilk pin — ScrollMask'ten önce ölçülmeli
+          refreshPriority: 2,
           scrub: mobile ? 2 : 0.5,
           onUpdate: (self) => {
             // On mobile, skip tiny progress changes to reduce decode calls
@@ -134,17 +81,13 @@ export default function Hero({ onVideoEnd }: HeroProps) {
                 opacity: Math.max(0, 1 - self.progress * 3),
                 duration: 0.1,
               });
-              gsap.to(glassCardRef.current, {
-                opacity: Math.max(0, 1 - self.progress * 3),
-                duration: 0.1,
-              });
             });
           },
           onLeave: () => {
             hasLeftRef.current = true;
             blackout.style.opacity = '1';
             video.pause();
-            onVideoEnd();
+            onVideoEnd?.();
           },
           onEnterBack: () => {
             hasLeftRef.current = false;
@@ -165,6 +108,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
 
     return () => {
       cancelAnimationFrame(rafId);
+      video.removeEventListener('loadedmetadata', setupScrollTrigger);
       if (ctx) ctx.revert();
     };
   }, [onVideoEnd]);
@@ -180,50 +124,38 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         className="absolute inset-0 w-full h-full object-cover"
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
+        aria-hidden="true"
       />
       <div className="absolute inset-0 bg-black/30" />
+
+
       <div
         ref={blackoutRef}
         className="absolute inset-0 bg-background z-20 opacity-0"
       />
 
+      {/*
+        Telefon masaüstünde solda duruyor; ortada dursaydı arkadaki videonun
+        asıl öznesini (mikroskop) kapatıyordu. Mobilde yan yana yer olmadığı
+        için alt alta geçer.
+      */}
       <div
         ref={welcomeRef}
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-0 px-4"
+        className="absolute inset-0 z-10 opacity-0 px-6 md:px-12"
       >
-        <div
-          ref={glassCardRef}
-          className="glass-card relative px-5 py-4 md:px-8 md:py-5 rounded-2xl border border-white/20 backdrop-blur-sm md:backdrop-blur-md mb-4 md:mb-6 max-w-[90vw]"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05)',
-          }}
-        >
-          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/30 rounded-tl-xl" />
-          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/30 rounded-tr-xl" />
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/30 rounded-bl-xl" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/30 rounded-br-xl" />
+        <div className="h-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-center md:justify-start gap-7 md:gap-14">
+          <HeroPhone />
 
-          <h2
-            ref={nameRef}
-            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-white tracking-wide text-center"
-          />
-
-          <p
-            ref={subtitleRef}
-            className="text-xs sm:text-sm md:text-base text-[var(--accent)] tracking-widest uppercase mt-1 text-center"
-          >
-            {t('hero.subtitle')}
-          </p>
+          <div className="text-center md:text-left">
+            <p className="text-2xl sm:text-4xl md:text-6xl font-bold text-white font-heading leading-tight">
+              {t('hero.welcome')}
+            </p>
+            <p className="text-white/70 mt-3 md:mt-5 text-base md:text-lg">
+              {t('hero.scroll')}
+            </p>
+          </div>
         </div>
-
-        <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white font-heading text-center">
-          {t('hero.welcome')}
-        </h1>
-        <p className="text-white/70 mt-6 md:mt-8 text-base md:text-lg text-center">
-          {t('hero.scroll')}
-        </p>
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
