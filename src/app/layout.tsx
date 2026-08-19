@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import MusicPlayer from "@/components/ui/MusicPlayer";
 import ChatWidget from "@/components/chat/ChatWidget";
 import { socialLinks, techStack } from "@/data/portfolio";
+import { SITE_URL } from "@/data/site";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,7 +21,6 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const SITE_URL = "https://portfolio-sand-two-79.vercel.app";
 const TITLE = "Enver Onur Çoğalan | AI Engineer & Mobile Developer";
 const DESCRIPTION =
   "Biyoloji disipliniyle yetişmiş, AI mühendisliği ve React Native geliştirme üzerine çalışan bir yazılım geliştiricisi. Projeler, deneyimler ve iletişim.";
