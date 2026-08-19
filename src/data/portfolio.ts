@@ -5,8 +5,17 @@ export const socialLinks = {
   email: 'eonurcogalan@gmail.com',
 };
 
-export const projects = [
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string[];
+  github: string;
+}
+
+export const projects: Project[] = [
   {
+    id: 'portfolio',
     title: 'Portfolio',
     description:
       'Modern animasyonlar ve interaktif sohbet botu ile kişisel portfolyo websitesi. Hakkımda, projeler, deneyimler ve iletişim bölümlerini içeren Next.js uygulaması.',
@@ -14,6 +23,7 @@ export const projects = [
     github: 'https://github.com/Enver-Onur-Cogalan/portfolio',
   },
   {
+    id: 'jarvis',
     title: 'Jarvis',
     description:
       'Jarvis Assistant, günlük işlerinizi kolaylaştırmak ve sesli komutlarla mobil cihazınızla etkileşim kurmanıza olanak sağlamak üzere tasarlanmış akıllı bir kişisel asistandır.',
@@ -21,6 +31,7 @@ export const projects = [
     github: 'https://github.com/Enver-Onur-Cogalan/Jarvis',
   },
   {
+    id: 'chatapp',
     title: 'ChatApp',
     description:
       'ChatApp, React Native CLI ve Socket.IO ile geliştirilmiş, gerçek zamanlı bire bir ve grup sohbet uygulamasıdır.',
@@ -28,6 +39,7 @@ export const projects = [
     github: 'https://github.com/Enver-Onur-Cogalan/chatApp',
   },
   {
+    id: 'movieapp',
     title: 'MovieApp',
     description:
       'React Native ile geliştirilmiş film izleme uygulaması.',
@@ -36,70 +48,199 @@ export const projects = [
   },
 ];
 
-export const experiences = [
+// ─── Deneyim Modeli ──────────────────────────────────────────
+// `id`  → çeviri anahtarlarının kökü (experience.<id>.*)
+// `caseStudy` → uzun anlatımlı deneyimler için Problem/Yaklaşım/Sonuç blokları
+// `metrics`   → kartta öne çıkan sayısal sonuçlar
+export type ExperienceType = 'education' | 'work';
+
+export interface ExperienceMetric {
+  /** Öne çıkan değer, ör. '%40' */
+  value: string;
+  /** Çeviri anahtarı soneki: experience.<id>.metric.<key> */
+  key: string;
+}
+
+export interface Experience {
+  id: string;
+  /** Dönem etiketinin çeviri anahtarı */
+  periodKey: string;
+  /** Çeviri bulunamazsa kullanılacak Türkçe dönem metni */
+  period: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  type: ExperienceType;
+  /** Başlığın altında duran tek cümlelik iş tanımı */
+  headline?: string;
+  /** Problem / Yaklaşım / Sonuç bloklarının çeviri anahtarı sonekleri */
+  caseStudy?: string[];
+  metrics?: ExperienceMetric[];
+  tech?: string[];
+}
+
+export const experiences: Experience[] = [
   {
+    id: 'ege',
+    periodKey: 'exp.period.2020-2024',
     period: '2020 - 2024',
     title: 'Ege Üniversitesi',
     subtitle: 'Biyoloji Bölümü',
     description: 'Not ortalaması: 3.05/4',
-    type: 'education' as const,
+    type: 'education',
   },
   {
+    id: 'patika',
+    periodKey: 'exp.period.2025',
     period: '2025',
     title: 'Patika+ React Native Bootcamp',
     subtitle: 'Bootcamp',
     description:
       'Seçkin ve yoğun içerikli bir yazılım bootcamp\'ini başarıyla tamamladım. React Native, JavaScript ve Git teknolojilerine odaklanarak, gerçek dünya problemlerine çözüm sağlayan mobil uygulama projeleri geliştirdim.',
-    type: 'education' as const,
+    type: 'education',
   },
   {
+    id: 'appisode',
+    periodKey: 'exp.period.aug-sep-2025',
     period: 'Ağustos 2025 - Eylül 2025',
     title: 'Appisode',
     subtitle: 'Freelance React Native FullStack Developer',
     description:
       'London, UK (Remote). React Native tabanlı Expo framework\'ü kullanarak mobil uygulama geliştirme üzerinde çalıştım. Yeni özellikler geliştirdim, UI/UX iyileştirmeleri ve performans optimizasyonları yaptım.',
-    type: 'work' as const,
+    type: 'work',
   },
   {
-    period: 'Aralık 2025 - Devam Ediyor',
+    id: 'envagro',
+    periodKey: 'exp.period.dec2025-jun2026',
+    period: 'Aralık 2025 - Haziran 2026',
     title: 'Envagro',
-    subtitle: 'AI Researcher & Mobile Developer',
+    subtitle: 'AI Researcher',
+    headline: 'Konuşma ve Dil Modellerinin Ürüne Dönüşümü',
     description:
-      'STT, TTS ve LLM modelleri üzerine detaylı saha ve literatür araştırmaları yapmak. Farklı açık kaynak ve ticari AI modellerini karşılaştırmak, benchmark çalışmaları yürütmek.',
-    type: 'work' as const,
+      'Konuşmaya dayalı yapay zekâ özellikleri için model seçimini sezgiden çıkarıp ölçüme dayandırdım. STT, TTS ve LLM modellerini aynı koşullarda benchmark edip seçilenleri ölçeklenebilir API\'lerle prototipten canlı ürüne taşıdım.',
+    caseStudy: ['context', 'approach', 'result'],
+    tech: ['STT', 'TTS', 'LLM', 'Benchmarking', 'API Design'],
+    type: 'work',
+  },
+  {
+    id: 'unimall',
+    periodKey: 'exp.period.jun-aug-2026',
+    period: 'Haziran 2026 - Ağustos 2026',
+    title: 'Unimall',
+    subtitle: 'AI Engineer',
+    headline: '22 Milyon Kayıtlık E-ticaret Operasyonunun Otomasyonu',
+    description:
+      'Üç satış kanalına yayılmış 22 milyondan fazla ürün kaydının yönetildiği e-ticaret operasyonunu uçtan uca otomatikleştirdim. Cronjob ve webhook tabanlı senkronizasyon mimarisi, ilan metni üreten AI agent, OCR destekli veri girişi ve agentic destek chatbotu geliştirip üç ayrı paneli tek arayüzde topladım. OCR entegrasyonu tek başına operasyonel maliyette %40 tasarruf sağladı.',
+    caseStudy: ['problem', 'approach', 'result'],
+    metrics: [
+      { value: '22M+', key: 'records' },
+      { value: '%40', key: 'cost' },
+      { value: '3 → 1', key: 'panels' },
+    ],
+    tech: ['AI Agents', 'OCR', 'Webhooks', 'Cronjob', 'Python', 'RAG'],
+    type: 'work',
   },
 ];
 
-export const techStack = [
-  'React Native & Expo',
-  'TypeScript & JavaScript',
-  'React & Next.js',
-  'Streamlit',
-  'Python',
-  'Supabase & Firebase',
-  'MongoDB',
-  'Railway',
+// ─── Teknik Yetenekler ───────────────────────────────────────
+// Kalemler alan bazında gruplanır. Teknik terimler dilden bağımsız
+// olduğu için çevrilmez; yalnızca kategori başlıkları çevirilir.
+export interface SkillCategory {
+  id: string;
+  titleKey: string;
+  color: string;
+  skills: string[];
+  /** Izgarada iki sütunu birden kaplar */
+  fullWidth?: boolean;
+}
+
+export const skillCategories: SkillCategory[] = [
+  {
+    id: 'ai',
+    titleKey: 'skills.category.ai',
+    color: '#22C55E',
+    skills: [
+      'LLM',
+      'RAG',
+      'AI Agents',
+      'LangChain',
+      'LangGraph',
+      'Azure OpenAI',
+      'OCR',
+      'STT / TTS',
+      'Prompt Engineering',
+      'Model Benchmarking',
+    ],
+  },
+  {
+    id: 'mobile',
+    titleKey: 'skills.category.mobile',
+    color: '#3B82F6',
+    skills: ['React Native', 'Expo', 'React Native CLI', 'TypeScript'],
+  },
+  {
+    id: 'web',
+    titleKey: 'skills.category.web',
+    color: '#8B5CF6',
+    skills: ['React', 'Next.js', 'Tailwind CSS', 'GSAP', 'Streamlit'],
+  },
+  {
+    id: 'backend',
+    titleKey: 'skills.category.backend',
+    color: '#F59E0B',
+    skills: [
+      'Node.js',
+      'Python',
+      'API Design',
+      'Socket.IO',
+      'PostgreSQL',
+      'MongoDB',
+      'Redis',
+      'Supabase',
+      'Firebase',
+    ],
+  },
+  {
+    // Temel araçlar tek satırlık bir şerit olarak altta durur
+    id: 'infra',
+    titleKey: 'skills.category.infra',
+    color: '#06B6D4',
+    fullWidth: true,
+    skills: [
+      'Docker',
+      'Microsoft Azure',
+      'Azure Blob Storage',
+      'Signed URL / SAS',
+      'Railway',
+      'Git',
+      'Webhooks & Cronjob',
+    ],
+  },
 ];
 
-export const bio = `Biyoloji disipliniyle yetişmiş, yazılıma gönül vermiş bir geliştiriciyim. React Native ile akıcı ve samimi kullanıcı deneyimleri tasarlarken, AI Researcher heyecanımla yapay zekayı projelerime değer katan bir yol arkadaşı olarak dahil ediyorum. Karmaşık problemleri basit çözümlere dönüştürmeyi, öğrenmeyi ve paylaşmayı seviyorum. Veriyi kullanıcı dostu hikayelere dönüştürmek için kod yazıyorum.`;
+/** Düz liste — JSON-LD `knowsAbout` ve sohbet botu için. */
+export const techStack: string[] = skillCategories.flatMap((c) => c.skills);
 
-export const aboutStats = [
-  { value: 1, suffix: '+', label: 'Yıllık Deneyim', color: '#22C55E' },
-  { value: 14, suffix: '', label: 'Proje', color: '#3B82F6' },
-  { value: '∞', suffix: '', label: 'İçilen Kahve', color: '#8B5CF6' },
+export interface AboutStat {
+  value: string;
+  labelKey: string;
+  color: string;
+}
+
+export const aboutStats: AboutStat[] = [
+  { value: '1+', labelKey: 'about.stat.experience', color: '#22C55E' },
+  { value: '17', labelKey: 'about.stat.projects', color: '#3B82F6' },
+  { value: '∞', labelKey: 'about.stat.coffee', color: '#8B5CF6' },
 ];
 
-export const aboutPrinciples = [
-  {
-    title: 'Karmaşıklığı Sadeleştirmek',
-    quote: 'Karmaşıklığı sadeleştirmek bir tercih değil, bir sanat biçimidir.',
-  },
-  {
-    title: 'En İyi Kod',
-    quote: 'En iyi kod, yazılmasına gerek kalmayan koddur.',
-  },
-  {
-    title: 'Biyolojik Düzen',
-    quote: 'Hücrelerin mükemmel düzenini, yazdığım her satıra taşımayı hedefliyorum.',
-  },
+export interface AboutPrinciple {
+  titleKey: string;
+  quoteKey: string;
+  color: string;
+}
+
+export const aboutPrinciples: AboutPrinciple[] = [
+  { titleKey: 'about.principle1.title', quoteKey: 'about.principle1.quote', color: '#22C55E' },
+  { titleKey: 'about.principle2.title', quoteKey: 'about.principle2.quote', color: '#3B82F6' },
+  { titleKey: 'about.principle3.title', quoteKey: 'about.principle3.quote', color: '#8B5CF6' },
 ];
