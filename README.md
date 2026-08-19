@@ -1,168 +1,112 @@
-# Portfolio Website
+# Portfolio
 
-A modern, responsive portfolio website built with Next.js 16, featuring a glass-brutalist design aesthetic with smooth GSAP animations and interactive chatbot.
+Enver Onur Çoğalan'ın kişisel portfolyo sitesi. Next.js 16 (App Router), GSAP animasyonları, kural tabanlı iki dilli bir sohbet botu ve senkron sözlü müzik çalar içerir.
 
-**Live Demo:** https://portfolio-sand-two-79.vercel.app
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| **Framework** | Next.js 16 (App Router) |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS |
-| **Animations** | GSAP |
-| **Icons** | Lucide React |
-| **Deployment** | Vercel |
-
-### Dependencies
-
-- `next` - React framework with App Router
-- `react` / `react-dom` - UI library
-- `gsap` - Animation library
-- `lucide-react` - Icon library
-- `tailwindcss` - Utility-first CSS framework
+**Canlı:** https://portfolio-sand-two-79.vercel.app
 
 ---
 
-## Project Structure
+## Teknolojiler
+
+| Alan | Kullanılan |
+|------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Dil | TypeScript (strict) |
+| Stil | Tailwind CSS v4 |
+| Animasyon | GSAP + ScrollTrigger |
+| Arama | Fuse.js (sohbet botu yazım hatası toleransı) |
+| İkonlar | Lucide React |
+| Dağıtım | Vercel |
+
+---
+
+## Proje Yapısı
 
 ```
-portfolio/
-├── public/
-│   └── portfolio-music.mp3      # Background music track
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── chat/
-│   │   │       └── route.ts     # Chatbot API endpoint
-│   │   ├── layout.tsx           # Root layout
-│   │   ├── page.tsx             # Homepage
-│   │   └── globals.css           # Global styles + CSS variables
-│   ├── components/
-│   │   ├── chat/
-│   │   │   ├── ChatMessage.tsx  # Chat message component
-│   │   │   └── ChatWidget.tsx   # Interactive chatbot widget
-│   │   ├── layout/
-│   │   │   ├── Footer.tsx       # Footer section
-│   │   │   └── Header.tsx       # Header with mobile hamburger menu
-│   │   ├── sections/
-│   │   │   ├── About.tsx        # About section
-│   │   │   ├── Contact.tsx      # Contact section
-│   │   │   ├── Experience.tsx   # Experience timeline
-│   │   │   ├── Hero.tsx         # Hero section
-│   │   │   ├── Philosophy.tsx   # Philosophy quotes
-│   │   │   ├── Projects.tsx     # Projects showcase
-│   │   │   └── Skills.tsx       # Skills grid
-│   │   └── ui/
-│   │       ├── LanguageToggle.tsx   # Language switcher (TR/EN)
-│   │       ├── MusicPlayer.tsx      # Audio player with lyrics
-│   │       └── ThemeToggle.tsx      # Light/Dark theme switcher
-│   ├── context/
-│   │   ├── LanguageContext.tsx  # i18n context provider
-│   │   └── ThemeContext.tsx     # Theme context provider
-│   ├── data/
-│   │   └── music.ts             # Music lyrics data
-│   ├── lib/
-│   │   ├── chat/
-│   │   │   ├── matcher.ts       # Keyword matching engine
-│   │   │   └── responses.ts     # Q&A response data
-│   │   └── gsap.ts              # GSAP configuration
-│   └── types/
-│       └── index.ts              # TypeScript type definitions
-├── next.config.ts                # Next.js configuration
-├── tailwind.config.ts           # Tailwind CSS configuration
-├── package.json
-└── tsconfig.json
+src/
+├── app/
+│   ├── api/chat/route.ts      # Sohbet botu uç noktası (hız sınırlı)
+│   ├── layout.tsx             # Kök düzen, metadata, JSON-LD, tema scripti
+│   ├── page.tsx               # Ana sayfa
+│   ├── globals.css            # CSS değişkenleri ve tema
+│   ├── opengraph-image.tsx    # Paylaşım görseli (çalışma anında üretilir)
+│   ├── robots.ts              # robots.txt
+│   └── sitemap.ts             # sitemap.xml
+├── components/
+│   ├── chat/                  # ChatWidget, ChatMessage
+│   ├── layout/Header.tsx      # Üst çubuk + mobil menü
+│   ├── sections/              # Hero, About, Projects, Experience, Contact
+│   └── ui/                    # LanguageToggle, ThemeToggle, MusicPlayer, ...
+├── context/                   # Tema ve dil sağlayıcıları
+├── data/
+│   ├── portfolio.ts           # Projeler, deneyimler, teknoloji listesi
+│   └── music.ts               # Şarkı sözü zaman damgaları
+├── i18n/translations.ts       # TR/EN çeviri sözlüğü (tek kaynak)
+└── lib/
+    ├── chat/                  # matcher, responses, profanity (+ testi)
+    └── gsap.ts                # GSAP eklenti kaydı
 ```
 
 ---
 
-## Features
+## Mimari Notlar
 
-- **Responsive Design** - Mobile-first approach with hamburger menu
-- **Dark/Light Theme** - System preference detection with manual toggle
-- **Bilingual Support** - Turkish and English languages
-- **Smooth Animations** - GSAP-powered scroll and entrance animations
-- **Interactive Chatbot** - Rule-based FAQ chatbot
-- **Music Player** - Background music with synchronized lyrics
-- **Glass UI Elements** - Frosted glass aesthetic with backdrop blur
+**Çeviriler tek kaynaktan.** `src/i18n/translations.ts` hem istemci (`LanguageContext`) hem sunucu (bot yanıtları) tarafından okunur. Bot yanıtlarındaki proje ve deneyim listeleri `data/portfolio.ts`'ten üretilir — yeni bir deneyim eklendiğinde bot da onu bilir, ayrıca güncellenmesi gerekmez.
+
+**Sohbet bağlamı istemcide.** Konuşma bağlamı (`lastTopic`, `recentTopics`) `ChatWidget` içinde tutulur ve her istekle gönderilir. Sunucuda durum tutulmaz; sunucusuz ortamda ziyaretçilerin birbirinin bağlamını görmesi bu şekilde engellenir.
+
+**Tema React'tan önce uygulanır.** `layout.tsx` içindeki engelleyici script, `html` etiketine `dark` sınıfını React çalışmadan önce ekler. Context bu harici duruma `useSyncExternalStore` ile abone olur; böylece koyu tema tercih eden ziyaretçi beyaz flaş görmez ve hydration uyuşmazlığı oluşmaz.
+
+**Deneyimler vaka çalışması olabilir.** Bir deneyime `caseStudy`, `metrics` ve `headline` alanları eklendiğinde zaman çizelgesi kartı otomatik olarak katlanabilir Problem/Yaklaşım/Sonuç blokları ve ölçüm şeridi ile render edilir.
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm / yarn / pnpm / bun
-
-### Installation
+## Geliştirme
 
 ```bash
-# Clone the repository
-git clone https://github.com/Enver-Onur-Cogalan/portfolio.git
-cd portfolio
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Build for Production
-
-```bash
-npm run build
-npm start
+npm run dev      # http://localhost:3000
+npm run build    # üretim derlemesi
+npm test         # birim testleri
+npm run lint     # ESLint
 ```
 
 ---
 
-## Sections
-
-| Section | Description |
-|---------|-------------|
-| **Hero** | Introduction with role title and CTA |
-| **About** | Personal stats and biography |
-| **Philosophy** | Three guiding principles |
-| **Skills** | Technical stack grid |
-| **Projects** | Featured work showcase |
-| **Experience** | Education and work timeline |
-| **Contact** | Email and social links |
-
----
-
-## API Endpoints
+## Sohbet Botu API'si
 
 ### POST `/api/chat`
 
-Send a message to the chatbot.
-
-**Request:**
+**İstek**
 ```json
 {
-  "message": "Projelerin hakkında bilgi ver",
-  "lang": "tr"
+  "message": "projelerin neler",
+  "lang": "tr",
+  "context": { "lastTopic": null, "recentTopics": [] },
+  "quickReplyId": "4"
 }
 ```
 
-**Response:**
+`lang` verilmezse `tr` varsayılır. `context` isteğe bağlıdır; önceki yanıttan gelen değer geri gönderilirse bot takip sorularını ("peki github?") anlar. `quickReplyId` yalnızca hızlı yanıt düğmelerinde kullanılır.
+
+**Yanıt**
 ```json
 {
-  "response": "Portfolio' da 3 proje bulunuyor...",
-  "typingDelay": 500,
-  "showOptions": true
+  "response": "İşte Onur'un öne çıkan projeleri: ...",
+  "showOptions": false,
+  "sectionId": "projeler",
+  "autoScrollDelay": 2000,
+  "typingDelay": 900,
+  "context": { "lastTopic": "projeler", "recentTopics": ["projeler"] }
 }
 ```
+
+`sectionId` doluysa istemci mesajın altında ilgili bölüme götüren bir bağlantı gösterir.
+
+**Sınırlar:** mesaj başına 500 karakter, IP başına dakikada 40 istek (aşılırsa `429`).
 
 ---
 
-## License
+## Lisans
 
-MIT License - feel free to use this template for your own portfolio.
+MIT
