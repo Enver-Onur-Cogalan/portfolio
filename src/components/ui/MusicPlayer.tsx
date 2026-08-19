@@ -12,7 +12,6 @@ export default function MusicPlayer() {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const [currentLyric, setCurrentLyric] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -20,20 +19,39 @@ export default function MusicPlayer() {
   const infoRef = useRef<HTMLDivElement>(null);
   const lyricRef = useRef<HTMLSpanElement>(null);
   const prevLyricIndexRef = useRef(-1);
+  const prevSecondRef = useRef(-1);
+  // Web Audio zinciri: <audio> → analiz → hoparlör
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const frameRef = useRef<number | null>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    audioRef.current = new Audio('/portfolio-music.mp3');
+    audioRef.current = new Audio();
+    // Şarkı ~4.8 MB. preload='none' ile dosya ancak kullanıcı çal'a
+    // bastığında inmeye başlar; sayfa açılışında bant genişliği harcanmaz.
+    audioRef.current.preload = 'none';
+    audioRef.current.src = '/portfolio-music.mp3';
     audioRef.current.loop = true;
 
+    // timeupdate saniyede birkaç kez tetiklenir. Eskiden her seferinde üç
+    // ayrı state güncelleniyor, müzik çalarken bileşen sürekli yeniden
+    // render oluyordu. Artık yalnızca gösterilen değer değiştiğinde
+    // güncelleme yapılıyor.
     audioRef.current.addEventListener('timeupdate', () => {
-      if (!audioRef.current || !audioRef.current.duration) return;
+      const audio = audioRef.current;
+      if (!audio || !audio.duration) return;
 
-      const time = audioRef.current.currentTime;
-      setProgress((time / audioRef.current.duration) * 100);
-      setCurrentTime(time);
+      const time = audio.currentTime;
+      const wholeSecond = Math.floor(time);
+
+      if (wholeSecond !== prevSecondRef.current) {
+        prevSecondRef.current = wholeSecond;
+        setCurrentTime(wholeSecond);
+        setProgress((time / audio.duration) * 100);
+      }
 
       const currentIdx = musicLyrics.findIndex((lyric, idx) => {
         const nextLyric = musicLyrics[idx + 1];
@@ -42,7 +60,6 @@ export default function MusicPlayer() {
 
       if (currentIdx !== -1 && currentIdx !== prevLyricIndexRef.current) {
         prevLyricIndexRef.current = currentIdx;
-        setCurrentLyricIndex(currentIdx);
         setCurrentLyric(musicLyrics[currentIdx].text);
       }
     });
@@ -62,6 +79,10 @@ export default function MusicPlayer() {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+      analyserRef.current = null;
     };
   }, []);
 
@@ -96,32 +117,115 @@ export default function MusicPlayer() {
     }
   }, [showInfo]);
 
+  /*
+    Ses çubukları. Önceki sürüm Math.random() ile bir yükseklik seçip
+    yoyo+repeat ile onu sonsuza dek tekrarlıyordu — yani çubuklar rastgele
+    bile değil, sabit bir değere gidip geliyordu ve çalan sesle hiçbir
+    ilgileri yoktu. Artık gerçek frekans verisini gösteriyorlar.
+  */
   useEffect(() => {
-    if (!barsRef.current) return;
+    const container = barsRef.current;
+    if (!container) return;
 
-    const bars = barsRef.current.querySelectorAll('.sound-bar');
-    let animation: gsap.core.Tween;
+    const bars = Array.from(container.querySelectorAll<HTMLElement>('.sound-bar'));
+    if (bars.length === 0) return;
 
-    if (isPlaying) {
-      animation = gsap.to(bars, {
-        scaleY: () => Math.random() * 0.6 + 0.4,
-        duration: 0.2,
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Durdurulduğunda ya da hareket azaltıldığında çubuklar dinlenir
+    if (!isPlaying || reduceMotion) {
+      gsap.to(bars, {
+        scaleY: 0.14,
+        opacity: 0.5,
+        duration: 0.4,
+        ease: 'power2.out',
+        stagger: 0.03,
+      });
+      return;
+    }
+
+    const analyser = analyserRef.current;
+
+    // Web Audio kullanılamıyorsa (eski tarayıcı, kısıtlı ortam) eski
+    // davranışa dön: en azından bir hareket olsun.
+    if (!analyser) {
+      const tween = gsap.to(bars, {
+        scaleY: () => 0.3 + Math.random() * 0.6,
+        opacity: 0.85,
+        duration: 0.28,
         repeat: -1,
+        repeatRefresh: true,
         yoyo: true,
         ease: 'power1.inOut',
         stagger: 0.05,
       });
-    } else {
-      gsap.to(bars, {
-        scaleY: 0.3,
-        duration: 0.3,
-        ease: 'power2.out',
-        stagger: 0.03,
-      });
+      return () => {
+        tween.kill();
+      };
     }
 
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const binCount = analyser.frequencyBinCount;
+    const nyquist = (audioCtxRef.current?.sampleRate ?? 44100) / 2;
+
+    // Ritmi taşıyan bölge: kick, bas ve vokal gövdesi. Dalganın yüksekliğini
+    // ve hızını bu aralığın anlık enerjisi belirliyor.
+    const beatFrom = Math.max(1, Math.floor((40 / nyquist) * binCount));
+    const beatTo = Math.min(binCount, Math.ceil((2200 / nyquist) * binCount));
+
+    /*
+      Yürüyen dalga.
+
+      Önceki sürüm bir frekans spektrumuydu: her çubuk ayrı bir bandı
+      gösteriyordu, dolayısıyla hepsi aynı anda birbirinden bağımsız
+      oynuyordu — göz bunu "dalga" olarak okumuyordu.
+
+      Şimdi çubuklar sesin ZAMAN İÇİNDEKİ geçmişi. Yeni değer en soldaki
+      çubuğa giriyor, her adımda bir sağa kayıyor. Böylece bir tepe
+      A → B → C diye yürüyor ve arkasında bıraktığı çubuklar sönüyor.
+      Adım aralığı enerjiyle kısalıyor: parça hızlandıkça dalga hızlanıyor.
+    */
+    const wave = new Array(bars.length).fill(0.14);
+    const shown = new Array(bars.length).fill(0.14);
+    let carry = 0;
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const delta = Math.min(now - lastTime, 120);
+      lastTime = now;
+
+      analyser.getByteFrequencyData(data);
+
+      let sum = 0;
+      for (let bin = beatFrom; bin < beatTo; bin++) sum += data[bin];
+      const energy = sum / (beatTo - beatFrom) / 255;
+
+      // Sakin parçada dalga ağır, yoğun parçada hızlı ilerler
+      const stepMs = 155 - Math.min(1, energy) * 100;
+      carry += delta;
+
+      if (carry >= stepMs) {
+        carry -= stepMs;
+        for (let i = wave.length - 1; i > 0; i--) wave[i] = wave[i - 1];
+        wave[0] = 0.14 + Math.pow(energy, 0.65) * 0.96;
+      }
+
+      bars.forEach((bar, i) => {
+        // Kayan değere yumuşak yaklaşma: adımlar arası geçiş akıcı olsun
+        shown[i] += (wave[i] - shown[i]) * 0.3;
+        const level = Math.min(1.12, shown[i]);
+        bar.style.transform = `scaleY(${level.toFixed(3)})`;
+        bar.style.opacity = (0.45 + level * 0.55).toFixed(2);
+      });
+
+      frameRef.current = requestAnimationFrame(tick);
+    };
+
+    frameRef.current = requestAnimationFrame(tick);
+
     return () => {
-      if (animation) animation.kill();
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
     };
   }, [isPlaying]);
 
@@ -153,16 +257,58 @@ export default function MusicPlayer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleMusic = useCallback(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(() => {});
-      }
-      setIsPlaying(!isPlaying);
+  /**
+   * Ses analizini kurar. Tarayıcı politikaları gereği AudioContext ancak
+   * kullanıcı etkileşiminden sonra başlatılabildiği için ilk "çal"
+   * dokunuşunda çağrılıyor. createMediaElementSource bir eleman için
+   * yalnızca bir kez çağrılabilir, o yüzden tek seferlik.
+   */
+  const ensureAnalyser = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || analyserRef.current) return;
+
+    const Ctor =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return; // Desteklenmiyorsa görselleştirme yedeğe düşer
+
+    try {
+      const ctx = new Ctor();
+      const source = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      // 256 → 128 kutu. 64 ile her kutu ~690 Hz genişliğindeydi ve bir
+      // çubuğa tek kutu düşüyordu; bantları ayırmak için çözünürlük gerekiyor.
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.72;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+    } catch {
+      // Analiz kurulamazsa müzik yine çalar, yalnızca çubuklar yedeğe geçer
     }
-  }, [isPlaying]);
+  }, []);
+
+  const toggleMusic = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      ensureAnalyser();
+      await audioCtxRef.current?.resume();
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      // Tarayıcı oynatmayı reddetti — düğmeyi "çalıyor" göstermeyelim
+      setIsPlaying(false);
+    }
+  }, [isPlaying, ensureAnalyser]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (audioRef.current && duration) {
@@ -274,16 +420,20 @@ export default function MusicPlayer() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {/* Animated Sound Bars */}
-            <div ref={barsRef} className="flex items-end gap-1 h-8">
-              {[...Array(5)].map((_, i) => (
+            <div ref={barsRef} className="flex items-center gap-[3px] h-8" aria-hidden="true">
+              {[...Array(7)].map((_, i) => (
                 <div
                   key={i}
-                  className="sound-bar w-1.5 rounded-full"
+                  className="sound-bar w-[3px] rounded-full"
                   style={{
-                    height: '24px',
+                    height: '28px',
                     backgroundColor: 'var(--accent)',
-                    transformOrigin: 'bottom',
-                    transform: `scaleY(0.3)`,
+                    // Merkezden açılıyor: tabandan yükselen bir çubuk yerine
+                    // iki yöne birden genişleyen bir dalga
+                    transformOrigin: 'center',
+                    transform: 'scaleY(0.14)',
+                    opacity: 0.55,
+                    willChange: 'transform, opacity',
                   }}
                 />
               ))}
@@ -391,6 +541,9 @@ export default function MusicPlayer() {
       {/* Main Button */}
       <button
         onClick={toggleCard}
+        aria-label={t('music.toggle')}
+        aria-expanded={showCard}
+        data-music-toggle=""
         className="p-3 md:p-4 rounded-full transition-all hover:scale-110 active:scale-95 shadow-lg"
         style={{
           backgroundColor: isPlaying ? 'var(--accent)' : 'var(--muted)',
