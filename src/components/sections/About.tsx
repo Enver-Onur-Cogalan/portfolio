@@ -3,7 +3,8 @@
 import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
-import { techStack } from '@/data/portfolio';
+import Skills from '@/components/sections/Skills';
+import { aboutStats, aboutPrinciples } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
 import { Brain, Code, Coffee } from 'lucide-react';
@@ -24,6 +25,9 @@ export default function About() {
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
+    // Hareket duyarlılığı olan ziyaretçide animasyonlar atlanır; içerik
+    // doğrudan görünür kalır (Skills bileşeniyle aynı davranış).
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const ctx = gsap.context(() => {
       // Stats cards animation
@@ -41,14 +45,14 @@ export default function About() {
           scrollTrigger: {
             trigger: statsRef.current,
             start: 'top 80%',
-            toggleActions: 'play none none reverse',
+            toggleActions: 'play none none none',
           },
         }
       );
 
       // Corner glow animation for stat cards
       const glowElements = statsRef.current?.querySelectorAll('.glow-corner');
-      glowElements?.forEach((glow, i) => {
+      glowElements?.forEach((glow) => {
         gsap.set(glow, { opacity: 0 });
 
         // Continuous corner glow animation
@@ -92,7 +96,7 @@ export default function About() {
           scrollTrigger: {
             trigger: bioRef.current,
             start: 'top 80%',
-            toggleActions: 'play none none reverse',
+            toggleActions: 'play none none none',
           },
         }
       );
@@ -111,30 +115,11 @@ export default function About() {
           scrollTrigger: {
             trigger: principlesRef.current,
             start: 'top 80%',
-            toggleActions: 'play none none reverse',
+            toggleActions: 'play none none none',
           },
         }
       );
 
-      // Tech card animation
-      const techCards = section.querySelectorAll('.tech-card');
-      gsap.fromTo(
-        techCards,
-        { opacity: 0, y: 40, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: 'back.out(1.4)',
-          scrollTrigger: {
-            trigger: section.querySelector('.tech-grid-container'),
-            start: 'top 80%',
-            toggleActions: 'play none none reverse',
-          },
-        }
-      );
     }, section);
 
     return () => ctx.revert();
@@ -150,19 +135,10 @@ export default function About() {
           ref={statsRef}
           className="grid grid-cols-3 gap-4 md:gap-6 mb-12"
         >
-          {(() => {
-            const stats = [
-              { value: '1+', suffix: '', label: t('about.stat.experience'), color: '#22C55E' },
-              { value: '14', suffix: '', label: t('about.stat.projects'), color: '#3B82F6' },
-              { value: '∞', suffix: '', label: t('about.stat.coffee'), color: '#8B5CF6' },
-            ];
-            return stats.map((stat, i) => {
+          {aboutStats.map((stat) => {
             const IconComponent = statIcons[stat.color] || Brain;
             return (
-              <div
-                key={i}
-                className="stat-card relative"
-              >
+              <div key={stat.labelKey} className="stat-card relative">
                 {/* Corner glow effect */}
                 <div
                   className="glow-corner absolute -inset-0.5 rounded-2xl pointer-events-none"
@@ -194,25 +170,44 @@ export default function About() {
                       className="text-3xl md:text-4xl font-bold font-heading mb-1"
                       style={{ color: stat.color }}
                     >
-                      {stat.value}{stat.suffix}
+                      {stat.value}
                     </div>
-                    <div className="text-sm opacity-60">{stat.label}</div>
+                    <div className="text-sm opacity-60">{t(stat.labelKey)}</div>
                   </div>
                 </div>
               </div>
             );
-            });
-          })()}
+          })}
         </div>
 
-        {/* bio Section */}
+        {/* Biyografi — metin paragraflara bölünüp okunur genişlikte sunulur */}
         <div
           ref={bioRef}
-          className="mb-16 max-w-4xl mx-auto text-center"
+          className="mb-16 max-w-3xl mx-auto"
         >
-          <p className="text-xl md:text-2xl leading-relaxed mb-8">
-            {t('about.bio')}
-          </p>
+          <div className="space-y-5 mb-10">
+            {t('about.bio')
+              .split('\n\n')
+              .map((paragraph, index) =>
+                index === 0 ? (
+                  <p
+                    key={index}
+                    className="text-2xl md:text-3xl font-bold font-heading text-center"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    {paragraph}
+                  </p>
+                ) : (
+                  <p
+                    key={index}
+                    className="text-base md:text-lg leading-relaxed"
+                    style={{ color: 'var(--foreground)', opacity: 0.82 }}
+                  >
+                    {paragraph}
+                  </p>
+                )
+              )}
+          </div>
 
           {/* Signature element */}
           <div className="flex items-center justify-center gap-4">
@@ -224,15 +219,9 @@ export default function About() {
 
         {/* Principles / Philosophy Cards */}
         <div ref={principlesRef} className="grid md:grid-cols-3 gap-6 mb-20">
-          {(() => {
-            const principles = [
-              { title: t('about.principle1.title'), quote: t('about.principle1.quote') },
-              { title: t('about.principle2.title'), quote: t('about.principle2.quote') },
-              { title: t('about.principle3.title'), quote: t('about.principle3.quote') },
-            ];
-            return principles.map((principle, i) => (
+          {aboutPrinciples.map((principle) => (
             <div
-              key={i}
+              key={principle.titleKey}
               className="principle-card group relative p-6 rounded-2xl border cursor-pointer"
               style={{
                 background: 'var(--background)',
@@ -254,7 +243,7 @@ export default function About() {
               <div
                 className="absolute top-0 left-6 right-6 h-0.5 rounded-full"
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${i === 0 ? 'var(--accent)' : i === 1 ? 'var(--secondary)' : '#8B5CF6'}, transparent)`,
+                  background: `linear-gradient(90deg, transparent, ${principle.color}, transparent)`,
                 }}
               />
 
@@ -263,88 +252,15 @@ export default function About() {
                   className="text-lg font-bold mb-3 font-heading"
                   style={{ color: 'var(--foreground)' }}
                 >
-                  {principle.title}
+                  {t(principle.titleKey)}
                 </h4>
-                <p className="text-sm opacity-70 italic">&ldquo;{principle.quote}&rdquo;</p>
+                <p className="text-sm opacity-70 italic">&ldquo;{t(principle.quoteKey)}&rdquo;</p>
               </div>
             </div>
-            ));
-          })()}
+          ))}
         </div>
 
-        {/* Tech Stack - Neon Grid Matrix */}
-        <div className="tech-grid-container relative">
-          <h3
-            className="text-2xl font-bold font-heading text-center mb-12"
-            style={{ color: 'var(--foreground)' }}
-          >
-            {t('about.techTitle')}
-          </h3>
-
-          {/* Tech Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {techStack.map((tech, index) => {
-              const colors = ['#22C55E', '#3B82F6', '#8B5CF6', '#F59E0B'];
-              const color = colors[index % colors.length];
-
-              return (
-                <div
-                  key={tech}
-                  className="tech-card group relative"
-                >
-                  {/* Glow effect */}
-                  <div
-                    className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500"
-                    style={{
-                      background: `linear-gradient(135deg, ${color}60, transparent)`,
-                    }}
-                  />
-
-                  {/* Card */}
-                  <div
-                    className="relative p-4 rounded-xl border transition-all duration-300 group-hover:translate-y-[-4px]"
-                    style={{
-                      background: 'color-mix(in srgb, var(--background) 80%, transparent)',
-                      borderColor: `${color}30`,
-                    }}
-                  >
-                    {/* Top accent line */}
-                    <div
-                      className="absolute top-0 left-4 right-4 h-0.5 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
-                      style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-                    />
-
-                    {/* Icon placeholder - first letter */}
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 text-lg font-bold"
-                      style={{
-                        background: `${color}15`,
-                        color: color,
-                        border: `1px solid ${color}30`,
-                      }}
-                    >
-                      {tech.charAt(0)}
-                    </div>
-
-                    {/* Tech name */}
-                    <p
-                      className="text-sm font-medium leading-tight"
-                      style={{ color: 'var(--foreground)' }}
-                    >
-                      {tech}
-                    </p>
-
-                    {/* Bottom accent */}
-                    <div
-                      className="absolute bottom-0 left-0 h-0.5 rounded-full w-0 group-hover:w-full transition-all duration-500"
-                      style={{ background: color }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <Skills />
       </div>
     </SectionWrapper>
   );

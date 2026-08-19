@@ -9,7 +9,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function Projects() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -133,13 +133,6 @@ export default function Projects() {
     }
   };
 
-  const projectDescKeys: Record<string, string> = {
-    'Portfolio': 'projects.portfolio.desc',
-    'Jarvis': 'projects.jarvis.desc',
-    'ChatApp': 'projects.chatapp.desc',
-    'MovieApp': 'projects.movieapp.desc',
-  };
-
   return (
     <SectionWrapper>
       <div ref={sectionRef} id="projeler">
@@ -152,7 +145,7 @@ export default function Projects() {
 
             return (
               <div
-                key={project.title}
+                key={project.id}
                 className="project-card group relative bg-background/60 backdrop-blur-md rounded-2xl overflow-hidden cursor-pointer"
                 style={{
                   opacity: 0,
@@ -219,7 +212,9 @@ export default function Projects() {
                     className="text-sm leading-relaxed mb-5"
                     style={{ color: 'var(--muted)' }}
                   >
-                    {t(projectDescKeys[project.title]) || project.description}
+                    {t(`projects.${project.id}.desc`) === `projects.${project.id}.desc`
+                      ? project.description
+                      : t(`projects.${project.id}.desc`)}
                   </p>
 
                   {/* Tech Stack - Full display */}
