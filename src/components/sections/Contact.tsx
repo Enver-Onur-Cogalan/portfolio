@@ -60,7 +60,7 @@ export default function Contact() {
             üstte onlara yer bırakılıyor, yoksa açıklama metnine biniyorlar */}
         <div className="flex flex-col items-center pt-36 pb-10 mb-10">
           <Folder
-            color="#22C55E"
+            color="var(--accent)"
             size={1.5}
             label={t('resume.folderLabel')}
             openLabel={t('resume.folderOpen')}

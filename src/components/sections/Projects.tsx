@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
-import { projects } from '@/data/portfolio';
+import { projects, tint } from '@/data/portfolio';
 import { gsap } from '@/lib/gsap';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -139,23 +139,26 @@ export default function Projects() {
         <SectionTitle>{t('projects.title')}</SectionTitle>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects.map((project, index) => {
-            const accentColors = ['#22C55E', '#3B82F6', '#8B5CF6'];
-            const accent = accentColors[index % accentColors.length];
-
+          {/*
+            Kartlar tek hue kullanıyor: mavi. Eskiden renk `index % 3`
+            ile seçiliyordu — dört proje, üç renk; hiçbir örüntü tutmuyor
+            ve renk projeyle ilgili bir şey söylemiyordu. Üst şerit
+            maviden lacivere geçiyor, geri kalanı düz mavi.
+          */}
+          {projects.map((project) => {
             return (
               <div
                 key={project.id}
                 className="project-card group relative bg-background/60 backdrop-blur-md rounded-2xl overflow-hidden cursor-pointer"
                 style={{
                   opacity: 0,
-                  border: `1px solid ${accent}20`,
+                  border: `1px solid ${tint('var(--secondary)', 32)}`,
                 }}
               >
                 {/* Top colored bar */}
                 <div
                   className="h-1.5 w-full"
-                  style={{ background: `linear-gradient(90deg, ${accent}, ${accent}80)` }}
+                  style={{ background: 'linear-gradient(90deg, var(--secondary), var(--navy))' }}
                 />
 
                 {/* Content */}
@@ -166,7 +169,7 @@ export default function Projects() {
                       {/* Status dot */}
                       <span
                         className="status-dot w-2.5 h-2.5 rounded-full opacity-30"
-                        style={{ background: accent }}
+                        style={{ background: 'var(--secondary)' }}
                       />
                       <h3
                         className="text-2xl font-bold font-heading tracking-tight"
@@ -192,8 +195,8 @@ export default function Projects() {
                       rel="noopener noreferrer"
                       className="github-link p-2 rounded-xl transition-all duration-300 hover:scale-110"
                       style={{
-                        background: `${accent}10`,
-                        border: `1px solid ${accent}30`,
+                        background: tint('var(--secondary)', 14),
+                        border: `1px solid ${tint('var(--secondary)', 42)}`,
                       }}
                       aria-label={`${project.title} GitHub`}
                     >
@@ -224,8 +227,8 @@ export default function Projects() {
                         key={tech}
                         className="text-xs px-3 py-1.5 rounded-lg font-medium"
                         style={{
-                          background: `${accent}12`,
-                          border: `1px solid ${accent}25`,
+                          background: tint('var(--secondary)', 14),
+                          border: `1px solid ${tint('var(--secondary)', 40)}`,
                           color: 'var(--foreground)',
                         }}
                       >
@@ -238,7 +241,7 @@ export default function Projects() {
                 {/* Bottom accent line */}
                 <div
                   className="absolute bottom-0 left-0 right-0 h-0.5 origin-left transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
-                  style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}
+                  style={{ background: `linear-gradient(90deg, var(--secondary), transparent)` }}
                 />
               </div>
             );

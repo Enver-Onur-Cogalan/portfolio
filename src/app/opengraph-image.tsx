@@ -1,3 +1,10 @@
+/*
+  Bu görsel `next/og` ile sunucuda çiziliyor; Satori CSS değişkeni okuyamaz,
+  bu yüzden renkler burada elle yazılı. Zemin koyu olduğu için değerler
+  `globals.css`'teki KOYU tema token'larıyla eşleşmeli:
+  #0A0A0A → --background, #FAFAF8 → --foreground, #5CCB8E → --accent,
+  #9CA3AF → --muted. Token değişirse burası da güncellenmeli.
+*/
 import { ImageResponse } from 'next/og';
 
 export const alt = 'Enver Onur Çoğalan — AI Engineer & Mobile Developer';
@@ -20,7 +27,7 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '14px', height: '14px', borderRadius: '999px', background: '#22C55E' }} />
+          <div style={{ width: '14px', height: '14px', borderRadius: '999px', background: '#5CCB8E' }} />
           <div style={{ fontSize: 26, color: '#9CA3AF', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
             Portfolio
           </div>
@@ -30,7 +37,7 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 84, fontWeight: 700, color: '#FAFAF8', lineHeight: 1.05 }}>
             Enver Onur Çoğalan
           </div>
-          <div style={{ fontSize: 40, color: '#22C55E', marginTop: '18px' }}>
+          <div style={{ fontSize: 40, color: '#5CCB8E', marginTop: '18px' }}>
             AI Engineer &amp; Mobile Developer
           </div>
         </div>
@@ -39,7 +46,7 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 26, color: '#9CA3AF' }}>
             React Native · Next.js · LLM · STT / TTS
           </div>
-          <div style={{ display: 'flex', height: '6px', width: '220px', background: '#22C55E', borderRadius: '999px' }} />
+          <div style={{ display: 'flex', height: '6px', width: '220px', background: '#5CCB8E', borderRadius: '999px' }} />
         </div>
       </div>
     ),

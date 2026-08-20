@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { skillCategories } from '@/data/portfolio';
+import { skillCategories, trackColor, tint } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
 import ElectricBorder from '@/components/ui/ElectricBorder';
@@ -53,7 +53,9 @@ export default function Skills() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {skillCategories.map((category) => (
+        {skillCategories.map((category) => {
+          const color = trackColor[category.track];
+          return (
           <div
             key={category.id}
             className={`skill-card flex flex-col ${category.fullWidth ? 'md:col-span-2' : ''}`}
@@ -62,7 +64,7 @@ export default function Skills() {
             onMouseLeave={() => setHoveredId((prev) => (prev === category.id ? null : prev))}
           >
             <ElectricBorder
-              color={category.color}
+              color={color}
               active={hoveredId === category.id}
               chaos={0.09}
               speed={1.1}
@@ -73,33 +75,25 @@ export default function Skills() {
                 className="flex-1 rounded-2xl border p-5 sm:p-6"
                 style={{
                   background: 'var(--background)',
-                  borderColor: `color-mix(in srgb, ${category.color} 28%, transparent)`,
+                  borderColor: tint(color, 45),
                 }}
               >
                 <h4
                   className="text-xs font-bold uppercase tracking-[0.16em] mb-4"
-                  style={{ color: category.color }}
+                  style={{ color }}
                 >
                   {t(category.titleKey)}
                 </h4>
 
                 <ul className="flex flex-wrap gap-2.5">
+                  {/* Zemin/kenarlık/gölge oranları `.neo-chip` içinde tanımlı;
+                      bileşen yalnızca hangi hattın rengi olduğunu söylüyor. */}
                   {category.skills.map((skill) => (
                     <li
                       key={skill}
                       tabIndex={0}
                       className="neo-chip text-xs sm:text-sm px-3 py-1.5 rounded-lg font-semibold cursor-default"
-                      style={
-                        {
-                          background: category.color,
-                          border: `2px solid var(--foreground)`,
-                          color: '#0A0A0A',
-                          // Gölge kategori rengiyle aynı olunca kenarlığa
-                          // karışıp çıkıntı kayboluyordu; kontrast renk
-                          // kullanınca kabartma net görünüyor.
-                          '--chip-shadow': 'var(--foreground)',
-                        } as React.CSSProperties
-                      }
+                      style={{ '--chip-accent': color } as React.CSSProperties}
                     >
                       {skill}
                     </li>
@@ -108,7 +102,8 @@ export default function Skills() {
               </div>
             </ElectricBorder>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -4,16 +4,14 @@ import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Skills from '@/components/sections/Skills';
-import { aboutStats, aboutPrinciples } from '@/data/portfolio';
+import { aboutStats, aboutPrinciples, tint } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
 import { Brain, Code, Coffee } from 'lucide-react';
 
-const statIcons: Record<string, typeof Brain> = {
-  '#22C55E': Brain,
-  '#3B82F6': Code,
-  '#8B5CF6': Coffee,
-};
+// Eskiden bu eşleme hex renk koduyla anahtarlanıyordu; renk değişince
+// sessizce bozulan bir bağdı. Artık verideki `icon` alanına bakıyor.
+const statIcons = { brain: Brain, code: Code, coffee: Coffee } as const;
 
 export default function About() {
   const { t } = useLanguage();
@@ -29,59 +27,119 @@ export default function About() {
     // doğrudan görünür kalır (Skills bileşeniyle aynı davranış).
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    // GSAP context yalnızca kendi tween'lerini geri alır; elle eklenen
+    // DOM dinleyicileri burada toplanıp effect sökülürken kaldırılıyor.
+    const cleanups: Array<() => void> = [];
+
     const ctx = gsap.context(() => {
-      // Stats cards animation
+      /*
+        İstatistik kartları. Eskiden kartların üzerinde sonsuz döngüde
+        bir köşe parıltısı vardı: sürekli oynuyor ama hiçbir şey
+        anlatmıyordu, dikkati sayıdan çalıyordu. Yerine göze girdiği anda
+        bir kez çalışan iki hareket var:
+          1. Sayı sıfırdan gerçek değerine sayıyor.
+          2. Accent kenarlık soldan sağa çizilerek beliriyor.
+        İkisi de içerikle ilgili; bitince kart sabit duruyor.
+      */
       const statCards = statsRef.current?.querySelectorAll('.stat-card');
-      gsap.fromTo(
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: statsRef.current,
+          start: 'top 82%',
+          toggleActions: 'play none none none',
+        },
+      });
+
+      tl.fromTo(
         statCards || [],
-        { opacity: 0, y: 40, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: 'back.out(1.4)',
-          scrollTrigger: {
-            trigger: statsRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none none',
-          },
-        }
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out' }
       );
 
-      // Corner glow animation for stat cards
-      const glowElements = statsRef.current?.querySelectorAll('.glow-corner');
-      glowElements?.forEach((glow) => {
-        gsap.set(glow, { opacity: 0 });
+      // Kenarlığın çizilmesi: aynı köşe yarıçapına sahip ikinci bir
+      // çerçeve, clip-path ile soldan sağa açılıyor.
+      const outlines = statsRef.current?.querySelectorAll('.stat-outline');
+      if (outlines?.length) {
+        tl.fromTo(
+          outlines,
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)', duration: 0.7, stagger: 0.12, ease: 'power2.inOut' },
+          '-=0.25'
+        );
+      }
 
-        // Continuous corner glow animation
-        const tl = gsap.timeline({ repeat: -1 });
-        tl.to(glow, {
-          opacity: 1,
-          duration: 0.5,
-          ease: 'power2.in',
-        })
-          .to(glow, {
-            opacity: 0.6,
-            duration: 1.5,
-            ease: 'power1.inOut',
-          })
-          .to(glow, {
-            opacity: 0,
-            duration: 0.5,
+      // Sayaç. '1+' gibi son ekler korunuyor; '∞' gibi sayısal olmayan
+      // değerler sayılmaz, onun yerine kısa bir ölçek vuruşu alır.
+      statsRef.current?.querySelectorAll<HTMLElement>('.stat-value').forEach((el, index) => {
+        const raw = el.dataset.value ?? '';
+        const digits = raw.match(/\d+/)?.[0];
+
+        if (!digits) {
+          tl.fromTo(
+            el,
+            { scale: 0.6, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' },
+            0.3 + index * 0.12
+          );
+          return;
+        }
+
+        const target = Number(digits);
+        const counter = { value: 0 };
+        el.textContent = raw.replace(digits, '0');
+
+        tl.to(
+          counter,
+          {
+            value: target,
+            duration: 0.9,
             ease: 'power2.out',
-          })
-          .to(glow, {
-            opacity: 0.3,
-            duration: 1,
-            ease: 'power1.inOut',
-          })
-          .to(glow, {
-            opacity: 0,
-            duration: 0.5,
-            ease: 'power2.out',
-          });
+            snap: { value: 1 },
+            onUpdate: () => {
+              el.textContent = raw.replace(digits, String(Math.round(counter.value)));
+            },
+          },
+          0.25 + index * 0.12
+        );
+      });
+
+      /*
+        İmleci takip eden ışık. `quickTo` her harekette yeni tween
+        kurmak yerine tek bir tween'i güncelliyor; pointermove sık
+        tetiklendiği için fark ölçülebilir.
+      */
+      statsRef.current?.querySelectorAll<HTMLElement>('.stat-card').forEach((card) => {
+        const glow = card.querySelector<HTMLElement>('.stat-glow');
+        const dot = card.querySelector<HTMLElement>('.stat-glow__dot');
+        if (!glow || !dot) return;
+
+        const moveX = gsap.quickTo(dot, 'x', { duration: 0.45, ease: 'power3.out' });
+        const moveY = gsap.quickTo(dot, 'y', { duration: 0.45, ease: 'power3.out' });
+
+        const onMove = (event: PointerEvent) => {
+          const rect = card.getBoundingClientRect();
+          moveX(event.clientX - rect.left);
+          moveY(event.clientY - rect.top);
+        };
+        const onEnter = (event: PointerEvent) => {
+          const rect = card.getBoundingClientRect();
+          // İlk konumu anında ver, yoksa ışık kartın köşesinden kayarak geliyor
+          gsap.set(dot, { x: event.clientX - rect.left, y: event.clientY - rect.top });
+          gsap.to(glow, { opacity: 1, duration: 0.3, ease: 'power2.out' });
+        };
+        const onLeave = () => {
+          gsap.to(glow, { opacity: 0, duration: 0.4, ease: 'power2.out' });
+        };
+
+        card.addEventListener('pointerenter', onEnter);
+        card.addEventListener('pointermove', onMove);
+        card.addEventListener('pointerleave', onLeave);
+        cleanups.push(() => {
+          card.removeEventListener('pointerenter', onEnter);
+          card.removeEventListener('pointermove', onMove);
+          card.removeEventListener('pointerleave', onLeave);
+        });
       });
 
       // Bio animation
@@ -122,7 +180,10 @@ export default function About() {
 
     }, section);
 
-    return () => ctx.revert();
+    return () => {
+      cleanups.forEach((remove) => remove());
+      ctx.revert();
+    };
   }, []);
 
   return (
@@ -135,40 +196,68 @@ export default function About() {
           ref={statsRef}
           className="grid grid-cols-3 gap-4 md:gap-6 mb-12"
         >
+          {/*
+            Üç kart eskiden üç ayrı renk taşıyordu; bu sayılar farklı
+            hatları temsil etmediği için renk burada bilgi değil gürültüydü.
+            Artık hepsi tek accent kullanıyor, kartları birbirinden ayıran
+            şey ikon ve sayı.
+          */}
           {aboutStats.map((stat) => {
-            const IconComponent = statIcons[stat.color] || Brain;
+            const IconComponent = statIcons[stat.icon];
             return (
               <div key={stat.labelKey} className="stat-card relative">
-                {/* Corner glow effect */}
+                {/*
+                  Çizilen kenarlık. Kartın kendi kenarlığı sönük duruyor;
+                  bu ikinci çerçeve accent renginde ve clip-path ile
+                  açılıyor. Hareket kısıtlıysa GSAP hiç çalışmaz ve
+                  çerçeve olduğu gibi görünür — varsayılanı açık.
+                */}
                 <div
-                  className="glow-corner absolute -inset-0.5 rounded-2xl pointer-events-none"
-                  style={{
-                    background: `linear-gradient(45deg, transparent 40%, ${stat.color} 50%, transparent 60%)`,
-                    backgroundSize: '200% 200%',
-                    animation: 'shimmer 3s ease-in-out infinite',
-                  }}
+                  className="stat-outline absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{ border: `1.5px solid var(--accent)` }}
                 />
 
                 <div
-                  className="relative p-6 rounded-2xl border"
+                  className="relative p-6 rounded-2xl border overflow-hidden"
                   style={{
                     background: 'var(--background)',
-                    borderColor: `${stat.color}40`,
+                    borderColor: tint('var(--muted)', 30),
                   }}
                 >
-                  <div className="text-center">
+                  {/*
+                    İmleci takip eden ışık. Konumu transform ile sürülüyor
+                    (CSS değişkeni yerine), böylece GSAP'ın quickTo'su
+                    doğrudan GPU üzerinde çalışıyor.
+                  */}
+                  <div
+                    className="stat-glow absolute inset-0 pointer-events-none opacity-0"
+                    aria-hidden="true"
+                  >
+                    <div
+                      className="stat-glow__dot absolute w-44 h-44 -ml-22 -mt-22 rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${tint(
+                          'var(--accent)',
+                          30
+                        )}, transparent 70%)`,
+                      }}
+                    />
+                  </div>
+
+                  <div className="relative text-center">
                     <div
                       className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center"
                       style={{
-                        background: `${stat.color}15`,
-                        border: `1px solid ${stat.color}40`,
+                        background: tint('var(--accent)', 16),
+                        border: `1px solid ${tint('var(--accent)', 45)}`,
                       }}
                     >
-                      <IconComponent className="w-6 h-6" style={{ color: stat.color }} />
+                      <IconComponent className="w-6 h-6" style={{ color: 'var(--accent)' }} />
                     </div>
                     <div
-                      className="text-3xl md:text-4xl font-bold font-heading mb-1"
-                      style={{ color: stat.color }}
+                      className="stat-value text-3xl md:text-4xl font-bold font-heading mb-1 tabular-nums"
+                      data-value={stat.value}
+                      style={{ color: 'var(--foreground)' }}
                     >
                       {stat.value}
                     </div>
@@ -225,25 +314,33 @@ export default function About() {
               className="principle-card group relative p-6 rounded-2xl border cursor-pointer"
               style={{
                 background: 'var(--background)',
-                borderColor: 'var(--muted)',
+                borderColor: tint('var(--muted)', 35),
               }}
             >
-              {/* Hover glow */}
+              {/* Hover parıltısı */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
-                style={{
-                  background: `linear-gradient(135deg,
-                    color-mix(in srgb, var(--accent) 8%, transparent),
-                    color-mix(in srgb, var(--secondary) 5%, transparent)
-                  )`,
-                }}
+                style={{ background: tint('var(--accent)', 10) }}
               />
 
-              {/* Top accent line */}
+              {/*
+                Üst şerit. Eskiden karta göre değişen tam doygunlukta bir
+                renkti; artık nötr duruyor ve yalnızca imleç kartın
+                üzerindeyken accent'e dönüyor.
+              */}
               <div
-                className="absolute top-0 left-6 right-6 h-0.5 rounded-full"
+                className="absolute top-0 left-6 right-6 h-0.5 rounded-full transition-colors duration-300"
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${principle.color}, transparent)`,
+                  background: `linear-gradient(90deg, transparent, ${tint(
+                    'var(--muted)',
+                    50
+                  )}, transparent)`,
+                }}
+              />
+              <div
+                className="absolute top-0 left-6 right-6 h-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background: `linear-gradient(90deg, transparent, var(--accent), transparent)`,
                 }}
               />
 

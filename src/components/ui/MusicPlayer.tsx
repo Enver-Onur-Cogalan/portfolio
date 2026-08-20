@@ -466,7 +466,7 @@ export default function MusicPlayer() {
           <span
             ref={lyricRef}
             className="text-sm font-medium px-2"
-            style={{ color: currentLyric ? '#22C55E' : 'var(--background)', opacity: currentLyric ? 1 : 0.4 }}
+            style={{ color: currentLyric ? 'var(--accent)' : 'var(--background)', opacity: currentLyric ? 1 : 0.4 }}
           >
             {currentLyric || t('music.lyrics.placeholder')}
           </span>

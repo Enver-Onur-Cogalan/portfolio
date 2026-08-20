@@ -1,3 +1,32 @@
+/*
+  ─── Renk hatları ────────────────────────────────────────────────
+  Sitedeki her renk bir hattı temsil eder; dekoratif renk yok.
+  Değerler `globals.css`'teki token'lara işaret eder, böylece tema
+  değişiminde tek yerden yönetilir.
+
+    ai      → yeşil     (yapay zeka)
+    mobile  → lacivert  (mobil)
+    web     → mavi      (arayüz)
+    data    → kırmızı   (backend & veri)
+    infra   → kehribar  (altyapı)
+    neutral → renksiz
+*/
+export type Track = 'ai' | 'mobile' | 'web' | 'data' | 'infra' | 'neutral';
+
+export const trackColor: Record<Track, string> = {
+  ai: 'var(--accent)',
+  mobile: 'var(--navy)',
+  web: 'var(--secondary)',
+  data: 'var(--crimson)',
+  infra: 'var(--tertiary)',
+  neutral: 'var(--muted)',
+};
+
+/** `color-mix` sarmalayıcısı — `${hex}20` biçimindeki alfa ekleri yerine. */
+export function tint(color: string, percent: number): string {
+  return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
+}
+
 export const socialLinks = {
   medium: 'https://medium.com/@onurcogalan_96763',
   github: 'https://github.com/Enver-Onur-Cogalan',
@@ -148,7 +177,8 @@ export const experiences: Experience[] = [
 export interface SkillCategory {
   id: string;
   titleKey: string;
-  color: string;
+  /** Kategorinin ait olduğu renk hattı */
+  track: Track;
   skills: string[];
   /** Izgarada iki sütunu birden kaplar */
   fullWidth?: boolean;
@@ -158,7 +188,7 @@ export const skillCategories: SkillCategory[] = [
   {
     id: 'ai',
     titleKey: 'skills.category.ai',
-    color: '#22C55E',
+    track: 'ai',
     skills: [
       'LLM',
       'RAG',
@@ -175,19 +205,19 @@ export const skillCategories: SkillCategory[] = [
   {
     id: 'mobile',
     titleKey: 'skills.category.mobile',
-    color: '#3B82F6',
+    track: 'mobile',
     skills: ['React Native', 'Expo', 'React Native CLI', 'TypeScript'],
   },
   {
     id: 'web',
     titleKey: 'skills.category.web',
-    color: '#8B5CF6',
+    track: 'web',
     skills: ['React', 'Next.js', 'Tailwind CSS', 'GSAP', 'Streamlit'],
   },
   {
     id: 'backend',
     titleKey: 'skills.category.backend',
-    color: '#F59E0B',
+    track: 'data',
     skills: [
       'Node.js',
       'Python',
@@ -204,7 +234,7 @@ export const skillCategories: SkillCategory[] = [
     // Temel araçlar tek satırlık bir şerit olarak altta durur
     id: 'infra',
     titleKey: 'skills.category.infra',
-    color: '#06B6D4',
+    track: 'infra',
     fullWidth: true,
     skills: [
       'Docker',
@@ -224,23 +254,23 @@ export const techStack: string[] = skillCategories.flatMap((c) => c.skills);
 export interface AboutStat {
   value: string;
   labelKey: string;
-  color: string;
+  /** İkon eşlemesinin anahtarı (About.tsx) */
+  icon: 'brain' | 'code' | 'coffee';
 }
 
 export const aboutStats: AboutStat[] = [
-  { value: '1+', labelKey: 'about.stat.experience', color: '#22C55E' },
-  { value: '17', labelKey: 'about.stat.projects', color: '#3B82F6' },
-  { value: '∞', labelKey: 'about.stat.coffee', color: '#8B5CF6' },
+  { value: '1+', labelKey: 'about.stat.experience', icon: 'brain' },
+  { value: '17', labelKey: 'about.stat.projects', icon: 'code' },
+  { value: '∞', labelKey: 'about.stat.coffee', icon: 'coffee' },
 ];
 
 export interface AboutPrinciple {
   titleKey: string;
   quoteKey: string;
-  color: string;
 }
 
 export const aboutPrinciples: AboutPrinciple[] = [
-  { titleKey: 'about.principle1.title', quoteKey: 'about.principle1.quote', color: '#22C55E' },
-  { titleKey: 'about.principle2.title', quoteKey: 'about.principle2.quote', color: '#3B82F6' },
-  { titleKey: 'about.principle3.title', quoteKey: 'about.principle3.quote', color: '#8B5CF6' },
+  { titleKey: 'about.principle1.title', quoteKey: 'about.principle1.quote' },
+  { titleKey: 'about.principle2.title', quoteKey: 'about.principle2.quote' },
+  { titleKey: 'about.principle3.title', quoteKey: 'about.principle3.quote' },
 ];

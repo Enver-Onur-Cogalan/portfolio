@@ -23,21 +23,16 @@ interface FolderProps {
   closeLabel?: string;
 }
 
-const darkenColor = (hex: string, percent: number): string => {
-  let color = hex.startsWith('#') ? hex.slice(1) : hex;
-  if (color.length === 3) {
-    color = color.split('').map((c) => c + c).join('');
-  }
-  const num = parseInt(color.slice(0, 6), 16);
-  const clamp = (v: number) => Math.max(0, Math.min(255, Math.floor(v * (1 - percent))));
-  const r = clamp((num >> 16) & 0xff);
-  const g = clamp((num >> 8) & 0xff);
-  const b = clamp(num & 0xff);
-  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-};
+/*
+  Klasörün arka kapağı ön yüzünden bir tık koyu olmalı. Bunu eskiden hex
+  ayrıştıran bir JS yardımcısı yapıyordu; `color` artık `var(--accent)`
+  gibi bir CSS ifadesi olabildiği için hesabı tarayıcıya bırakıyoruz.
+*/
+const darken = (color: string, percent: number): string =>
+  `color-mix(in srgb, ${color} ${100 - percent}%, #000)`;
 
 export default function Folder({
-  color = '#22C55E',
+  color = 'var(--accent)',
   size = 1,
   items = [],
   className = '',
@@ -86,7 +81,7 @@ export default function Folder({
 
   const folderStyle = {
     '--folder-color': color,
-    '--folder-back-color': darkenColor(color, 0.12),
+    '--folder-back-color': darken(color, 12),
     '--paper-1': '#E8E8EA',
     '--paper-2': '#F2F2F4',
     '--paper-3': '#FFFFFF',

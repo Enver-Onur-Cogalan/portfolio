@@ -127,13 +127,12 @@ export default function HeroPhone() {
 
           {/* İsim ve unvan */}
           <div className="absolute bottom-0 inset-x-0 px-5 pb-7">
-            <span className="block h-[3px] w-9 rounded-full mb-3" style={{ background: 'var(--accent)' }} />
             <h1 className="text-white font-heading font-bold text-lg sm:text-xl leading-tight">
               Enver Onur Çoğalan
             </h1>
             <p
               className="mt-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.08em] leading-snug"
-              style={{ color: 'var(--accent)' }}
+              style={{ color: 'var(--highlight)' }}
             >
               {t('hero.subtitle')}
             </p>

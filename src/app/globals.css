@@ -1,11 +1,39 @@
 @import "tailwindcss";
 
+/*
+  ─── Renk sistemi ──────────────────────────────────────────────
+  Beş hue, her biri bir hattı temsil eder. Renk burada dekorasyon
+  değil, bilgi taşıyıcısıdır:
+
+    --accent    (yeşil)     → Yapay Zeka
+    --navy      (lacivert)  → Mobil
+    --secondary (mavi)      → Web & Arayüz, Projeler, eğitim
+    --crimson   (kırmızı)   → Backend & Veri
+    --tertiary  (kehribar)  → Altyapı
+    --highlight (turuncu)   → Hero'daki unvan; yalnızca orada
+
+  Renkler doygun ve canlı; "profesyonel" his doygunluğu kısarak değil,
+  her rengin bir işi olmasıyla sağlanıyor.
+
+  Değerler temaya göre ayrı. Tek bir hex iki temada birden doğru
+  duramıyor: beyaz üstünde çiğ duran bir yeşil, siyah üstünde parlıyor.
+
+  KULLANIM KURALI — alanı büyüdükçe renk seyrelir:
+    · Tam doygunluk: nokta, şerit, ikon, başlık, link.
+    · Yüzeyler (chip, kart dolgusu): %16–20 tint.
+    · Kenarlıklar: %40–65 tint.
+    · Renkli yüzeydeki yazı `var(--foreground)`.
+*/
 :root {
   /* Açık tema */
   --background: #FAFAF8;
   --foreground: #1A1A1A;
-  --accent: #22C55E;
-  --secondary: #3B82F6;
+  --accent: #12B15C;
+  --navy: #12308F;
+  --secondary: #0A84FF;
+  --crimson: #E03131;
+  --tertiary: #E8890B;
+  --highlight: #F59F0A;
   --muted: #6B7280;
   color-scheme: light;
 }
@@ -13,8 +41,12 @@
 .dark {
   --background: #0A0A0A;
   --foreground: #FAFAF8;
-  --accent: #22C55E;
-  --secondary: #3B82F6;
+  --accent: #2EE07C;
+  --navy: #2A6AE8;
+  --secondary: #38B6FF;
+  --crimson: #FF5D5D;
+  --tertiary: #FFB238;
+  --highlight: #FFB020;
   --muted: #9CA3AF;
   color-scheme: dark;
 }
@@ -24,6 +56,10 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-navy: var(--navy);
+  --color-crimson: var(--crimson);
+  --color-highlight: var(--highlight);
   --color-muted: var(--muted);
   --font-sans: var(--font-inter);
   --font-heading: var(--font-space-grotesk);
@@ -105,11 +141,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* İstatistik kartlarındaki köşe parıltısı */
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 
 /* ─── Elektrik kenarlık (Teknik Yetenekler kartları) ───────────
    React Bits / @BalintFerenczy uyarlaması. Parıltı katmanları yalnızca
@@ -214,14 +245,25 @@ h1, h2, h3, h4, h5, h6 {
    Sert ofset gölge, üzerine gelince gölge kaybolup etiket o kadar
    kayıyor — düğmeye basılmış hissi. Gölge rengi kategori renginden
    geliyor, her kart kendi kimliğini koruyor. */
+/*
+  Yetenek etiketi. Kabartma hissi korunuyor ama renk dolu blok olarak
+  değil tint olarak taşınıyor: zemin %18, kenarlık %65, gölge %55.
+  Yazı `--foreground` olduğu için kontrast temadan bağımsız garanti;
+  eskiden doygun zemin üstünde sabit `#0A0A0A` yazı vardı ve etiket
+  ekranın en gürültülü alanıydı.
+*/
 .neo-chip {
-  box-shadow: 3px 3px 0 var(--chip-shadow);
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  background: color-mix(in srgb, var(--chip-accent) 18%, transparent);
+  border: 2px solid color-mix(in srgb, var(--chip-accent) 65%, transparent);
+  color: var(--foreground);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--chip-accent) 55%, transparent);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
 }
 
 .neo-chip:hover,
 .neo-chip:focus-visible {
-  box-shadow: 0 0 0 var(--chip-shadow);
+  background: color-mix(in srgb, var(--chip-accent) 28%, transparent);
+  box-shadow: 0 0 0 color-mix(in srgb, var(--chip-accent) 55%, transparent);
   transform: translate(3px, 3px);
 }
 
@@ -251,7 +293,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   font-size: 22px;
   letter-spacing: 0.06em;
-  color: #06210f;
+  color: color-mix(in srgb, var(--accent) 30%, #05140b);
   pointer-events: none;
   transition: opacity 0.25s ease;
 }

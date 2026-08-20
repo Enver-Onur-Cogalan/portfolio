@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 /*
   Elektrik kenarlık efekti.
@@ -13,7 +14,23 @@ import { useEffect, useRef, useCallback, type CSSProperties, type ReactNode } fr
     gereksiz bir CPU yüküydü.
   - `oklch(from ...)` bağıl renk sözdizimi `color-mix` ile değiştirildi.
   - prefers-reduced-motion desteği eklendi.
+  - `color` artık CSS değişkeni ya da `color-mix()` kabul ediyor. Canvas'ın
+    `strokeStyle`'ı bunları anlamadığı için değer, kapsayıcının hesaplanmış
+    `color` özelliğinden okunup somut rgb'ye çevriliyor.
 */
+
+/*
+  CSS renk ifadesini (`var(--accent)`, `color-mix(...)`, hex) tarayıcıya
+  çözdürür. Elemana `color` olarak yazılıp geri okunduğunda tarayıcı
+  hesaplanmış rgb değerini verir; canvas bunu kabul eder.
+*/
+function resolveColor(element: HTMLElement, value: string): string {
+  const previous = element.style.color;
+  element.style.color = value;
+  const resolved = getComputedStyle(element).color;
+  element.style.color = previous;
+  return resolved || value;
+}
 
 interface ElectricBorderProps {
   children?: ReactNode;
@@ -33,7 +50,7 @@ interface ElectricBorderProps {
 
 export default function ElectricBorder({
   children,
-  color = '#22C55E',
+  color = 'var(--accent)',
   speed = 1,
   chaos = 0.1,
   borderRadius = 16,
@@ -41,6 +58,7 @@ export default function ElectricBorder({
   className,
   style,
 }: ElectricBorderProps) {
+  const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -218,6 +236,10 @@ export default function ElectricBorder({
       return () => resizeObserver.disconnect();
     }
 
+    // Tema değiştiğinde efekt yeniden kuruluyor (bağımlılıklarda `theme` var),
+    // bu yüzden rengi kare başına değil bir kez çözmek yeterli.
+    const strokeColor = resolveColor(container, color);
+
     const octaves = 10;
     const lacunarity = 1.6;
     const gain = 0.7;
@@ -245,7 +267,7 @@ export default function ElectricBorder({
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.scale(dpr, dpr);
 
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 1;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -289,7 +311,7 @@ export default function ElectricBorder({
       resizeObserver.disconnect();
       clear();
     };
-  }, [active, color, speed, chaos, borderRadius, octavedNoise, getRoundedRectPoint]);
+  }, [active, color, theme, speed, chaos, borderRadius, octavedNoise, getRoundedRectPoint]);
 
   const vars = {
     '--electric-border-color': color,
