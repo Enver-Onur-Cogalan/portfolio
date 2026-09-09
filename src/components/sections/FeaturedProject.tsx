@@ -37,6 +37,10 @@ export default function FeaturedProject({ project }: { project: Project }) {
       return;
     }
 
+    // GSAP context yalnızca kendi tween'lerini geri alır; DOM
+    // dinleyicileri burada toplanıp effect sökülürken kaldırılıyor.
+    const cleanups: Array<() => void> = [];
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none none' },
@@ -51,17 +55,110 @@ export default function FeaturedProject({ project }: { project: Project }) {
         { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
         '-=0.25'
       );
+
+      /*
+        Buradan aşağısı ızgaradaki proje kartlarının davranışının aynısı:
+        kart imleçte yükseliyor ve elastik geri oturuyor, durum noktası
+        nabız atıyor, GitHub ikonu titriyor. Değerler bilerek birebir
+        kopyalandı — iki kart yan yana duruyor, farklı hissetmeleri
+        tutarsızlık olurdu.
+      */
+      const dot = card.querySelector('.status-dot');
+      const githubLink = card.querySelector('.github-link');
+      const githubIcon = card.querySelector('.github-link svg');
+
+      const onCardEnter = () => {
+        gsap.to(card, { y: -8, duration: 0.4, ease: 'power2.out' });
+        if (dot) {
+          gsap.to(dot, { opacity: 1, duration: 0.8, yoyo: true, repeat: -1, ease: 'power1.inOut' });
+        }
+      };
+      const onCardLeave = () => {
+        gsap.to(card, { y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+        if (dot) {
+          gsap.killTweensOf(dot);
+          gsap.to(dot, { opacity: 0.3, duration: 0.3 });
+        }
+      };
+
+      card.addEventListener('mouseenter', onCardEnter);
+      card.addEventListener('mouseleave', onCardLeave);
+      cleanups.push(() => {
+        card.removeEventListener('mouseenter', onCardEnter);
+        card.removeEventListener('mouseleave', onCardLeave);
+      });
+
+      if (githubLink && githubIcon) {
+        const onIconEnter = () => {
+          gsap.to(githubIcon, {
+            rotation: 10,
+            duration: 0.1,
+            yoyo: true,
+            repeat: -1,
+            ease: 'power1.inOut',
+            transformOrigin: 'center center',
+          });
+        };
+        const onIconLeave = () => {
+          gsap.killTweensOf(githubIcon);
+          gsap.to(githubIcon, { rotation: 0, duration: 0.3 });
+        };
+
+        githubLink.addEventListener('mouseenter', onIconEnter);
+        githubLink.addEventListener('mouseleave', onIconLeave);
+        cleanups.push(() => {
+          githubLink.removeEventListener('mouseenter', onIconEnter);
+          githubLink.removeEventListener('mouseleave', onIconLeave);
+        });
+      }
     }, card);
 
-    return () => ctx.revert();
+    return () => {
+      cleanups.forEach((remove) => remove());
+      ctx.revert();
+    };
   }, []);
+
+  /*
+    Başlık harflerinin dağılması. Izgaradaki kartlarla aynı efekt;
+    harfler tek tek span'lere bölündüğü için her biri bağımsız
+    sürülebiliyor.
+  */
+  const handleTitleHover = (e: React.MouseEvent<HTMLHeadingElement>, isEnter: boolean) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const letters = e.currentTarget.querySelectorAll('.title-letter');
+
+    if (isEnter) {
+      gsap.to(letters, {
+        x: () => gsap.utils.random(-35, 35),
+        y: () => gsap.utils.random(-20, 20),
+        rotation: () => gsap.utils.random(-30, 30),
+        opacity: 0.4,
+        scale: () => gsap.utils.random(0.8, 1.2),
+        duration: 0.4,
+        stagger: { amount: 0.25, from: 'random' },
+        ease: 'power3.out',
+      });
+    } else {
+      gsap.to(letters, {
+        x: 0,
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.02,
+        ease: 'elastic.out(1, 0.5)',
+      });
+    }
+  };
 
   const label = (suffix: string) => t(`projects.${project.id}.${suffix}`);
 
   return (
     <article
       ref={cardRef}
-      className="relative rounded-2xl overflow-hidden bg-background/60 backdrop-blur-md mb-5"
+      className="project-card group relative rounded-2xl overflow-hidden bg-background/60 backdrop-blur-md mb-5"
       style={{ opacity: 0, border: `1px solid ${tint('var(--secondary)', 32)}` }}
     >
       <div
@@ -82,12 +179,29 @@ export default function FeaturedProject({ project }: { project: Project }) {
             >
               {t('projects.featured.badge')}
             </span>
-            <h3
-              className="text-3xl sm:text-4xl font-bold font-heading tracking-tight"
-              style={{ color: 'var(--foreground)' }}
-            >
-              {project.title}
-            </h3>
+            <div className="flex items-center gap-2.5">
+              <span
+                className="status-dot w-3 h-3 rounded-full opacity-30 shrink-0"
+                style={{ background: 'var(--secondary)' }}
+                aria-hidden="true"
+              />
+              <h3
+                className="text-3xl sm:text-4xl font-bold font-heading tracking-tight"
+                style={{ color: 'var(--foreground)' }}
+                onMouseEnter={(e) => handleTitleHover(e, true)}
+                onMouseLeave={(e) => handleTitleHover(e, false)}
+              >
+                {project.title.split('').map((letter, i) => (
+                  <span
+                    key={i}
+                    className="title-letter inline-block"
+                    style={{ display: letter === ' ' ? 'inline' : 'inline-block' }}
+                  >
+                    {letter === ' ' ? '\u00A0' : letter}
+                  </span>
+                ))}
+              </h3>
+            </div>
             {project.headline && (
               <p
                 className="mt-2 text-base sm:text-lg font-medium"
@@ -102,7 +216,7 @@ export default function FeaturedProject({ project }: { project: Project }) {
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 p-2.5 rounded-xl transition-transform duration-300 hover:scale-110"
+            className="github-link shrink-0 p-2.5 rounded-xl transition-transform duration-300 hover:scale-110"
             style={{
               background: tint('var(--secondary)', 14),
               border: `1px solid ${tint('var(--secondary)', 42)}`,
@@ -123,7 +237,13 @@ export default function FeaturedProject({ project }: { project: Project }) {
         </p>
 
         {project.metrics && project.metrics.length > 0 && (
-          <dl className="mt-7 grid grid-cols-2 md:grid-cols-4 gap-4">
+          /* auto-fit + üst sınır: metrik sayısı değişince sütunu elle
+             ayarlamak gerekmiyor, ama iki metrik kaldığında kutular
+             sayfa genişliğine yayılıp orantısız büyümüyor. */
+          <dl
+            className="mt-7 grid gap-4"
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 230px))' }}
+          >
             {project.metrics.map((metric) => (
               <div
                 key={metric.key}
@@ -224,6 +344,12 @@ export default function FeaturedProject({ project }: { project: Project }) {
           ))}
         </ul>
       </div>
+
+      {/* Alt vurgu çizgisi — ızgaradaki kartlarla aynı */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-0.5 origin-left transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
+        style={{ background: 'linear-gradient(90deg, var(--secondary), transparent)' }}
+      />
     </article>
   );
 }

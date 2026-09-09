@@ -66,7 +66,7 @@ export const projects: Project[] = [
     id: 'weatherapp',
     title: 'WeatherApp',
     description:
-      'Havanın ne olduğunu değil, ne zaman çıkman gerektiğini söyleyen hava uygulaması. Soruları yorumlayan model tamamen kendi cihazında çalışıyor.',
+      'Havanın ne olduğunu değil, ne zaman çıkman gerektiğini söyleyen hava uygulaması. Soruları yorumlayan model, kendi kurduğun makinede yerel olarak koşuyor.',
     technologies: [
       'React Native (Expo)',
       'TypeScript',
@@ -83,9 +83,7 @@ export const projects: Project[] = [
     featured: true,
     headline: true,
     metrics: [
-      { value: '0', key: 'wrong' },
       { value: '20/20', key: 'eval' },
-      { value: '%100', key: 'local' },
       { value: '329', key: 'tests' },
     ],
     caseStudy: ['problem', 'approach', 'result'],
