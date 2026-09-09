@@ -40,7 +40,11 @@ const synonymMap: Record<string, string[]> = {
   'jarvis': ['asistan', 'sesli asistan', 'voice'],
   'biyoloji': ['biology', 'ege', 'kariyer degisikligi'],
   'unimall': ['e-ticaret', 'eticaret', 'ocr', 'otomasyon', 'e-commerce', 'automation'],
-  'envagro': ['stt', 'tts', 'llm', 'benchmark', 'arastirma', 'research'],
+  // 'llm' bilerek listede yok: Envagro tek LLM işi değil (WeatherApp da
+  // yerel bir model çalıştırıyor), bu yüzden içinde 'llm' geçen her soru
+  // Envagro'ya kayıyordu. Çıplak "llm" sorusu zaten AI konusunun kendi
+  // anahtar kelimesiyle eşleşiyor.
+  'envagro': ['stt', 'tts', 'benchmark', 'arastirma', 'research'],
 };
 
 function splitWords(text: string): Set<string> {
