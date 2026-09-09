@@ -34,13 +34,6 @@ export const socialLinks = {
   email: 'eonurcogalan@gmail.com',
 };
 
-export interface ProjectMetric {
-  /** Öne çıkan değer, ör. '0' */
-  value: string;
-  /** Çeviri anahtarı soneki: projects.<id>.metric.<key> */
-  key: string;
-}
-
 export interface Project {
   id: string;
   title: string;
@@ -56,7 +49,6 @@ export interface Project {
   featured?: boolean;
   /** Başlığın altındaki tek cümlelik iddia: projects.<id>.headline */
   headline?: boolean;
-  metrics?: ProjectMetric[];
   /** Anlatı bloklarının çeviri anahtarı sonekleri */
   caseStudy?: string[];
 }
@@ -82,10 +74,6 @@ export const projects: Project[] = [
     github: 'https://github.com/Enver-Onur-Cogalan/WeatherApp',
     featured: true,
     headline: true,
-    metrics: [
-      { value: '20/20', key: 'eval' },
-      { value: '329', key: 'tests' },
-    ],
     caseStudy: ['problem', 'approach', 'result'],
   },
   {

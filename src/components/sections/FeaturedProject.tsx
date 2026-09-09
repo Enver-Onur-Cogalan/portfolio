@@ -27,13 +27,12 @@ export default function FeaturedProject({ project }: { project: Project }) {
     if (!card) return;
 
     /*
-      Kart ve metrikler `opacity: 0` ile başlıyor çünkü açılışlarını GSAP
-      sürüyor. Hareket kısıtlıysa animasyon hiç kurulmuyor — o durumda
-      görünürlüğü elle vermezsek kart kalıcı olarak görünmez kalırdı.
+      Kart `opacity: 0` ile başlıyor çünkü açılışını GSAP sürüyor.
+      Hareket kısıtlıysa animasyon hiç kurulmuyor — o durumda görünürlüğü
+      elle vermezsek kart kalıcı olarak görünmez kalırdı.
     */
-    const metrics = card.querySelectorAll('.featured-metric');
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      gsap.set([card, ...metrics], { opacity: 1, y: 0 });
+      gsap.set(card, { opacity: 1, y: 0 });
       return;
     }
 
@@ -47,14 +46,6 @@ export default function FeaturedProject({ project }: { project: Project }) {
       });
 
       tl.fromTo(card, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
-
-      // Metrikler kart yerine oturduktan sonra tek tek beliriyor.
-      tl.fromTo(
-        metrics,
-        { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
-        '-=0.25'
-      );
 
       /*
         Buradan aşağısı ızgaradaki proje kartlarının davranışının aynısı:
@@ -236,37 +227,6 @@ export default function FeaturedProject({ project }: { project: Project }) {
           {label('desc')}
         </p>
 
-        {project.metrics && project.metrics.length > 0 && (
-          /* auto-fit + üst sınır: metrik sayısı değişince sütunu elle
-             ayarlamak gerekmiyor, ama iki metrik kaldığında kutular
-             sayfa genişliğine yayılıp orantısız büyümüyor. */
-          <dl
-            className="mt-7 grid gap-4"
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 230px))' }}
-          >
-            {project.metrics.map((metric) => (
-              <div
-                key={metric.key}
-                className="featured-metric rounded-xl p-4"
-                style={{
-                  background: tint('var(--secondary)', 8),
-                  border: `1px solid ${tint('var(--secondary)', 28)}`,
-                }}
-              >
-                <dt
-                  className="text-2xl sm:text-3xl font-bold font-heading tabular-nums"
-                  style={{ color: 'var(--secondary)' }}
-                >
-                  {metric.value}
-                </dt>
-                <dd className="mt-1 text-xs leading-snug" style={{ color: 'var(--muted)' }}>
-                  {label(`metric.${metric.key}`)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-
         {project.caseStudy && project.caseStudy.length > 0 && (
           <>
             <button
@@ -274,7 +234,7 @@ export default function FeaturedProject({ project }: { project: Project }) {
               onClick={() => setIsOpen((prev) => !prev)}
               aria-expanded={isOpen}
               aria-controls={`case-${project.id}`}
-              className="mt-6 inline-flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 -ml-3 transition-colors hover:bg-[color-mix(in_srgb,var(--muted)_10%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="mt-7 inline-flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 -ml-3 transition-colors hover:bg-[color-mix(in_srgb,var(--muted)_10%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2"
               style={{ color: 'var(--secondary)', outlineColor: 'var(--secondary)' }}
             >
               {isOpen ? t('experience.collapse') : t('experience.expand')}
