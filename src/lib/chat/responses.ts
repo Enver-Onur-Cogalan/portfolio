@@ -34,6 +34,7 @@ export const topicCatalog: Record<string, Topic> = {
   iletisim: { label: { tr: 'İletişim', en: 'Contact' }, query: 'iletişim' },
   ai: { label: { tr: 'AI tarafı', en: 'AI work' }, query: 'yapay zeka' },
   mobil: { label: { tr: 'Mobil tarafı', en: 'Mobile work' }, query: 'react native' },
+  weather: { label: { tr: 'WeatherApp', en: 'WeatherApp' }, query: 'weatherapp' },
   jarvis: { label: { tr: 'Jarvis', en: 'Jarvis' }, query: 'jarvis' },
   unimall: { label: { tr: 'Unimall vakası', en: 'Unimall case' }, query: 'unimall' },
   biyoloji: { label: { tr: 'Biyolojiden yazılıma', en: 'Biology to software' }, query: 'biyoloji' },
@@ -52,7 +53,7 @@ export type VisitorPath = 'hiring' | 'technical' | 'browsing';
 
 export const pathTopics: Record<VisitorPath, string[]> = {
   hiring: ['deneyim', 'neden', 'musaitlik', 'cv', 'iletisim'],
-  technical: ['unimall', 'ai', 'projeler', 'yetenekler', 'zorluk'],
+  technical: ['weather', 'unimall', 'ai', 'projeler', 'yetenekler'],
   browsing: ['hakkinda', 'biyoloji', 'projeler', 'hobi', 'motivasyon'],
 };
 
@@ -278,7 +279,7 @@ export const directResponses: ResponseItem[] = [
       tr: `İşte Onur'un öne çıkan projeleri:\n\n${listProjects('tr')}\n\nDaha fazlası için GitHub: ${socialLinks.github}`,
       en: `Here are Onur's featured projects:\n\n${listProjects('en')}\n\nMore on GitHub: ${socialLinks.github}`,
     },
-    suggests: ['unimall', 'jarvis', 'yetenekler'],
+    suggests: ['weather', 'unimall', 'jarvis'],
   },
   // Yetenekler
   {
@@ -340,10 +341,26 @@ export const directResponses: ResponseItem[] = [
     sectionId: 'projeler',
     keywords: ['react native', 'mobile', 'mobil', 'uygulama', 'app', 'expo', 'react'],
     response: {
-      tr: 'Mobil geliştirme Onur\'un uzmanlık alanı! Jarvis (sesli asistan), ChatApp (gerçek zamanlı sohbet) ve MovieApp gibi projelerinde React Native ve Expo kullandı. Kullanıcı dostu ve performanslı uygulamalar üretmeye bayılıyor.',
-      en: 'Mobile development is Onur\'s specialty! He used React Native and Expo in projects like Jarvis (voice assistant), ChatApp (real-time chat), and MovieApp. He loves building user-friendly, high-performance apps.',
+      tr: 'Mobil geliştirme Onur\'un uzmanlık alanı! WeatherApp (Skia, Reanimated ve cihazda çalışan bir asistan), Jarvis (sesli asistan), ChatApp (gerçek zamanlı sohbet) ve MovieApp gibi projelerinde React Native ve Expo kullandı. Kullanıcı dostu ve performanslı uygulamalar üretmeye bayılıyor.',
+      en: 'Mobile development is Onur\'s specialty! He used React Native and Expo in projects like WeatherApp (Skia, Reanimated and an on-device assistant), Jarvis (voice assistant), ChatApp (real-time chat), and MovieApp. He loves building user-friendly, high-performance apps.',
     },
-    suggests: ['jarvis', 'projeler', 'yetenekler'],
+    suggests: ['weather', 'jarvis', 'yetenekler'],
+  },
+  // WeatherApp
+  {
+    topic: 'weather',
+    sectionId: 'projeler',
+    keywords: [
+      'weatherapp', 'weather app', 'hava', 'hava durumu', 'hava uygulaması',
+      'weather', 'yerel llm', 'local llm', 'ollama', 'gemma', 'cihazda çalışan',
+      'on-device', 'on device', 'on device llm', 'offline llm', 'çevrimdışı llm',
+      'cihazda çalışan model', 'kendi cihazında', 'açık hava', 'ne zaman çıkmalı',
+    ],
+    response: {
+      tr: `WeatherApp, Onur'un en kapsamlı projesi. Havanın ne olduğunu değil, ne zaman dışarı çıkman gerektiğini söylüyor: sen hangi koşullarda çıkacağını tanımlıyorsun, uygulama hepsini birden karşılayan saat aralıklarını buluyor.\n\nAsıl ilginç kısım mimaride: soruyu yorumlayan model tamamen kendi cihazında çalışıyor — API anahtarı yok, dışarı çıkan istek yok. Model gördüğün hiçbir sayıyı hesaplamıyor; puanlama testleri yazılmış Python, model yalnızca cümleyi yorumluyor ve cevabı ifade ediyor. Aralarında yedi doğrulama kapısı var.\n\nÖlçülmüş sonuç: 20/20 değerlendirme koşusu geçti, kullanıcıya ulaşan hatalı yanıt sıfır. 329 test CI'da koşuyor.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/WeatherApp`,
+      en: `WeatherApp is Onur's most comprehensive project. It answers a different question: not what the weather is, but when to go out. You set the conditions you will actually go out in, and it finds the stretches that clear all of them.\n\nThe interesting part is the architecture: the model that reads your question runs entirely on your own device — no API key, no request leaving the machine. The model never computes a number you see; scoring is tested Python, and the model only interprets your sentence and phrases the answer. Seven validation gates stand between them.\n\nMeasured: 20 of 20 evaluation runs pass, and zero wrong answers reach the user. 329 tests run in CI.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/WeatherApp`,
+    },
+    suggests: ['projeler', 'ai', 'mobil'],
   },
   // Jarvis
   {

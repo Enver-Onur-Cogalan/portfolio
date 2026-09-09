@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { projects, tint } from '@/data/portfolio';
+import FeaturedProject from '@/components/sections/FeaturedProject';
 import { gsap } from '@/lib/gsap';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -101,6 +102,9 @@ export default function Projects() {
     return () => ctx.revert();
   }, []);
 
+  const featured = projects.find((project) => project.featured);
+  const rest = projects.filter((project) => !project.featured);
+
   const handleTitleHover = (e: React.MouseEvent<HTMLHeadingElement>, isEnter: boolean) => {
     const title = e.currentTarget;
     const letters = title.querySelectorAll('.title-letter');
@@ -138,6 +142,12 @@ export default function Projects() {
       <div ref={sectionRef} id="projeler">
         <SectionTitle>{t('projects.title')}</SectionTitle>
 
+        {/*
+          Öne çıkan proje ızgaranın dışında, tam genişlikte duruyor;
+          kalanlar aşağıda normal üçlü ızgarada.
+        */}
+        {featured && <FeaturedProject project={featured} />}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/*
             Kartlar tek hue kullanıyor: mavi. Eskiden renk `index % 3`
@@ -145,7 +155,7 @@ export default function Projects() {
             ve renk projeyle ilgili bir şey söylemiyordu. Üst şerit
             maviden lacivere geçiyor, geri kalanı düz mavi.
           */}
-          {projects.map((project) => {
+          {rest.map((project) => {
             return (
               <div
                 key={project.id}

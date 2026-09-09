@@ -34,15 +34,62 @@ export const socialLinks = {
   email: 'eonurcogalan@gmail.com',
 };
 
+export interface ProjectMetric {
+  /** Öne çıkan değer, ör. '0' */
+  value: string;
+  /** Çeviri anahtarı soneki: projects.<id>.metric.<key> */
+  key: string;
+}
+
 export interface Project {
   id: string;
   title: string;
   description: string;
   technologies: string[];
   github: string;
+  /*
+    Öne çıkan proje. Izgaranın üstünde tam genişlikte, metrikleri ve
+    Problem/Yaklaşım/Sonuç anlatımıyla duruyor. Bu alanlar Deneyim
+    bölümündeki vaka çalışması kalıbıyla aynı — tek cümleye sığmayan
+    işleri anlatmanın sitede zaten oturmuş yolu bu.
+  */
+  featured?: boolean;
+  /** Başlığın altındaki tek cümlelik iddia: projects.<id>.headline */
+  headline?: boolean;
+  metrics?: ProjectMetric[];
+  /** Anlatı bloklarının çeviri anahtarı sonekleri */
+  caseStudy?: string[];
 }
 
 export const projects: Project[] = [
+  {
+    id: 'weatherapp',
+    title: 'WeatherApp',
+    description:
+      'Havanın ne olduğunu değil, ne zaman çıkman gerektiğini söyleyen hava uygulaması. Soruları yorumlayan model tamamen kendi cihazında çalışıyor.',
+    technologies: [
+      'React Native (Expo)',
+      'TypeScript',
+      'Skia',
+      'Reanimated',
+      'Drizzle ORM',
+      'Python',
+      'FastAPI',
+      'Gemma 4B (Ollama)',
+      'JSON Schema',
+      'Docker',
+    ],
+    github: 'https://github.com/Enver-Onur-Cogalan/WeatherApp',
+    featured: true,
+    headline: true,
+    metrics: [
+      { value: '0', key: 'wrong' },
+      { value: '20/20', key: 'eval' },
+      { value: '%100', key: 'local' },
+      { value: '329', key: 'tests' },
+    ],
+    caseStudy: ['problem', 'approach', 'result'],
+  },
   {
     id: 'portfolio',
     title: 'Portfolio',
@@ -196,6 +243,7 @@ export const skillCategories: SkillCategory[] = [
       'LangChain',
       'LangGraph',
       'Azure OpenAI',
+      'Yerel LLM (Ollama)',
       'OCR',
       'STT / TTS',
       'Prompt Engineering',
@@ -206,7 +254,7 @@ export const skillCategories: SkillCategory[] = [
     id: 'mobile',
     titleKey: 'skills.category.mobile',
     track: 'mobile',
-    skills: ['React Native', 'Expo', 'React Native CLI', 'TypeScript'],
+    skills: ['React Native', 'Expo', 'React Native CLI', 'TypeScript', 'Skia', 'Reanimated', 'Drizzle ORM'],
   },
   {
     id: 'web',
@@ -221,9 +269,11 @@ export const skillCategories: SkillCategory[] = [
     skills: [
       'Node.js',
       'Python',
+      'FastAPI',
       'API Design',
       'Socket.IO',
       'PostgreSQL',
+      'SQLite',
       'MongoDB',
       'Redis',
       'Supabase',
@@ -260,7 +310,7 @@ export interface AboutStat {
 
 export const aboutStats: AboutStat[] = [
   { value: '1+', labelKey: 'about.stat.experience', icon: 'brain' },
-  { value: '17', labelKey: 'about.stat.projects', icon: 'code' },
+  { value: '18', labelKey: 'about.stat.projects', icon: 'code' },
   { value: '∞', labelKey: 'about.stat.coffee', icon: 'coffee' },
 ];
 

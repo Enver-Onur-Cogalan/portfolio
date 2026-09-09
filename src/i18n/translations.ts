@@ -56,6 +56,16 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Projects
     'projects.title': 'Projeler',
+    'projects.featured.badge': 'Öne çıkan',
+    'projects.weatherapp.headline': 'Havanın ne olduğunu değil, ne zaman çıkacağını söyler',
+    'projects.weatherapp.desc': 'Başka bir soruyu cevaplayan hava uygulaması: hava nasıl değil, ne zaman çıkmalı. Hangi koşullarda dışarı çıkacağını sen tanımlıyorsun, uygulama hepsini birden karşılayan saat aralıklarını buluyor. Soruyu okuyan asistan tamamen kendi donanımında çalışıyor.',
+    'projects.weatherapp.problem': 'Hava uygulamaları veriyi gösterir, kararı sana bırakır. Sıcaklık eğrisine bakmak yarın öğleden sonranın iki saatlik bir yürüyüşe uygun olup olmadığını söylemez — rüzgârı, yağış ihtimalini ve kendi toleransını aynı anda kafanda tutman gerekir. Bu kararı bir dil modeline devretmek ise daha kötü bir sorun yaratır: sayı hesaplayan model, o sayıyı uyduran modeldir; hem kendinden emin hem de fark edilmeden.',
+    'projects.weatherapp.approach': 'Model gördüğün hiçbir sayıyı hesaplamıyor. Puanlama, karşılaştırma ve aralık seçimi testleri yazılmış sıradan Python; modelin işi yalnızca cümleni yorumlamak ve cevabı ifade etmek. Modelle senin aranda yedi kapı var — araçların hiç döndürmediği bir değeri anan, olmayan bir koşul uyduran, günü şaşıran ya da yanlış dilde dönen yanıt reddediliyor. Bir onarım hakkı veriliyor, sonra cevabı puanlama motoru veriyor. Üç katmanlı bir yönlendirici sık soruları deterministik olarak karşılıyor, böylece isteklerin çoğu modele hiç ulaşmıyor. Tek bir JSON Schema\'dan API sözleşmesi, istemci tipleri ve modelin kısıtlı çözümleme biçimi birlikte üretiliyor; üçü birbirinden ayrı düşemiyor.',
+    'projects.weatherapp.result': 'Kayıtlı senaryolar üzerinde, sıcaklık 0\'da, iki dilde ölçüldü: 20 koşunun 20\'si tüm kontrolleri geçiyor ve kullanıcıya ulaşan hatalı yanıt sayısı sıfır. CI manşet rakama değil bu sonuncusuna bakıyor — geri düşmek sistemin çalışması, hatalı yanıt ise hangi oranda olursa olsun bir kusur. Benchmark\'lar ayrıca üretimde sessizce kaybolacak iki arızayı yakaladı: bir çıkarım motorunda şema zorlaması hiçbir hata vermeden düşürülüyor, araç çağırma ise yapılandırılmış çıktıyla aynı istekte birleştirilince %75\'ten %0\'a iniyor. Sunucu ve uygulamada toplam 329 test, ikisi de CI\'da koşuyor.',
+    'projects.weatherapp.metric.wrong': 'Kullanıcıya ulaşan hata',
+    'projects.weatherapp.metric.eval': 'Değerlendirme koşusu geçti',
+    'projects.weatherapp.metric.local': 'Cihazında çalışıyor',
+    'projects.weatherapp.metric.tests': 'CI\'da koşan test',
     'projects.portfolio.desc': 'Modern animasyonlar ve interaktif sohbet botu ile kişisel portfolyo websitesi. Hakkımda, projeler, deneyimler ve iletişim bölümlerini içeren Next.js uygulaması.',
     'projects.jarvis.desc': 'Jarvis Assistant, günlük işlerinizi kolaylaştırmak ve sesli komutlarla mobil cihazınızla etkileşim kurmanıza olanak sağlamak üzere tasarlanmış akıllı bir kişisel asistandır.',
     'projects.chatapp.desc': 'ChatApp, React Native CLI ve Socket.IO ile geliştirilmiş, gerçek zamanlı bire bir ve grup sohbet uygulamasıdır.',
@@ -194,6 +204,16 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Projects
     'projects.title': 'Projects',
+    'projects.featured.badge': 'Featured',
+    'projects.weatherapp.headline': 'Not what the weather is, but when to go',
+    'projects.weatherapp.desc': 'A weather app that answers a different question: not what the weather is, but when to go out. You set what you will actually go out in, and it finds the stretches that clear all of it. The assistant that reads your question runs entirely on your own hardware.',
+    'projects.weatherapp.problem': 'Weather apps show you the data and leave the decision to you. Reading a temperature curve does not tell you whether tomorrow afternoon suits a two-hour walk — you have to hold wind, rain probability and your own tolerance in your head at once. Handing that judgement to a language model creates a worse problem: a model that computes numbers is a model that invents them, confidently and invisibly.',
+    'projects.weatherapp.approach': 'The model never computes a number you see. Scoring, comparison and window selection are ordinary tested Python; the model only interprets your sentence and phrases the answer. Seven gates stand between it and you — an answer naming a figure the tools never returned, inventing a condition, getting a weekday wrong or replying in the wrong language is rejected. It gets one repair attempt, then the scoring engine answers instead. A three-tier router resolves common questions deterministically, so most requests never reach the model at all. One JSON Schema generates the API contract, the client types and the model\'s constrained-decoding format, so the three cannot drift apart.',
+    'projects.weatherapp.result': 'Measured over recorded fixtures at temperature 0, in both languages: 20 of 20 runs pass every check, and zero wrong answers reach the user. CI gates on that last figure rather than the headline — a fallback is the system working, a wrong answer is a defect at any rate. Benchmarking also caught two failures that would have been silent in production: schema enforcement is dropped without error on one inference engine, and tool calling collapses from 75% to 0% when combined with structured output in a single request. 329 tests across the server and the app, both suites in CI.',
+    'projects.weatherapp.metric.wrong': 'Wrong answers shipped',
+    'projects.weatherapp.metric.eval': 'Evaluation runs passed',
+    'projects.weatherapp.metric.local': 'Runs on your device',
+    'projects.weatherapp.metric.tests': 'Tests in CI',
     'projects.portfolio.desc': 'Personal portfolio website with modern animations and interactive chat bot. A Next.js application featuring About, Projects, Experience and Contact sections.',
     'projects.jarvis.desc': 'Jarvis Assistant is a smart personal assistant designed to simplify daily tasks and enable voice-controlled interaction with your mobile device.',
     'projects.chatapp.desc': 'ChatApp is a real-time one-on-one and group chat application built with React Native CLI and Socket.IO.',
