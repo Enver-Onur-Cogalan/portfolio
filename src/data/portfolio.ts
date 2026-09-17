@@ -41,12 +41,13 @@ export interface Project {
   technologies: string[];
   github: string;
   /*
-    Öne çıkan proje. Izgaranın üstünde tam genişlikte, metrikleri ve
-    Problem/Yaklaşım/Sonuç anlatımıyla duruyor. Bu alanlar Deneyim
-    bölümündeki vaka çalışması kalıbıyla aynı — tek cümleye sığmayan
-    işleri anlatmanın sitede zaten oturmuş yolu bu.
+    Öne çıkan proje. Izgaranın üstündeki vitrinde, Problem/Yaklaşım/Sonuç
+    anlatımıyla duruyor. Birden fazla öne çıkan proje varsa vitrin
+    aralarında döner; dizideki sıra başlangıç sırasıdır.
   */
   featured?: boolean;
+  /** Kurulabilir sürümün bağlantısı; varsa kartta indirme düğmesi çıkar */
+  download?: string;
   /** Başlığın altındaki tek cümlelik iddia: projects.<id>.headline */
   headline?: boolean;
   /** Anlatı bloklarının çeviri anahtarı sonekleri */
@@ -72,6 +73,28 @@ export const projects: Project[] = [
       'Docker',
     ],
     github: 'https://github.com/Enver-Onur-Cogalan/WeatherApp',
+    featured: true,
+    headline: true,
+    caseStudy: ['problem', 'approach', 'result'],
+  },
+  {
+    id: 'memefile',
+    title: 'Meme File',
+    description:
+      'Tepki videoları için Windows masaüstü kütüphanesi. Klasörlerini izler, chip\'lerle etiketlersin, saniyede bulursun, tek hareketle Discord\'a sürüklersin.',
+    technologies: [
+      'Electron',
+      'React',
+      'TypeScript',
+      'Tailwind CSS',
+      'Zustand',
+      'SQLite (FTS5)',
+      'FFmpeg',
+      'Vitest',
+      'GitHub Actions',
+    ],
+    github: 'https://github.com/Enver-Onur-Cogalan/meme-file',
+    download: 'https://github.com/Enver-Onur-Cogalan/meme-file/releases/latest',
     featured: true,
     headline: true,
     caseStudy: ['problem', 'approach', 'result'],
@@ -246,7 +269,7 @@ export const skillCategories: SkillCategory[] = [
     id: 'web',
     titleKey: 'skills.category.web',
     track: 'web',
-    skills: ['React', 'Next.js', 'Tailwind CSS', 'GSAP', 'Streamlit'],
+    skills: ['React', 'Next.js', 'Tailwind CSS', 'GSAP', 'Electron', 'Zustand', 'Streamlit'],
   },
   {
     id: 'backend',
@@ -258,6 +281,7 @@ export const skillCategories: SkillCategory[] = [
       'FastAPI',
       'API Design',
       'Socket.IO',
+      'FFmpeg',
       'PostgreSQL',
       'SQLite',
       'MongoDB',
@@ -280,6 +304,7 @@ export const skillCategories: SkillCategory[] = [
       'Railway',
       'Git',
       'Webhooks & Cronjob',
+      'GitHub Actions (CI/CD)',
     ],
   },
 ];
@@ -296,7 +321,7 @@ export interface AboutStat {
 
 export const aboutStats: AboutStat[] = [
   { value: '1+', labelKey: 'about.stat.experience', icon: 'brain' },
-  { value: '18', labelKey: 'about.stat.projects', icon: 'code' },
+  { value: '19', labelKey: 'about.stat.projects', icon: 'code' },
   { value: '∞', labelKey: 'about.stat.coffee', icon: 'coffee' },
 ];
 

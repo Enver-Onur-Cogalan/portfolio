@@ -35,6 +35,7 @@ export const topicCatalog: Record<string, Topic> = {
   ai: { label: { tr: 'AI tarafı', en: 'AI work' }, query: 'yapay zeka' },
   mobil: { label: { tr: 'Mobil tarafı', en: 'Mobile work' }, query: 'react native' },
   weather: { label: { tr: 'WeatherApp', en: 'WeatherApp' }, query: 'weatherapp' },
+  memefile: { label: { tr: 'Meme File', en: 'Meme File' }, query: 'meme file' },
   jarvis: { label: { tr: 'Jarvis', en: 'Jarvis' }, query: 'jarvis' },
   unimall: { label: { tr: 'Unimall vakası', en: 'Unimall case' }, query: 'unimall' },
   biyoloji: { label: { tr: 'Biyolojiden yazılıma', en: 'Biology to software' }, query: 'biyoloji' },
@@ -53,7 +54,7 @@ export type VisitorPath = 'hiring' | 'technical' | 'browsing';
 
 export const pathTopics: Record<VisitorPath, string[]> = {
   hiring: ['deneyim', 'neden', 'musaitlik', 'cv', 'iletisim'],
-  technical: ['weather', 'unimall', 'ai', 'projeler', 'yetenekler'],
+  technical: ['weather', 'memefile', 'unimall', 'ai', 'yetenekler'],
   browsing: ['hakkinda', 'biyoloji', 'projeler', 'hobi', 'motivasyon'],
 };
 
@@ -279,7 +280,7 @@ export const directResponses: ResponseItem[] = [
       tr: `İşte Onur'un öne çıkan projeleri:\n\n${listProjects('tr')}\n\nDaha fazlası için GitHub: ${socialLinks.github}`,
       en: `Here are Onur's featured projects:\n\n${listProjects('en')}\n\nMore on GitHub: ${socialLinks.github}`,
     },
-    suggests: ['weather', 'unimall', 'jarvis'],
+    suggests: ['weather', 'memefile', 'unimall'],
   },
   // Yetenekler
   {
@@ -361,6 +362,21 @@ export const directResponses: ResponseItem[] = [
       en: `WeatherApp is Onur's most comprehensive project. It answers a different question: not what the weather is, but when to go out. You set the conditions you will actually go out in, and it finds the stretches that clear all of them.\n\nThe interesting part is the architecture: the model that reads your question runs locally, on the machine you host it on — no hosted service, no API key, no request leaving that machine. The model never computes a number you see; scoring is tested Python, and the model only interprets your sentence and phrases the answer. Seven validation gates stand between them.\n\nMeasured: 20 of 20 evaluation runs pass, and zero wrong answers reach the user. 329 tests run in CI.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/WeatherApp`,
     },
     suggests: ['projeler', 'ai', 'mobil'],
+  },
+  // Meme File
+  {
+    topic: 'memefile',
+    sectionId: 'projeler',
+    keywords: [
+      'meme file', 'memefile', 'meme', 'tepki videosu', 'tepki videoları', 'reaction video',
+      'discord', 'electron', 'masaüstü uygulama', 'masaüstü', 'desktop app', 'ffmpeg',
+      'windows uygulaması', 'windows app',
+    ],
+    response: {
+      tr: `Meme File, Onur'un Windows için yaptığı masaüstü uygulaması: tepki videoları kütüphanesi. Klasörleri izliyor, her klibe kapak ve fareyle sarılabilen önizleme üretiyor; chip'lerle etiketliyorsun, saniyede buluyorsun, kartı doğrudan Discord'a sürüklüyorsun. Dosyalarına dokunmuyor, üstüne yalnızca bir etiket katmanı ekliyor.\n\nMühendislik tarafında: arayüz sandbox içinde ve dosya sistemine erişemiyor, videolar yalnızca kütüphane klasörlerini servis eden özel bir protokolden akıyor. Dosyalar içerik hash'iyle tanındığı için taşınan video etiketlerini kaybetmiyor. Discord'un 10 MB sınırı için bit hızı klip süresinden hesaplanıyor.\n\nGeliştirme sırasındaki ölçümlerde 5.000 videoda arama 2 ms. Kurulum dosyası yayında ve kendini güncelliyor.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/meme-file`,
+      en: `Meme File is a Windows desktop app Onur built: a library for reaction videos. It watches your folders, builds a thumbnail and a scrubbable preview for every clip; you tag them with chips, find one in a second and drag it straight into Discord. It never moves your files — it only adds a tagging layer on top.\n\nOn the engineering side: the UI is sandboxed and cannot touch the file system, and videos stream through a custom protocol that serves only library folders. Files are identified by a content hash, so a moved video keeps its tags. For Discord's 10 MB limit, bitrate is derived from the clip length.\n\nMeasured during development, a search over 5,000 videos takes 2 ms. The installer is published and updates itself.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/meme-file`,
+    },
+    suggests: ['weather', 'projeler', 'yetenekler'],
   },
   // Jarvis
   {

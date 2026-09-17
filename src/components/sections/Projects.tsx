@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { projects, tint } from '@/data/portfolio';
-import FeaturedProject from '@/components/sections/FeaturedProject';
+import FeaturedShowcase from '@/components/sections/FeaturedShowcase';
 import { gsap } from '@/lib/gsap';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -102,7 +102,7 @@ export default function Projects() {
     return () => ctx.revert();
   }, []);
 
-  const featured = projects.find((project) => project.featured);
+  const featured = projects.filter((project) => project.featured);
   const rest = projects.filter((project) => !project.featured);
 
   const handleTitleHover = (e: React.MouseEvent<HTMLHeadingElement>, isEnter: boolean) => {
@@ -143,10 +143,10 @@ export default function Projects() {
         <SectionTitle>{t('projects.title')}</SectionTitle>
 
         {/*
-          Öne çıkan proje ızgaranın dışında, tam genişlikte duruyor;
+          Öne çıkan projeler ızgaranın dışında, dönen vitrinde duruyor;
           kalanlar aşağıda normal üçlü ızgarada.
         */}
-        {featured && <FeaturedProject project={featured} />}
+        {featured.length > 0 && <FeaturedShowcase projects={featured} />}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/*
