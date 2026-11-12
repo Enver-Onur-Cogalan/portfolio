@@ -12,7 +12,7 @@
   kendisi yönetiyor: hareket kısıtlıysa tek kare çizip duruyor.
 */
 import { el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
-import { ease } from '@/lib/ink/motion';
+import { ease, seeded } from '@/lib/ink/motion';
 import { applyPalette, palette } from '@/lib/ink/daynight';
 import { createFigure, LAB_COAT } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
@@ -51,24 +51,6 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   el('style', {}, svg).textContent = '.pp{fill:var(--paper)}';
 
   const { filter } = inkDefs(svg, 'ink-strip');
-  /*
-    Filtre bölgesini kullanıcı uzayına sabitle.
-
-    `inkDefs()` filtreyi varsayılan `objectBoundingBox` birimleriyle kuruyor:
-    bölge, filtrenin uygulandığı grubun sınırlayıcı kutusuna göre. Yürüyen
-    figür o grubun içinde olduğu için kutu her karede değişiyor, bölge
-    kayıyor ve türbülans yeniden örnekleniyordu — sonuç, sabit duran zemin
-    çizgisinin her adımda titremesiydi. Bölge banda sabitlenince gürültü
-    deseni de sabit kalıyor.
-  */
-  const edge = svg.querySelector('#ink-strip-edge');
-  if (edge) {
-    edge.setAttribute('filterUnits', 'userSpaceOnUse');
-    edge.setAttribute('x', '-12');
-    edge.setAttribute('y', '-12');
-    edge.setAttribute('width', String(VIEW_W + 24));
-    edge.setAttribute('height', String(VIEW_H + 24));
-  }
   svg.style.setProperty('--paper', PAPER);
   svg.style.color = INK_DAY;
 
@@ -78,24 +60,52 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   // sabahtan geceye kayacak.
   applyPalette(svg, palette(options.tau ?? 0.34));
 
-  // Mürekkep filtresi sahne grubuna takılır, kâğıda değil
-  const scene = el('g', { filter }, svg);
+  /*
+    Mürekkep filtresi ortak bir üst gruba DEĞİL, hareket eden her parçanın
+    kendi grubuna takılıyor.
 
-  // Zemin çizgisi
+    Filtreli bir grubun içindeki çocuk kıpırdayınca tarayıcı filtre
+    çıktısını yeniden hesaplamak zorunda kalıyor; Safari bu durumda boyama
+    bölgesini eksik geçersiz kılıp figürün arkasında iz bırakıyor.
+    Filtre doğrudan figürün grubundaysa içerik kendi yerel uzayında sabit
+    kalıyor ve hareketi dıştaki dönüşüm yapıyor — kütüphanenin yürüyen
+    figür örneğinin yaptığı da bu.
+  */
+  const scene = el('g', {}, svg);
+
+  /*
+    Zemin çizgisi filtresiz.
+
+    Düz yatay bir yolun sınırlayıcı kutusu sıfır yükseklikte; mürekkep
+    filtresinin bölgesi bu kutuya oranlı olduğu için filtre uygulanınca
+    çizgi tamamen kayboluyor. Elle çizilmişlik hissi bunun yerine yolun
+    kendisine işleniyor: tohumlu rastgelelikle küçük dikey sapmalar, yani
+    her açılışta aynı çizgi.
+  */
+  const rnd = seeded(23);
+  const floorPts: string[] = [];
+  for (let x = 0; x <= VIEW_W; x += 18) {
+    floorPts.push(`${x === 0 ? 'M' : 'L'}${f(x)} ${f(GROUND + rnd(-0.35, 0.35))}`);
+  }
   const floor = el('path', {
     fill: 'none',
     stroke: 'currentColor',
     'stroke-width': 1.35 * SCALE,
     'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
   }, scene);
-  floor.setAttribute('d', `M0 ${GROUND} L${VIEW_W} ${GROUND}`);
+  floor.setAttribute('d', floorPts.join(' '));
 
   // ── Duraklar ───────────────────────────────────────────────
   const stations: Station[] = [microscopeStation(scene)];
-  stations.forEach((station, i) => placeAt(station.g, SLOTS[i]));
+  stations.forEach((station, i) => {
+    station.g.setAttribute('filter', filter);
+    placeAt(station.g, SLOTS[i]);
+  });
 
   // ── Yürüyen kişi ───────────────────────────────────────────
   const figure = createFigure(scene, LAB_COAT);
+  figure.g.setAttribute('filter', filter);
 
   /*
     Durum makinesi. Figür yürür, durağa varınca yavaşlar, oturur, bir süre

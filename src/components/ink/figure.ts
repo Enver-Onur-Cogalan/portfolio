@@ -94,16 +94,31 @@ function elbow(a: Vec, b: Vec, side: 1 | -1 = 1): Vec {
   return mix([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], e, 0.55);
 }
 
-/* Oturuş hedefleri. Tabure yüksekliği duraklarla ortak (SEAT = 88). */
-const SIT_HIP: Vec = [34, 85];
-const SIT_KNEE_NEAR: Vec = [53, 88];
-const SIT_KNEE_FAR: Vec = [49.5, 89];
-const SIT_ANKLE_NEAR: Vec = [56, 116];
-const SIT_ANKLE_FAR: Vec = [45.5, 116];
-const SIT_LEAN = (25 * Math.PI) / 180;
+/*
+  Oturuş hedefleri. Tabure yüksekliği duraklarla ortak (SEAT = 88).
+
+  Kalça bilerek tezgâha yakın ve eğim küçük. Geride oturup 25° eğilince
+  omuz çok öne gidiyor, sırt da zorunlu olarak uzun bir diyagonal oluyor
+  ve palto aşağı doğru yelpaze gibi açılıyordu. Yakın oturup az eğilmek
+  hem gerçekçi hem de siluet dar kalıyor.
+*/
+const SIT_HIP: Vec = [38, 85];
+const SIT_KNEE_NEAR: Vec = [58, 88];
+const SIT_KNEE_FAR: Vec = [54.5, 89];
+const SIT_ANKLE_NEAR: Vec = [59, 116];
+const SIT_ANKLE_FAR: Vec = [49, 116];
+const SIT_LEAN = (17 * Math.PI) / 180;
 
 export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figure {
   const g = el('g', {}, parent);
+
+  /*
+    Görünmez çerçeve. Mürekkep filtresinin bölgesi grubun sınırlayıcı
+    kutusuna oranlı; uzuvlar salındıkça kutu değişirse filtre her karede
+    yeniden örnekleniyor ve bazı tarayıcılarda boyama izleri kalıyor.
+    Geometrisi olan ama çizilmeyen bir dikdörtgen kutuyu sabitliyor.
+  */
+  el('rect', { x: 8, y: 18, width: 76, height: 108, fill: 'none', stroke: 'none' }, g);
 
   const sleeveW = costume.sleeve ?? 3.6;
   const farArm: Limb = limb(g, sleeveW);
@@ -186,14 +201,24 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
         bırakılınca tabureyi ve baldırları tamamen örtüyor, figürün
         oturduğu anlaşılmıyordu.
       */
-      const hem = lerp(costume.hem, 89, sit);
+      const hem = lerp(costume.hem, 88, sit);
+      /*
+        Oturuşta arka kenar gövde eksenini izliyor. Gövde 25° öne
+        eğilince omuz ileri gidiyor; arka kenarı hâlâ kalçanın sabit bir
+        mesafe arkasına çizince palto geriye doğru yelpaze gibi açılıyor
+        ve figürün arkası şişiyordu. Kalçanın arkası, eksene dik
+        yöndeki kalınlık kadar geride — o kadar.
+      */
+      const backOffset = 5;
+      const backHem = SIT_HIP[0] - backOffset * Math.cos(SIT_LEAN);
+      const backWaist = SIT_HIP[0] - backOffset * Math.cos(SIT_LEAN) + 2.4;
       const fx = Math.max(kneeN[0] + 1.6, 44.6);
       garment.setAttribute(
         'd',
         `M${f(sh[0] - 4.8)} ${f(sh[1] + 1)} Q${f(sh[0] - 1)} ${f(sh[1] - 2.4)} ${f(sh[0] + 4.2)} ${f(sh[1] + 1)} ` +
           `L${f(fx - 0.6)} ${f(hem - 22 + b)} Q${f(fx)} ${f(hem - 10 + b * 0.5)} ${f(Math.max(fx, ankleN[0] - 4))} ${f(hem)} ` +
-          `L${f(lerp(34.2, hip[0] - 10, sit))} ${f(hem + 1)} ` +
-          `L${f(lerp(35.8, hip[0] - 9, sit))} ${f(hem - 22 + b)}Z`
+          `L${f(lerp(34.2, backHem, sit))} ${f(hem + 1)} ` +
+          `L${f(lerp(35.8, backWaist, sit))} ${f(hem - 22 + b)}Z`
       );
       seam.setAttribute(
         'd',
