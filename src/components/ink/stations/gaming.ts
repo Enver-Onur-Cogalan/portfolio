@@ -11,8 +11,8 @@
 
   Yerel uzay figürle ortak: zemin y=120, figür x=40'ta.
 */
-import { el, f, pen, shape, PEN, PAPER } from '@/lib/ink/ink';
-import { ACCENT, PYJAMA, type Costume, type WorkPose } from '../figure';
+import { el, f, pen, shape, PEN } from '@/lib/ink/ink';
+import { PYJAMA, type Costume, type WorkPose } from '../figure';
 import type { Station } from './microscope';
 
 const DESK_TOP = 74;
@@ -58,7 +58,7 @@ export function gamingStation(parent: Element): Station {
 
   // ── Kasa: masanın altında, tek yeşil ışık ────────────────────
   shape(g, PEN * 0.7).setAttribute('d', 'M88 96 L100 96 L100 119 L88 119Z');
-  el('circle', { cx: 97.4, cy: 99.4, r: 1.1, fill: ACCENT }, g);
+  el('circle', { cx: 97.4, cy: 99.4, r: 1.1, fill: 'var(--accent)' }, g);
   pen(g, PEN * 0.35).setAttribute('d', 'M90 102 L97 102 M90 105 L97 105');
 
   // ── Ekran: ayaklı, tek geniş panel ───────────────────────────
@@ -73,10 +73,10 @@ export function gamingStation(parent: Element): Station {
   shape(g, PEN).setAttribute('d', 'M79.6 66.6 L89 67.6 L92 43.6 L82.6 43Z');
   const glow = el('path', {
     d: 'M81 65.4 L87.8 65.9 L90.6 45.2 L83.8 44.8Z',
-    fill: PAPER,
+    // Ekran geceleyin kararmaz, yanar: rengi banttan geliyor.
+    fill: 'var(--screen)',
     stroke: 'none',
   }, g);
-  glow.classList.add('pp');
 
   // ── Klavye ve fare ───────────────────────────────────────────
   shape(g, PEN * 0.7).setAttribute(
@@ -95,7 +95,7 @@ export function gamingStation(parent: Element): Station {
   // ── Kupa: her durakta tekrar eden nesne ──────────────────────
   el('path', {
     d: `M96 ${DESK_TOP - 6.4} L101.6 ${DESK_TOP - 6.4} L101 ${DESK_TOP} L96.6 ${DESK_TOP}Z`,
-    fill: ACCENT,
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.7,
     'stroke-linejoin': 'round',

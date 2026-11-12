@@ -13,18 +13,53 @@
 */
 import { curve, el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
 import { clamp, ease, lerp, seeded } from '@/lib/ink/motion';
-import { applyPalette, palette } from '@/lib/ink/daynight';
+import { mix, nightTint, palette, rgb, type Palette, type RGB } from '@/lib/ink/daynight';
 import { createFigure, TEE, type Costume, type WorkPose } from './figure';
-import { microscopeStation, type Station } from './stations/microscope';
+import { ACCENT as ACCENT_HEX, microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
 import { coffeeStation } from './stations/coffee';
 import { bikeStation } from './stations/bike';
 import { gamingStation } from './stations/gaming';
 
-export interface StripOptions {
-  /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
-  tau?: number;
-}
+/*
+  Günün saati bant boyunca kayıyor: solda sabah, sağda akşam. Bir
+  durağın saati, bantta durduğu yerden geliyor.
+
+  Geçiş neden temaya bölünmüş: `daynight` mürekkebi bir eşikte koyudan
+  açığa çeviriyor (gece kâğıt lacivert, çizgi açık) ve bu dönüşüm
+  τ≈0.751'de, gün döngüsünün yüzde ikilik bir diliminde oluyor. Tek bir
+  bant sabahtan geceye uzatıldığında bu eşik bandın ortasına düşüyor ve
+  ne kadar yayılırsa yayılsın sıcak şeftaliden soğuk mora atlayan bir
+  duvar olarak okunuyor.
+
+  Bu yüzden iki eğri var ve ikisi de eşiğin tek bir yanında kalıyor:
+  açık temada sabahtan altın saate, koyu temada alacakaranlıktan
+  geceye. Eşik artık bandın içinde değil, kullanıcının tema düğmesine
+  bastığı anda — geçişin zaten beklendiği yerde — yaşanıyor.
+*/
+type DayCurve = ReadonlyArray<readonly [u: number, tau: number]>;
+/** Açık tema: serin sabah → parlak öğle → altın saat. Eşiğin (0.735) hep solunda. */
+const DAY_LIGHT: DayCurve = [[0, 0.295], [0.45, 0.5], [1, 0.732]];
+/** Koyu tema: alacakaranlık → gece. Eşiğin (0.756) hep sağında. */
+const DAY_DARK: DayCurve = [[0, 0.774], [0.5, 0.82], [1, 0.878]];
+
+const tauOn = (curve: DayCurve, u: number): number => {
+  const t = clamp(u, 0, 1);
+  for (let i = 1; i < curve.length; i++) {
+    if (t <= curve[i][0]) {
+      return lerp(curve[i - 1][1], curve[i][1], (t - curve[i - 1][0]) / (curve[i][0] - curve[i - 1][0]));
+    }
+  }
+  return curve[curve.length - 1][1];
+};
+
+/*
+  Gradyan basamağı. Bütün gradyanlar aynı aralığı aynı sıklıkta
+  örnekliyor — zemin de, her durağın kâğıdı da — yoksa yaklaşımlar
+  birbirini tutmaz ve durakların dolgusu arka planla aynı rengi
+  vermezdi.
+*/
+const STOPS = 64;
 
 /** Bant: beşi birden sığacak kadar geniş, ince kalacak kadar alçak. */
 const VIEW_W = 900;
@@ -39,7 +74,7 @@ const SLOTS = [95, 275, 455, 635, 815];
 const placeAt = (g: Element, x: number): void =>
   g.setAttribute('transform', `translate(${f(x)} ${GROUND}) scale(${f(SCALE)}) translate(-40 -120)`);
 
-export function createStrip(host: HTMLElement, options: StripOptions = {}): () => void {
+export function createStrip(host: HTMLElement): () => void {
   const svg = el('svg', {
     viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
     role: 'img',
@@ -54,15 +89,55 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   // bileşen sayfanın global stiline bağımlı olmasın.
   el('style', {}, svg).textContent = '.pp{fill:var(--paper)}';
 
-  const { filter } = inkDefs(svg, 'ink-strip');
+  const { defs, filter } = inkDefs(svg, 'ink-strip');
   svg.style.setProperty('--paper', PAPER);
   svg.style.color = INK_DAY;
 
-  el('rect', { x: 0, y: 0, width: VIEW_W, height: VIEW_H, class: 'pp' }, svg);
+  const isDark = (): boolean => document.documentElement.classList.contains('dark');
+  let day: DayCurve = isDark() ? DAY_DARK : DAY_LIGHT;
+  const tauAt = (x: number): number => tauOn(day, x / VIEW_W);
+  /** Ekranların gece aldığı sıcak ışık. */
+  const LAMP: RGB = [255, 226, 168];
+  const screenOf = (P: Palette): string => rgb(mix(P.paper, LAMP, P.lamp));
 
-  // Günün saati. Şimdilik sabit sabah ışığı; ileride şerit boyunca
-  // sabahtan geceye kayacak.
-  applyPalette(svg, palette(options.tau ?? 0.34));
+  /*
+    Tema değişince renkler yeniden sürülecek. Gradyan düğümleri ve
+    duraklar burada tutuluyor; `relight()` hepsini aynı anda güncelliyor.
+    Düğümler yeniden yaratılmıyor, yalnızca renkleri değişiyor.
+  */
+  const grads: Array<{ stops: SVGStopElement[]; pick: (P: Palette) => RGB }> = [];
+  const lit: Array<{ g: SVGGElement; x: number }> = [];
+
+  /*
+    Yatay gradyan. `x1/x2` YEREL koordinatta veriliyor: `userSpaceOnUse`
+    gradyanı, ona başvuran öğenin kendi uzayında çözüyor. Durak grupları
+    ölçekli ve kaydırılmış olduğu için her birine, aynı renk
+    duraklarından oluşan ama uçları o durağın uzayına çevrilmiş kendi
+    gradyanı veriliyor. Böylece bir durağın kâğıt dolgusu, arkasındaki
+    zeminle tam olarak aynı rengi tutturuyor.
+  */
+  let gradN = 0;
+  const gradient = (pick: (P: Palette) => RGB, x1: number, x2: number): string => {
+    const id = `ink-strip-g${gradN++}`;
+    const lg = el('linearGradient', {
+      id, gradientUnits: 'userSpaceOnUse', x1: f(x1), y1: 0, x2: f(x2), y2: 0,
+    }, defs);
+    const stops: SVGStopElement[] = [];
+    for (let i = 0; i <= STOPS; i++) {
+      const u = i / STOPS;
+      stops.push(el('stop', {
+        offset: f(u),
+        'stop-color': rgb(pick(palette(tauOn(day, u)))),
+      }, lg));
+    }
+    grads.push({ stops, pick });
+    return `url(#${id})`;
+  };
+
+  el('rect', {
+    x: 0, y: 0, width: VIEW_W, height: VIEW_H,
+    fill: gradient((P) => P.paper, 0, VIEW_W),
+  }, svg);
 
   /*
     Mürekkep filtresi ortak bir üst gruba DEĞİL, hareket eden her parçanın
@@ -93,7 +168,9 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   }
   const floor = el('path', {
     fill: 'none',
-    stroke: 'currentColor',
+    // Zemin tüm bandı geçiyor, dolayısıyla mürekkebi de yol boyunca
+    // değişmeli: tek renk yerine gradyan kontur.
+    stroke: gradient((P) => P.ink, 0, VIEW_W),
     'stroke-width': 1.35 * SCALE,
     'stroke-linecap': 'round',
     'stroke-linejoin': 'round',
@@ -111,12 +188,66 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);
     placeAt(station.g, SLOTS[i]);
+
+    // Durağın saati durduğu yerden. Çizgi ve düz renkler tek değer
+    // (durak dar, içinde fark görünmez); kâğıt ise gradyan, çünkü
+    // arkasındaki zeminle birebir tutmak zorunda.
+    station.g.style.setProperty(
+      '--paper',
+      gradient((Q) => Q.paper, 40 - SLOTS[i] / SCALE, 40 + (VIEW_W - SLOTS[i]) / SCALE)
+    );
+    lit.push({ g: station.g, x: SLOTS[i] });
   });
+
+  const relight = (): void => {
+    for (const { stops, pick } of grads) {
+      stops.forEach((stop, i) => {
+        stop.setAttribute('stop-color', rgb(pick(palette(tauOn(day, i / STOPS)))));
+      });
+    }
+    for (const { g, x } of lit) {
+      const P = palette(tauAt(x));
+      g.style.color = rgb(P.ink);
+      g.style.setProperty('--accent', nightTint(ACCENT_HEX, P));
+      g.style.setProperty('--screen', screenOf(P));
+    }
+  };
+  relight();
+
+  /*
+    Tema düğmesi `<html>` üzerindeki `dark` sınıfını değiştiriyor;
+    bileşen React ağacının dışında çizdiği için onu doğrudan izliyor.
+  */
+  let dark = isDark();
+  const themeWatch = new MutationObserver(() => {
+    if (isDark() === dark) return;
+    dark = !dark;
+    day = dark ? DAY_DARK : DAY_LIGHT;
+    relight();
+  });
+  themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   // ── Yürüyen kişi ───────────────────────────────────────────
   const figure = createFigure(scene);
   figure.g.setAttribute('filter', filter);
   figure.gFar.setAttribute('filter', filter);
+
+  /*
+    Figürün saati sabit değil: yürüdükçe değişiyor, yani ışığı yanında
+    taşıyor. Duraklarda olduğu gibi gradyan gerekmiyor — figür dar, bir
+    ucundan öbürüne τ farkı 0.02 — ama kare başına güncellenmeli.
+  */
+  let figureTint: (c: string) => string = (c) => c;
+  const lightFigure = (x: number): void => {
+    const P = palette(tauAt(x));
+    const ink = rgb(P.ink);
+    const paper = rgb(P.paper);
+    for (const node of [figure.g, figure.gFar]) {
+      node.style.color = ink;
+      node.style.setProperty('--paper', paper);
+    }
+    figureTint = (c) => nightTint(c, P);
+  };
 
   /*
     Uzak bacağın z-sırası. Normalde figürün hemen altında, yani bütün
@@ -190,7 +321,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     switch (phase) {
       case 'walking': {
         go = Math.min(1, go + dt * 3);
-        const dx = figure.update(dt, { costume: costumeFor(target), go, sit: 0 });
+        const dx = figure.update(dt, { tint: figureTint, costume: costumeFor(target), go, sit: 0 });
         x += dx * SCALE;
         if (station && x >= seatX(target) - 2) {
           phase = 'stopping';
@@ -205,7 +336,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       case 'stopping': {
         timer += dt;
         go = Math.max(0, 1 - timer / STOP_TIME);
-        figure.update(dt, { costume: costumeFor(target), go, sit: 0 });
+        figure.update(dt, { tint: figureTint, costume: costumeFor(target), go, sit: 0 });
         if (timer >= STOP_TIME) {
           phase = 'sitting';
           timer = 0;
@@ -219,6 +350,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
         legsTo(station?.legsBehind ? station : null);
         settle = ease(Math.min(1, timer / SIT_TIME));
         figure.update(dt, {
+          tint: figureTint,
           costume: costumeFor(target),
           go: 0,
           sit: station?.pose === 'sit' ? settle : 0,
@@ -243,6 +375,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
         const held = alt > 0.02;
         station?.setPropHeld?.(held);
         figure.update(dt, {
+          tint: figureTint,
           costume: costumeFor(target),
           go: 0,
           sit: station?.pose === 'sit' ? 1 : 0,
@@ -261,6 +394,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
         station?.setPropHeld?.(false);
         settle = 1 - ease(Math.min(1, timer / SIT_TIME));
         figure.update(dt, {
+          tint: figureTint,
           costume: costumeFor(target),
           go: 0,
           sit: station?.pose === 'sit' ? settle : 0,
@@ -289,6 +423,8 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       düzensiz oluyor ve bu, bandın tek hareketli nesnesinde titreme
       olarak görünüyor.
     */
+    lightFigure(x);
+
     acc += dt;
     let n = 0;
     while (acc >= STEP && n < MAX_STEPS) {
@@ -305,6 +441,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
 
   return () => {
     stop();
+    themeWatch.disconnect();
     svg.remove();
   };
 }

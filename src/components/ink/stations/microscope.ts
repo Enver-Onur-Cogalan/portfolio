@@ -11,7 +11,12 @@
 import { blot, el, f, pen, pt, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
 import { LAB_COAT, type Costume, type WorkPose } from '../figure';
 
-/** Şeridin tek vurgu rengi. Her durakta tekrar eden kupa bu renkte. */
+/**
+ * Şeridin tek vurgu rengi. Duraklar bunu doğrudan değil `var(--accent)`
+ * üzerinden kullanıyor: bant her durağa günün o saatine göre
+ * karartılmış bir değer veriyor, geceki kupa gündüzki kadar parlak
+ * olmasın diye.
+ */
 export const ACCENT = '#2e8f63';
 
 export interface Station {
@@ -117,7 +122,7 @@ export function microscopeStation(parent: Element): Station {
   // ── Defter ve kupa: vurgu renginin iki kullanımı ─────────────
   el('path', {
     d: `M80 ${BENCH_TOP - 1.8} L93 ${BENCH_TOP - 1.8} L93 ${BENCH_TOP} L80 ${BENCH_TOP}Z`,
-    fill: ACCENT,
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.7,
     'stroke-linejoin': 'round',
@@ -126,7 +131,7 @@ export function microscopeStation(parent: Element): Station {
 
   el('path', {
     d: `M97 ${BENCH_TOP - 6.4} L102.6 ${BENCH_TOP - 6.4} L102 ${BENCH_TOP} L97.6 ${BENCH_TOP}Z`,
-    fill: ACCENT,
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.7,
     'stroke-linejoin': 'round',

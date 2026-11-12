@@ -20,7 +20,7 @@
   Yerel uzay figürle ortak: zemin y=120, figür x=40'ta.
 */
 import { blot, el, f, pen, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
-import { ACCENT, BIKER, type Costume, type WorkPose } from '../figure';
+import { BIKER, type Costume, type WorkPose } from '../figure';
 import type { Station } from './microscope';
 
 const R = 13.5;
@@ -101,7 +101,7 @@ export function bikeStation(parent: Element): Station {
   // ── Depo: şeridin yeşili burada da ───────────────────────────
   el('path', {
     d: `M50 85.6 L50.6 79 Q56 74.4 65 74.2 L${NECK[0] - 0.6} 75.4 L72.4 85.4Z`,
-    fill: ACCENT,
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.9,
     'stroke-linejoin': 'round',

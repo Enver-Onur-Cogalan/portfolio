@@ -5,7 +5,7 @@
   yüksekliği laboratuvar taburesiyle ortak (88), böylece aynı oturuş
   harmanı burada da tutuyor.
 */
-import { el, f, pen, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
+import { el, f, pen, shape, PEN, type Vec } from '@/lib/ink/ink';
 import { HOODIE, type Costume, type WorkPose } from '../figure';
 import type { Station } from './microscope';
 
@@ -51,15 +51,15 @@ export function deskStation(parent: Element): Station {
   // Ekranın parlayan yüzü: kâğıt dolgusu, figüre bakan tarafta
   const glow = el('path', {
     d: `M76.4 ${DESK_TOP - 3.4} L83 52.4 L84.6 52.8 L78 ${DESK_TOP - 3}Z`,
-    fill: PAPER,
+    // Ekran geceleyin kararmaz, yanar: rengi banttan geliyor.
+    fill: 'var(--screen)',
     stroke: 'none',
   }, g);
-  glow.classList.add('pp');
 
   // ── Kupa: her durakta tekrar eden nesne ──────────────────────
   el('path', {
     d: `M94 ${DESK_TOP - 6.4} L99.6 ${DESK_TOP - 6.4} L99 ${DESK_TOP} L94.6 ${DESK_TOP}Z`,
-    fill: '#2e8f63',
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.7,
     'stroke-linejoin': 'round',

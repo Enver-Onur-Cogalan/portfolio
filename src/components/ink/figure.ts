@@ -111,6 +111,12 @@ export interface FigureState {
   /** Oturunca ellerin ve başın gideceği yerler. */
   work?: WorkPose;
   /**
+   * Düz renkleri (pantolon, gövde, kupa) günün saatine göre karartan
+   * işlev. Gece kâğıt lacivert olduğunda gündüz renkleri olduğu gibi
+   * kalırsa sahnenin üstünde yüzüyor.
+   */
+  tint?: (colour: string) => string;
+  /**
    * Yakın elde tutulan nesne. Durağın içine sabit koyulduğunda el ona
    * yumuşayarak gittiği için nesne havada asılı kalıyordu; figüre bağlı
    * olunca elle birlikte gidiyor.
@@ -299,11 +305,12 @@ export function createFigure(parent: Element): Figure {
       const hc = state.work ? mix(restHead, state.work.head, reach) : restHead;
 
       // ── Pantolon: bacak dolgularının rengi ───────────────────
+      const tint = state.tint ?? ((c: string) => c);
       for (const fill of legFills) {
         if (!fill) continue;
         if (costume.trousers) {
           fill.classList.remove('pp');
-          fill.setAttribute('fill', costume.trousers);
+          fill.setAttribute('fill', tint(costume.trousers));
         } else {
           fill.classList.add('pp');
           fill.setAttribute('fill', PAPER);
@@ -385,7 +392,7 @@ export function createFigure(parent: Element): Figure {
       */
       if (costume.colour) {
         garment.classList.remove('pp');
-        garment.setAttribute('fill', costume.colour);
+        garment.setAttribute('fill', tint(costume.colour));
       } else {
         garment.classList.add('pp');
         garment.setAttribute('fill', PAPER);

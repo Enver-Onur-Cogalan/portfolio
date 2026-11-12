@@ -11,7 +11,7 @@
   bilerek farklı bir siluet.
 */
 import { el, f, pen, shape, PEN, type Vec } from '@/lib/ink/ink';
-import { ACCENT, TEE, type Costume, type WorkPose } from '../figure';
+import { TEE, type Costume, type WorkPose } from '../figure';
 import type { Station } from './microscope';
 
 const TABLE_TOP = 80;
@@ -55,7 +55,7 @@ export function coffeeStation(parent: Element): Station {
     d:
       `M${MUG[0] - 2.6} ${MUG[1] - 3.4} L${MUG[0] + 2.4} ${MUG[1] - 3.4} ` +
       `L${MUG[0] + 1.9} ${MUG[1] + 1.4} L${MUG[0] - 2.1} ${MUG[1] + 1.4}Z`,
-    fill: ACCENT,
+    fill: 'var(--accent)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.7,
     'stroke-linejoin': 'round',
