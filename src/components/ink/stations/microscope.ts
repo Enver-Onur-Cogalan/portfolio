@@ -28,6 +28,8 @@ export interface Station {
   readonly costume: Costume;
   /** Durakta oturuluyor mu yoksa ayakta mı duruluyor. */
   readonly pose: 'sit' | 'stand';
+  /** Durağın adı: ipucu balonu ve ekran okuyucu için. */
+  readonly label: string;
   /** Durakta elde taşınan nesne. */
   readonly prop?: 'mug';
   /**
@@ -165,6 +167,7 @@ export function microscopeStation(parent: Element): Station {
     g,
     costume: LAB_COAT,
     pose: 'sit',
+    label: 'Laboratuvarda',
     // Baş okülerin hemen solunda; eller odak düğmesinde ve tablada.
     work: {
       head: [EYEPIECE[0] - 4.6, EYEPIECE[1] - 0.4],

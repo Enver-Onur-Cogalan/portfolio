@@ -74,6 +74,7 @@ export function deskStation(parent: Element): Station {
     g,
     costume: HOODIE as Costume,
     pose: 'sit',
+    label: 'Kod yazarken',
     work: {
       // Baş ekrana bakacak şekilde öne eğik, eller klavyede
       head: [50, 47.5],

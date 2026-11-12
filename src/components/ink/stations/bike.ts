@@ -170,6 +170,7 @@ export function bikeStation(parent: Element): Station {
     g,
     costume: BIKER as Costume,
     pose: 'sit',
+    label: 'Motosiklete binerken',
     /*
       İki el de gidonda. Yan görünüşte iki kabza üst üste; uzak el
       hafifçe geride ve aşağıda duruyor ki kollar tek kalın çizgi

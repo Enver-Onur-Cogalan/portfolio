@@ -95,6 +95,7 @@ export function coffeeStation(parent: Element): Station {
     g,
     costume: TEE as Costume,
     pose: 'sit',
+    label: 'Kahve molası',
     // Dinlenme pozu: el kupanın masadaki yerinde, baş düz
     work: {
       head: [45.4, 45.6],

@@ -118,6 +118,7 @@ export function gamingStation(parent: Element): Station {
     g,
     costume: PYJAMA as Costume,
     pose: 'sit',
+    label: 'Oyun oynarken',
     // Sol el klavyede, sağ el farede, baş ekrana dönük.
     work: {
       head: [49, 46.2],

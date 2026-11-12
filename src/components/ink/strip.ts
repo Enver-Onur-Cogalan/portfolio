@@ -70,16 +70,25 @@ const SCALE = 0.85;
 /** Durakların bant üzerindeki yerleri. */
 const SLOTS = [95, 275, 455, 635, 815];
 
-/** Yerel (40, 120) noktasını banttaki (x, GROUND) noktasına taşır. */
-const placeAt = (g: Element, x: number): void =>
-  g.setAttribute('transform', `translate(${f(x)} ${GROUND}) scale(${f(SCALE)}) translate(-40 -120)`);
+/*
+  Yerel (40, 120) noktasını banttaki (x, GROUND) noktasına taşır.
+
+  `face` yatay ölçeğin işareti: +1 sağa, -1 sola bakıyor. Dönüş sırasında
+  aradan geçtiği için tam sayı olmak zorunda değil — sıfırda figür bir
+  çizgiye iniyor ve iki boyutlu çizimde dönüş tam olarak böyle okunuyor.
+*/
+const placeAt = (g: Element, x: number, face = 1): void =>
+  g.setAttribute(
+    'transform',
+    `translate(${f(x)} ${GROUND}) scale(${f(SCALE * face)} ${f(SCALE)}) translate(-40 -120)`
+  );
 
 export function createStrip(host: HTMLElement): () => void {
   const svg = el('svg', {
     viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
     role: 'img',
     'aria-label':
-      'Çizgi çizimi: aynı kişinin beş hâli — mikroskop başında, dizüstüyle, telefonuyla, motosikletinde ve oyun oynarken',
+      'Çizgi çizimi: aynı kişinin beş hâli — mikroskop başında, dizüstüyle, kahve molasında, motosikletine binerken ve oyun oynarken',
   });
   svg.style.display = 'block';
   svg.style.width = '100%';
@@ -87,7 +96,13 @@ export function createStrip(host: HTMLElement): () => void {
 
   // Kâğıt dolgusunu `applyPalette` sürüyor; kural sahnenin içinde dursun ki
   // bileşen sayfanın global stiline bağımlı olmasın.
-  el('style', {}, svg).textContent = '.pp{fill:var(--paper)}';
+  el('style', {}, svg).textContent =
+    '.pp{fill:var(--paper)}' +
+    // Duraklar düğme: imleç, odak halkası yerine kendi işareti
+    '.st{cursor:pointer}.st:focus{outline:none}.hit{fill:transparent}' +
+    '.mark{opacity:0;transition:opacity .2s ease}' +
+    '.st:hover .mark{opacity:.55}.st:focus-visible .mark{opacity:1}' +
+    '@media(prefers-reduced-motion:reduce){.mark{transition:none}}';
 
   const { defs, filter } = inkDefs(svg, 'ink-strip');
   svg.style.setProperty('--paper', PAPER);
@@ -106,6 +121,7 @@ export function createStrip(host: HTMLElement): () => void {
     Düğümler yeniden yaratılmıyor, yalnızca renkleri değişiyor.
   */
   const grads: Array<{ stops: SVGStopElement[]; pick: (P: Palette) => RGB }> = [];
+  const unbind: Array<() => void> = [];
   const lit: Array<{ g: SVGGElement; x: number }> = [];
 
   /*
@@ -220,6 +236,52 @@ export function createStrip(host: HTMLElement): () => void {
       gradient((Q) => Q.paper, 40 - SLOTS[i] / SCALE, 40 + (VIEW_W - SLOTS[i]) / SCALE)
     );
     lit.push({ g: station.g, x: SLOTS[i] });
+
+    /*
+      Durak bir düğme. Tıklama birincil (dokunmatikte de çalışan tek
+      şey o), üstüne gelmek ikincil bir ipucu: durağın altında ince bir
+      çizgi beliriyor. Klavyeyle gezilebilsin diye her durak odak
+      alabiliyor; tarayıcının odak halkası yerine aynı çizgi, bu kez
+      tam görünürlükte.
+
+      Vuruş alanı ayrı ve saydam bir dikdörtgen: çizgilerin üstüne denk
+      getirmek gerekmesin. Duraklar bantta 180 piksel aralıklı, yerel
+      uzayda bu 212 birim; ±100 birim bitişik ama örtüşmeyen alanlar
+      veriyor.
+    */
+    const g = station.g;
+    g.classList.add('st');
+    g.setAttribute('role', 'button');
+    g.setAttribute('tabindex', '0');
+    g.setAttribute('aria-label', `${station.label} sahnesine git`);
+    const tip = el('title', {});
+    tip.textContent = station.label;
+    g.insertBefore(tip, g.firstChild);
+    const hit = el('rect', { x: -60, y: 30, width: 200, height: 100, class: 'hit' });
+    g.insertBefore(hit, tip.nextSibling);
+    el('path', {
+      class: 'mark',
+      // Mobilyanın yerel merkezi 40 değil ~59: işaret ona göre ortalanıyor
+      d: 'M14 133 L104 133',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 1.8,
+      'stroke-linecap': 'round',
+    }, g);
+
+    const pick = (): void => goTo(i);
+    const onKey = (e: Event): void => {
+      const key = (e as KeyboardEvent).key;
+      if (key !== 'Enter' && key !== ' ') return;
+      e.preventDefault();
+      pick();
+    };
+    g.addEventListener('click', pick);
+    g.addEventListener('keydown', onKey);
+    unbind.push(() => {
+      g.removeEventListener('click', pick);
+      g.removeEventListener('keydown', onKey);
+    });
   });
 
   const relight = (): void => {
@@ -295,10 +357,11 @@ export function createStrip(host: HTMLElement): () => void {
     sonra oturma başlıyor. İkisi aynı anda sürülürse figür yürürken
     çömeliyor.
   */
-  type Phase = 'walking' | 'stopping' | 'sitting' | 'working' | 'standing';
+  type Phase = 'walking' | 'turning' | 'stopping' | 'sitting' | 'working' | 'standing';
   const STOP_TIME = 0.45;
   const SIT_TIME = 0.8;
   const WORK_TIME = 7;
+  const TURN_TIME = 0.26;
 
   let phase: Phase = 'walking';
   let target = 0; // sıradaki durak
@@ -308,10 +371,61 @@ export function createStrip(host: HTMLElement): () => void {
   let settle = 0;
   let x = -40;
 
+  /*
+    Yön. Okuyucu geride kalmış bir durağa tıklayabildiği için kişinin
+    geri dönebilmesi gerekiyor. Yürüyüş hep yerel +x yönünde üretiliyor;
+    sola gitmek, grubu yatayda aynalamak demek.
+
+    `face` o anki bakış, `want` gidilecek bakış, `flip` aradaki animasyon
+    değeri. Dönüş sırasında yürüme durduruluyor: figür önce duruyor,
+    dönüyor, sonra yürüyor.
+  */
+  let face: 1 | -1 = 1;
+  let want: 1 | -1 = 1;
+  let flip = 1;
+  /** Dönüş bitince geçilecek evre. */
+  let turnThen: Phase = 'walking';
+  /** Okuyucunun tıkladığı durak; sıradaki hedefi o belirliyor. */
+  let pending: number | null = null;
+
   /* Oturulduğunda figür durağın tam yerine konuyor, böylece durağın
      yerel koordinatları ile figürünkiler çakışıyor ve eller doğrudan
      mobilyanın verdiği noktalara gidebiliyor. */
   const seatX = (i: number): number => SLOTS[i];
+
+  /** Hedefe hangi yöne gidilecek; durak kalmadıysa bandın dışına, sağa. */
+  const dirTo = (i: number): 1 | -1 => (stations[i] ? (seatX(i) >= x ? 1 : -1) : 1);
+
+  /** Yürümeye başla; gerekiyorsa önce dön. */
+  const beginWalk = (): void => {
+    timer = 0;
+    const d = dirTo(target);
+    if (d === face) {
+      phase = 'walking';
+      return;
+    }
+    want = d;
+    turnThen = 'walking';
+    phase = 'turning';
+  };
+
+  /*
+    Okuyucunun isteği. Hemen uygulanmıyor: kişi oturuyorsa önce kalkması
+    gerekiyor, yürüyorsa hedefi değiştirmek yeterli. Zaten gidilen
+    duraksa bir şey yapılmıyor — tıklamanın karşılığı orada hâlihazırda
+    görülüyor.
+  */
+  const goTo = (i: number): void => {
+    if (i === target && phase !== 'standing') return;
+    pending = i;
+    if (phase === 'working') timer = WORK_TIME; // işi burada kes, kalk
+    if (phase === 'walking' || phase === 'turning' || phase === 'stopping') {
+      target = i;
+      pending = null;
+      go = phase === 'walking' ? go : 0;
+      beginWalk();
+    }
+  };
 
   /*
     Yudum döngüsü. Durakta çalışırken ikinci poz varsa `work` ile onun
@@ -353,8 +467,9 @@ export function createStrip(host: HTMLElement): () => void {
       case 'walking': {
         go = Math.min(1, go + dt * 3);
         const dx = figure.update(dt, { tint: figureTint, costume: costumeFor(target), go, sit: 0 });
-        x += dx * SCALE;
-        if (station && x >= seatX(target) - 2) {
+        x += dx * SCALE * face;
+        const here = station && (face === 1 ? x >= seatX(target) - 2 : x <= seatX(target) + 2);
+        if (here) {
           phase = 'stopping';
           timer = 0;
         } else if (!station && x > VIEW_W + 40) {
@@ -364,14 +479,39 @@ export function createStrip(host: HTMLElement): () => void {
         }
         return;
       }
+      /*
+        Dönüş. Yatay ölçek işaret değiştirirken sıfırdan geçiyor; o anda
+        figür bir çizgi. Yürüme bu sırada duruyor, yoksa yerinde
+        sayarken dönmüş gibi oluyor.
+      */
+      case 'turning': {
+        timer += dt;
+        const u = Math.min(1, timer / TURN_TIME);
+        flip = lerp(face, want, ease(u));
+        figure.update(dt, { tint: figureTint, costume: costumeFor(target), go: 0, sit: 0 });
+        if (u >= 1) {
+          face = want;
+          flip = face;
+          timer = 0;
+          phase = turnThen;
+        }
+        return;
+      }
       case 'stopping': {
         timer += dt;
         go = Math.max(0, 1 - timer / STOP_TIME);
         figure.update(dt, { tint: figureTint, costume: costumeFor(target), go, sit: 0 });
         if (timer >= STOP_TIME) {
-          phase = 'sitting';
-          timer = 0;
           x = seatX(target);
+          timer = 0;
+          // Duraklar hep +x'e bakıyor; soldan gelindiyse önce dönülüyor.
+          if (face !== 1) {
+            want = 1;
+            turnThen = 'sitting';
+            phase = 'turning';
+          } else {
+            phase = 'sitting';
+          }
         }
         return;
       }
@@ -434,10 +574,12 @@ export function createStrip(host: HTMLElement): () => void {
         });
         if (timer >= SIT_TIME) {
           legsTo(null);
-          phase = 'walking';
           settle = 0;
           go = 0;
-          target = target + 1 < stations.length ? target + 1 : stations.length;
+          // Okuyucunun seçtiği durak varsa oraya, yoksa sıradakine
+          target = pending ?? (target + 1 < stations.length ? target + 1 : stations.length);
+          pending = null;
+          beginWalk();
         }
         return;
       }
@@ -458,8 +600,8 @@ export function createStrip(host: HTMLElement): () => void {
   const repaintFigure = (): void => {
     lightFigure(x);
     simulate(STEP);
-    placeAt(figure.g, x);
-    placeAt(figure.gFar, x);
+    placeAt(figure.g, x, flip);
+    placeAt(figure.gFar, x, flip);
   };
   relight();
   let dark = isDark();
@@ -515,14 +657,15 @@ export function createStrip(host: HTMLElement): () => void {
       n += 1;
     }
     if (acc > STEP * MAX_STEPS) acc = 0;
-    placeAt(figure.g, x);
-    placeAt(figure.gFar, x);
+    placeAt(figure.g, x, flip);
+    placeAt(figure.gFar, x, flip);
   });
 
   host.appendChild(svg);
 
   return () => {
     stop();
+    for (const off of unbind) off();
     watch.disconnect();
     themeWatch.disconnect();
     svg.remove();
