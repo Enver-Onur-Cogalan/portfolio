@@ -107,6 +107,13 @@ export interface FigureState {
 
 export interface Figure {
   g: SVGGElement;
+  /**
+   * Uzak bacak kendi grubunda. Yan görünüşte motosiklete binen biri
+   * sol bacağını makinenin öbür tarafına atıyor; o bacağın mobilyanın
+   * ARKASINDA kalması gerekiyor. Ayrı grup olunca bant onu istediği
+   * durağın altına taşıyabiliyor — figürün geri kalanı üstte kalıyor.
+   */
+  gFar: SVGGElement;
   /** Bir kare çizer; kat edilen yatay mesafeyi (yerel birim) döndürür. */
   update(dt: number, state: FigureState): number;
 }
@@ -173,6 +180,8 @@ const SIT_ANKLE_FAR: Vec = [49, 116];
 const SIT_LEAN = (17 * Math.PI) / 180;
 
 export function createFigure(parent: Element): Figure {
+  // Uzak bacak önce: aynı anne altında, figürün geri kalanının altında.
+  const gFar = el('g', {}, parent);
   const g = el('g', {}, parent);
 
   /*
@@ -182,6 +191,7 @@ export function createFigure(parent: Element): Figure {
     Geometrisi olan ama çizilmeyen bir dikdörtgen kutuyu sabitliyor.
   */
   el('rect', { x: 8, y: 18, width: 76, height: 108, fill: 'none', stroke: 'none' }, g);
+  el('rect', { x: 8, y: 18, width: 76, height: 108, fill: 'none', stroke: 'none' }, gFar);
 
   /*
     Kol kalınlığı kostümle değişiyor ama `limb()` genişliği kuruluşta
@@ -190,8 +200,8 @@ export function createFigure(parent: Element): Figure {
     karşılık kostüm değiştiğinde parçaları yeniden yaratmak gerekmiyor.
   */
   const farArm: Limb = limb(g, 4);
-  const farLeg: Limb = limb(g, 4.2);
-  const farShoe = blot(g);
+  const farLeg: Limb = limb(gFar, 4.2);
+  const farShoe = blot(gFar);
   const nearLeg: Limb = limb(g, 4.2);
   const nearShoe = blot(g);
   // `limb()` kâğıt dolgusunu ilk alt yola koyuyor; pantolon için onu
@@ -231,6 +241,7 @@ export function createFigure(parent: Element): Figure {
 
   return {
     g,
+    gFar,
     update(dt, state) {
       const costume = state.costume;
       const go = clamp(state.go, 0, 1);

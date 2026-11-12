@@ -159,6 +159,7 @@ export function bikeStation(parent: Element): Station {
       nearHand: [GRIP[0] + 0.8, GRIP[1] + 1.4],
       farHand: [GRIP[0] - 3, GRIP[1] + 2],
     } satisfies WorkPose,
+    legsBehind: true,
     width: 130,
     update() {
       // Duran motosiklet: hareketli parçası yok.

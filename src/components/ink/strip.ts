@@ -114,6 +114,22 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   // ── Yürüyen kişi ───────────────────────────────────────────
   const figure = createFigure(scene);
   figure.g.setAttribute('filter', filter);
+  figure.gFar.setAttribute('filter', filter);
+
+  /*
+    Uzak bacağın z-sırası. Normalde figürün hemen altında, yani bütün
+    durakların üstünde: şerit boyunca yürürken mobilyanın önünden
+    geçiyor. `legsBehind` olan bir durağa oturulduğunda ise o durağın
+    altına taşınıyor ve bacak makinenin arkasında kalıyor.
+
+    Takas ayağa kalkmış hâlde yapılıyor (oturma başlarken ve kalkma
+    biterken): o anda bacak dimdik aşağıda ve mobilyayla neredeyse hiç
+    çakışmıyor, dolayısıyla sıra değişimi gözle seçilmiyor.
+  */
+  const legsTo = (under: Station | null): void => {
+    const before = under ? under.g : figure.g;
+    if (figure.gFar.nextSibling !== before) scene.insertBefore(figure.gFar, before);
+  };
 
   /*
     Kıyafet, gidilen durağınki. Yürürken bir sonraki durağın kıyafeti
@@ -198,6 +214,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       case 'sitting': {
         timer += dt;
         station?.setPropHeld?.(false);
+        legsTo(station?.legsBehind ? station : null);
         settle = ease(Math.min(1, timer / SIT_TIME));
         figure.update(dt, {
           costume: costumeFor(target),
@@ -249,6 +266,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           work: station?.work,
         });
         if (timer >= SIT_TIME) {
+          legsTo(null);
           phase = 'walking';
           settle = 0;
           go = 0;
@@ -278,6 +296,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     }
     if (acc > STEP * MAX_STEPS) acc = 0;
     placeAt(figure.g, x);
+    placeAt(figure.gFar, x);
   });
 
   host.appendChild(svg);

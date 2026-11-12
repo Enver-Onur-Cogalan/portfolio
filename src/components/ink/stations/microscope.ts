@@ -32,6 +32,13 @@ export interface Station {
   readonly workAlt?: WorkPose;
   /** Nesne elde mi: durak masadaki kopyasını gizlesin diye. */
   setPropHeld?(held: boolean): void;
+  /**
+   * Uzak bacak bu durakta mobilyanın arkasına geçsin mi. Motosiklete
+   * binen biri sol bacağını makinenin öbür yanına atıyor; yan
+   * görünüşte bunu anlatan tek şey o bacağın motorun arkasında
+   * kalması.
+   */
+  readonly legsBehind?: boolean;
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;
