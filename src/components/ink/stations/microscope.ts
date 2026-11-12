@@ -9,6 +9,7 @@
   tabure yüksekliği ile figürün oturuşu birbirini tutuyor.
 */
 import { blot, el, f, pen, pt, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
+import type { WorkPose } from '../figure';
 
 /** Şeridin tek vurgu rengi. Her durakta tekrar eden kupa bu renkte. */
 export const ACCENT = '#2e8f63';
@@ -16,8 +17,8 @@ export const ACCENT = '#2e8f63';
 export interface Station {
   /** Durağın kendi grubu — bant onu yerleştirir. */
   readonly g: SVGGElement;
-  /** Kişinin bu durakta oturacağı yer (yerel uzay). */
-  readonly seat: Vec;
+  /** Kişi oturduğunda ellerini ve başını götüreceği yerler (yerel uzay). */
+  readonly work: WorkPose;
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;
@@ -118,7 +119,12 @@ export function microscopeStation(parent: Element): Station {
 
   return {
     g,
-    seat: [34, SEAT],
+    // Baş okülerin hemen solunda; eller odak düğmesinde ve tablada.
+    work: {
+      head: [EYEPIECE[0] - 4.6, EYEPIECE[1] - 0.4],
+      nearHand: [73, 59.5],
+      farHand: [57, 64.5],
+    },
     width: 120,
     update(t) {
       // Tek sürekli hareket: kupadan yükselen buhar

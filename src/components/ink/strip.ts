@@ -12,6 +12,7 @@
   kendisi yönetiyor: hareket kısıtlıysa tek kare çizip duruyor.
 */
 import { el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
+import { ease } from '@/lib/ink/motion';
 import { applyPalette, palette } from '@/lib/ink/daynight';
 import { createFigure, LAB_COAT } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
@@ -95,37 +96,116 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
 
   // ── Yürüyen kişi ───────────────────────────────────────────
   const figure = createFigure(scene, LAB_COAT);
-  let x = -40;
 
   /*
-    Simülasyon sabit adımlı.
+    Durum makinesi. Figür yürür, durağa varınca yavaşlar, oturur, bir süre
+    çalışır, kalkar ve devam eder.
 
-    Doğrudan karenin `dt`'siyle ilerletince figür her karede farklı mesafe
-    kat ediyor. Tarayıcı kare aralığı düzgün olmadığında (bu sayfada arka
-    plan videosu, GSAP ve ses çözümleyici de dönüyor) bu, bandın tek
-    hareketli nesnesinde titreme olarak görünüyor. Biriken zamanı 1/60'lık
-    eşit adımlara bölünce hareket kare hızından bağımsız olarak düzgün
-    akıyor.
+    `go` ve `sit` ayrı ayrı yumuşatılıyor çünkü sıralı olmaları gerekiyor:
+    önce adım sönüyor (motion.md'nin önerdiği ~0.4 sn), ancak durduktan
+    sonra oturma başlıyor. İkisi aynı anda sürülürse figür yürürken
+    çömeliyor.
   */
+  type Phase = 'walking' | 'stopping' | 'sitting' | 'working' | 'standing';
+  const STOP_TIME = 0.45;
+  const SIT_TIME = 0.8;
+  const WORK_TIME = 7;
+
+  let phase: Phase = 'walking';
+  let target = 0; // sıradaki durak
+  let timer = 0;
+  let go = 1;
+  let sit = 0;
+  let x = -40;
+
+  /* Oturulduğunda figür durağın tam yerine konuyor, böylece durağın
+     yerel koordinatları ile figürünkiler çakışıyor ve eller doğrudan
+     mobilyanın verdiği noktalara gidebiliyor. */
+  const seatX = (i: number): number => SLOTS[i];
+
   const STEP = 1 / 60;
-  /** Bir karede en fazla kaç adım: sekme arkaplandan dönünce sıçramasın. */
   const MAX_STEPS = 5;
   let acc = 0;
+
+  const simulate = (dt: number): void => {
+    const station = stations[target];
+    switch (phase) {
+      case 'walking': {
+        go = Math.min(1, go + dt * 3);
+        const dx = figure.update(dt, { go, sit: 0 });
+        x += dx * SCALE;
+        if (station && x >= seatX(target) - 2) {
+          phase = 'stopping';
+          timer = 0;
+        } else if (!station && x > VIEW_W + 40) {
+          x = -40;
+          target = 0;
+        }
+        return;
+      }
+      case 'stopping': {
+        timer += dt;
+        go = Math.max(0, 1 - timer / STOP_TIME);
+        figure.update(dt, { go, sit: 0 });
+        if (timer >= STOP_TIME) {
+          phase = 'sitting';
+          timer = 0;
+          x = seatX(target);
+        }
+        return;
+      }
+      case 'sitting': {
+        timer += dt;
+        sit = ease(Math.min(1, timer / SIT_TIME));
+        figure.update(dt, { go: 0, sit, work: station?.work });
+        if (timer >= SIT_TIME) {
+          phase = 'working';
+          timer = 0;
+        }
+        return;
+      }
+      case 'working': {
+        timer += dt;
+        figure.update(dt, { go: 0, sit: 1, work: station?.work });
+        if (timer >= WORK_TIME) {
+          phase = 'standing';
+          timer = 0;
+        }
+        return;
+      }
+      case 'standing': {
+        timer += dt;
+        sit = 1 - ease(Math.min(1, timer / SIT_TIME));
+        figure.update(dt, { go: 0, sit, work: station?.work });
+        if (timer >= SIT_TIME) {
+          phase = 'walking';
+          sit = 0;
+          go = 0;
+          target = target + 1 < stations.length ? target + 1 : stations.length;
+        }
+        return;
+      }
+    }
+  };
 
   const stop = run((t, dt) => {
     for (const s of stations) s.update(t, dt);
 
+    /*
+      Simülasyon sabit adımlı. Doğrudan karenin `dt`'siyle ilerletince
+      figür her karede farklı mesafe kat ediyor; bu sayfada arka plan
+      videosu, GSAP ve ses çözümleyici de döndüğü için kare aralığı
+      düzensiz oluyor ve bu, bandın tek hareketli nesnesinde titreme
+      olarak görünüyor.
+    */
     acc += dt;
     let n = 0;
     while (acc >= STEP && n < MAX_STEPS) {
-      // Figür kendi hızını döndürüyor; başka bir değerle ilerletirsek
-      // basılı ayak kayar.
-      x += figure.step(STEP) * SCALE;
+      simulate(STEP);
       acc -= STEP;
       n += 1;
     }
     if (acc > STEP * MAX_STEPS) acc = 0;
-    if (x > VIEW_W + 40) x = -40;
     placeAt(figure.g, x);
   });
 
