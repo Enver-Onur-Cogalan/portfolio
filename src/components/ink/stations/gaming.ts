@@ -58,7 +58,16 @@ export function gamingStation(parent: Element): Station {
 
   // ── Kasa: masanın altında, tek yeşil ışık ────────────────────
   shape(g, PEN * 0.7).setAttribute('d', 'M88 96 L100 96 L100 119 L88 119Z');
-  el('circle', { cx: 97.4, cy: 99.4, r: 1.1, fill: 'var(--accent)' }, g);
+  /*
+    LED gece sönmez, parlar: `--accent` saate göre kararıyor, bu değil.
+    Çevresindeki hâle yalnızca geceye ait — sert bir daire olmaması için
+    kenarına doğru saydamlaşıyor.
+  */
+  const ledGlow = el('radialGradient', { id: 'ink-pc-led' }, el('defs', {}, g));
+  el('stop', { offset: 0, 'stop-color': 'rgb(62,214,135)', 'stop-opacity': 0.55 }, ledGlow);
+  el('stop', { offset: 1, 'stop-color': 'rgb(62,214,135)', 'stop-opacity': 0 }, ledGlow);
+  el('circle', { cx: 97.4, cy: 99.4, r: 5, fill: 'url(#ink-pc-led)', opacity: 'var(--lamp-on)' }, g);
+  el('circle', { cx: 97.4, cy: 99.4, r: 1.1, fill: 'var(--led)' }, g);
   pen(g, PEN * 0.35).setAttribute('d', 'M90 102 L97 102 M90 105 L97 105');
 
   // ── Ekran: ayaklı, tek geniş panel ───────────────────────────

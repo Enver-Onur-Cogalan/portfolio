@@ -19,7 +19,7 @@
 
   Yerel uzay figürle ortak: zemin y=120, figür x=40'ta.
 */
-import { blot, el, f, pen, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
+import { blot, el, f, pen, shape, PEN, type Vec } from '@/lib/ink/ink';
 import { BIKER, type Costume, type WorkPose } from '../figure';
 import type { Station } from './microscope';
 
@@ -114,9 +114,36 @@ export function bikeStation(parent: Element): Station {
   );
 
   // ── Far: çatalın önüne oturan yuvarlak ───────────────────────
+  /*
+    Cam geceleyin kararmıyor, yanıyor: rengi banttan `--screen` ile
+    geliyor (gündüz kâğıt, gece sıcak ışık). Hâle ve hüzme ise yalnızca
+    geceye ait, `--lamp-on` ile açılıp kapanıyorlar.
+  */
+  const defs = el('defs', {}, g);
+  const halo = el('radialGradient', { id: 'ink-bike-halo' }, defs);
+  el('stop', { offset: 0, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0.5 }, halo);
+  el('stop', { offset: 1, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0 }, halo);
+  const cone = el('linearGradient', {
+    id: 'ink-bike-beam', gradientUnits: 'userSpaceOnUse', x1: 80, y1: 0, x2: 126, y2: 0,
+  }, defs);
+  el('stop', { offset: 0, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0.34 }, cone);
+  el('stop', { offset: 1, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0 }, cone);
+
+  // Hüzme farın önünde, bir sonraki durağa kadar uzanmayan kısa bir koni
+  el('path', {
+    d: 'M79 69.4 L124 59 L126 88 L79.6 76.4Z',
+    fill: 'url(#ink-bike-beam)',
+    opacity: 'var(--lamp-on)',
+  }, g);
+  el('circle', {
+    cx: 78, cy: 71.6, r: 15,
+    fill: 'url(#ink-bike-halo)',
+    opacity: 'var(--lamp-on)',
+  }, g);
+
   el('path', {
     d: 'M74.8 67 Q81 65.8 81.8 71 Q82.2 76.4 76.2 76.6 Q73 73.8 74.8 67Z',
-    fill: PAPER,
+    fill: 'var(--screen)',
     stroke: 'currentColor',
     'stroke-width': PEN * 0.9,
     'stroke-linejoin': 'round',

@@ -65,6 +65,29 @@ export function coffeeStation(parent: Element): Station {
     `M${MUG[0] + 2.4} ${MUG[1] - 2.4} Q${MUG[0] + 5} ${MUG[1] - 1.4} ${MUG[0] + 1.9} ${MUG[1] + 0.2}`
   );
 
+  /*
+    Masadaki tealight. Gündüz sade bir cam, gece masayı aydınlatan tek
+    şey — alev `--screen` ile, hâle `--lamp-on` ile geliyor.
+  */
+  const candleGrad = el('radialGradient', { id: 'ink-cafe-candle' }, el('defs', {}, g));
+  el('stop', { offset: 0, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0.6 }, candleGrad);
+  el('stop', { offset: 1, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0 }, candleGrad);
+  el('circle', {
+    cx: 88.4, cy: 76.6, r: 13,
+    fill: 'url(#ink-cafe-candle)',
+    opacity: 'var(--lamp-on)',
+  }, g);
+  shape(g, PEN * 0.6).setAttribute(
+    'd',
+    `M86.2 ${TABLE_TOP - 4.2} L90.6 ${TABLE_TOP - 4.2} L90.2 ${TABLE_TOP} L86.6 ${TABLE_TOP}Z`
+  );
+  const flame = el('path', {
+    d: `M88.4 ${TABLE_TOP - 8.4} Q90.4 ${TABLE_TOP - 6} 88.4 ${TABLE_TOP - 4.4} Q86.4 ${TABLE_TOP - 6} 88.4 ${TABLE_TOP - 8.4}Z`,
+    fill: 'var(--screen)',
+    stroke: 'none',
+    opacity: 'var(--lamp-on)',
+  }, g);
+
   // ── Fincandan yükselen buhar ─────────────────────────────────
   const steam = pen(g, PEN * 0.4);
 
@@ -100,6 +123,12 @@ export function coffeeStation(parent: Element): Station {
           `q${f(-1.5 + Math.sin(t * 1.3 + 1.2) * 0.9)} -2.2 0 -4.4`
       );
       steam.setAttribute('opacity', f(0.34 + Math.sin(t * 0.8) * 0.14));
+      // Alev kıpırdıyor; `--lamp-on` zaten gündüz sıfır olduğu için
+      // gündüz bu değerin bir karşılığı yok.
+      flame.setAttribute(
+        'transform',
+        `translate(88.4 ${TABLE_TOP - 4.4}) scale(${f(1 + Math.sin(t * 7.3) * 0.1)} ${f(1 + Math.sin(t * 5.1) * 0.14)}) translate(-88.4 ${-(TABLE_TOP - 4.4)})`
+      );
     },
   };
 }

@@ -13,7 +13,7 @@
 */
 import { curve, el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
 import { clamp, ease, lerp, seeded } from '@/lib/ink/motion';
-import { mix, nightTint, palette, rgb, type Palette, type RGB } from '@/lib/ink/daynight';
+import { mix, nightTint, palette, rgb, toRGB, type Palette, type RGB } from '@/lib/ink/daynight';
 import { createFigure, TEE, type Costume, type WorkPose } from './figure';
 import { ACCENT as ACCENT_HEX, microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
@@ -140,6 +140,29 @@ export function createStrip(host: HTMLElement): () => void {
   }, svg);
 
   /*
+    Yıldızlar. Bandın üst üçte ikisi boş; gündüz orada bir şey yok ama
+    gece o boşluk gökyüzü oluyor. Tohumlu rastgelelik, yani her açılışta
+    aynı gökyüzü. Görünürlüğü paletin `night` değerinden geliyor, açık
+    temada sıfır.
+  */
+  const sky = el('g', {}, svg);
+  {
+    const r = seeded(91);
+    for (let i = 0; i < 46; i++) {
+      const sx = r(6, VIEW_W - 6);
+      // Zemine yaklaştıkça seyrelsinler: karesi alınmış dağılım yukarı toplar
+      const t = r(0, 1) ** 2;
+      el('circle', {
+        cx: f(sx),
+        cy: f(8 + t * 86),
+        r: f(r(0.5, 1.25)),
+        fill: 'rgb(239,230,207)',
+        opacity: f(r(0.35, 1)),
+      }, sky);
+    }
+  }
+
+  /*
     Mürekkep filtresi ortak bir üst gruba DEĞİL, hareket eden her parçanın
     kendi grubuna takılıyor.
 
@@ -210,22 +233,14 @@ export function createStrip(host: HTMLElement): () => void {
       g.style.color = rgb(P.ink);
       g.style.setProperty('--accent', nightTint(ACCENT_HEX, P));
       g.style.setProperty('--screen', screenOf(P));
+      // Yalnızca geceye ait parçaların (far hâlesi, LED hâlesi) anahtarı
+      g.style.setProperty('--lamp-on', f(P.lamp));
+      // Küçük ışık kaynakları karartılmıyor, tersine geceleyin açılıyor
+      g.style.setProperty('--led', rgb(mix(toRGB(ACCENT_HEX), [62, 214, 135], P.lamp)));
     }
+    sky.setAttribute('opacity', f(palette(tauAt(VIEW_W / 2)).night));
   };
-  relight();
 
-  /*
-    Tema düğmesi `<html>` üzerindeki `dark` sınıfını değiştiriyor;
-    bileşen React ağacının dışında çizdiği için onu doğrudan izliyor.
-  */
-  let dark = isDark();
-  const themeWatch = new MutationObserver(() => {
-    if (isDark() === dark) return;
-    dark = !dark;
-    day = dark ? DAY_DARK : DAY_LIGHT;
-    relight();
-  });
-  themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   // ── Yürüyen kişi ───────────────────────────────────────────
   const figure = createFigure(scene);
@@ -315,6 +330,22 @@ export function createStrip(host: HTMLElement): () => void {
   const STEP = 1 / 60;
   const MAX_STEPS = 5;
   let acc = 0;
+  /** İlk kare çizildi mi: görünürlük kontrolü ondan sonra başlıyor. */
+  let primed = false;
+
+  /*
+    Hareket kısıtlıysa `run()` tek bir kare çizip duruyor. O tek kare
+    kişinin bandın solunda, görüş alanının dışında olduğu an olursa
+    geriye yalnızca mobilya kalıyor. Bu yüzden duruk okuyucu için
+    başlangıç durumu bir durakta: masasında, çalışırken.
+  */
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    target = 1;
+    x = seatX(1);
+    go = 0;
+    settle = 1;
+    phase = 'working';
+  }
 
   const simulate = (dt: number): void => {
     const station = stations[target];
@@ -413,7 +444,55 @@ export function createStrip(host: HTMLElement): () => void {
     }
   };
 
+  /*
+    Tema düğmesi `<html>` üzerindeki `dark` sınıfını değiştiriyor;
+    bileşen React ağacının dışında çizdiği için onu doğrudan izliyor.
+
+    Figür de yeniden boyanmalı ve bu `relight()`'ın işi değil: figürün
+    rengi her karede kendi konumundan hesaplanıyor. Hareket kısıtlıysa
+    döngü tek kareden sonra durmuş oluyor, dolayısıyla tema değişince
+    kimse o kareyi yenilemiyordu — duraklar aydınlanıyor, figür eski
+    gecede kalıyordu. Bir adım simüle edip yeniden çizmek bunu
+    kapatıyor; bir kare, görülecek bir şey değil.
+  */
+  const repaintFigure = (): void => {
+    lightFigure(x);
+    simulate(STEP);
+    placeAt(figure.g, x);
+    placeAt(figure.gFar, x);
+  };
+  relight();
+  let dark = isDark();
+  const themeWatch = new MutationObserver(() => {
+    if (isDark() === dark) return;
+    dark = !dark;
+    day = dark ? DAY_DARK : DAY_LIGHT;
+    relight();
+    if (primed) repaintFigure();
+  });
+  themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  /*
+    Bant yalnızca ekrandayken ilerliyor.
+
+    İki nedeni var. Biri işlemci: şerit sayfanın ortasında duran, kendi
+    kendine dönen tek hareketli parça. Diğeri ve asıl olanı anlatı:
+    döngü sayfa açılır açılmaz başlarsa, ziyaretçi bölüme geldiğinde
+    adamı dördüncü durakta oturur buluyordu. Şimdi bant görüş alanına
+    girdiğinde kişi soldan, başından yürümeye başlıyor.
+
+    `run()` döngüsü dönmeye devam ediyor; pahalı olan çizim, görünür
+    olmadığı sürece hiç yapılmıyor. Böylece `t` sürekliliği bozulmuyor.
+  */
+  let onScreen = false;
+  const watch = new IntersectionObserver(
+    ([entry]) => { onScreen = entry.isIntersecting; },
+    { rootMargin: '80px' }
+  );
+  watch.observe(svg);
+
   const stop = run((t, dt) => {
+    if (!onScreen && primed) return;
     for (const s of stations) s.update(t, dt);
 
     /*
@@ -425,7 +504,10 @@ export function createStrip(host: HTMLElement): () => void {
     */
     lightFigure(x);
 
-    acc += dt;
+    // İlk karede tam bir adım borçlandırılıyor: `dt` sıfıra yakın
+    // geldiğinde döngü hiç dönmez ve figür çizilmeden kalırdı.
+    acc += primed ? dt : STEP;
+    primed = true;
     let n = 0;
     while (acc >= STEP && n < MAX_STEPS) {
       simulate(STEP);
@@ -441,6 +523,7 @@ export function createStrip(host: HTMLElement): () => void {
 
   return () => {
     stop();
+    watch.disconnect();
     themeWatch.disconnect();
     svg.remove();
   };

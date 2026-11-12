@@ -119,6 +119,25 @@ export function microscopeStation(parent: Element): Station {
     'stroke-width': PEN * 0.75,
   }, scope);
 
+  /*
+    Mikroskobun kendi aydınlatması. Tablanın altından gelen küçük bir
+    ışık; yalnızca geceleyin görünüyor (`--lamp-on`). Gece bandında bu
+    durak başka türlü ışıksız kalıyordu.
+  */
+  const lampGrad = el('radialGradient', { id: 'ink-scope-lamp' }, el('defs', {}, g));
+  el('stop', { offset: 0, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0.6 }, lampGrad);
+  el('stop', { offset: 1, 'stop-color': 'rgb(255,226,168)', 'stop-opacity': 0 }, lampGrad);
+  el('circle', {
+    cx: 59, cy: 63.8, r: 11,
+    fill: 'url(#ink-scope-lamp)',
+    opacity: 'var(--lamp-on)',
+  }, g);
+  el('path', {
+    d: 'M57.4 63 L61.4 63 L61 65 L57.8 65Z',
+    fill: 'var(--screen)',
+    stroke: 'none',
+  }, g);
+
   // ── Defter ve kupa: vurgu renginin iki kullanımı ─────────────
   el('path', {
     d: `M80 ${BENCH_TOP - 1.8} L93 ${BENCH_TOP - 1.8} L93 ${BENCH_TOP} L80 ${BENCH_TOP}Z`,
