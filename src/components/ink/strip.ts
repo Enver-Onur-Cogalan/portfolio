@@ -18,6 +18,7 @@ import { createFigure, TEE, type Costume, type WorkPose } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
 import { coffeeStation } from './stations/coffee';
+import { bikeStation } from './stations/bike';
 
 export interface StripOptions {
   /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
@@ -103,6 +104,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     microscopeStation(scene),
     deskStation(scene),
     coffeeStation(scene),
+    bikeStation(scene),
   ];
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);

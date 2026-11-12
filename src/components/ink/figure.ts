@@ -48,6 +48,8 @@ export interface Costume {
   pocket?: boolean;
   /** Yaka V'si çizilsin mi — kapüşonlularda yok. */
   collar?: boolean;
+  /** Kapalı kask: başı tümüyle örtüyor, saç ve sakal gizleniyor. */
+  helmet?: boolean;
   /**
    * Pantolon dolgusu. Verilmezse bacaklar kâğıt kalıyor; bir renk
    * verilince `limb()`'in kâğıt dolgusu o renge çevriliyor — üslubun
@@ -69,6 +71,8 @@ export const ACCENT = '#2e8f63';
 export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8, collar: true, trousers: DENIM };
 export const TEE: Costume = { hem: 71, sleeve: 3.6, trousers: DENIM };
 export const HOODIE: Costume = { hem: 74, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
+/** Motosiklet durağı: kısa mont ve kapalı kask. */
+export const BIKER: Costume = { hem: 76, sleeve: 4, collar: true, helmet: true, trousers: DENIM };
 
 /** Figürün oturduğunda ellerini ve başını götüreceği yerler. */
 export interface WorkPose {
@@ -208,6 +212,9 @@ export function createFigure(parent: Element): Figure {
   const hair = blot(g);
   const beard = blot(g);
   const hoodUp = shape(g, PEN); // başa geçmiş kapüşon, saçın önünde
+  const helmet = shape(g, PEN); // kask kabuğu — saçın ve sakalın önünde
+  const visor = blot(g);
+  const chinBar = pen(g, PEN * 0.5);
   const nearArm: Limb = limb(g, 4);
   // Elde taşınan nesne kolun önünde
   const propBody = el('path', {
@@ -383,9 +390,10 @@ export function createFigure(parent: Element): Figure {
         sarıyor, yüz tarafı (+x) açık kalıyor.
       */
       const up = costume.hood === 'up';
+      const lid = costume.helmet === true;
       hoodUp.setAttribute(
         'd',
-        up
+        up && !lid
           ? `M${f(hc[0] + 3.4)} ${f(hc[1] - 4.2)} Q${f(hc[0] - 1.4)} ${f(hc[1] - 8.4)} ${f(hc[0] - 5.6)} ${f(hc[1] - 3.4)} ` +
               `Q${f(hc[0] - 8)} ${f(hc[1] + 2.6)} ${f(hc[0] - 4.6)} ${f(hc[1] + 6.8)} ` +
               `L${f(hc[0] - 1.6)} ${f(hc[1] + 6)} Q${f(hc[0] - 4.4)} ${f(hc[1] + 1.6)} ${f(hc[0] - 2.6)} ${f(hc[1] - 2.6)} ` +
@@ -394,7 +402,7 @@ export function createFigure(parent: Element): Figure {
       );
       hair.setAttribute(
         'd',
-        up
+        up || lid
           ? ''
           : `M${f(hc[0] - 4.1)} ${f(hc[1] - 1.3)} Q${f(hc[0] - 4.5)} ${f(hc[1] - 6.3)} ${f(hc[0] + 0.5)} ${f(hc[1] - 5.2)} ` +
           `Q${f(hc[0] + 3.7)} ${f(hc[1] - 4.4)} ${f(hc[0] + 3.5)} ${f(hc[1] - 2.5)} ` +
@@ -405,9 +413,44 @@ export function createFigure(parent: Element): Figure {
       // maske gibi duruyordu.
       beard.setAttribute(
         'd',
-        `M${f(hc[0] + 1.4)} ${f(hc[1] + 1.4)} Q${f(hc[0] + 3.2)} ${f(hc[1] + 2)} ${f(hc[0] + 2.2)} ${f(hc[1] + 3.6)} ` +
-          `Q${f(hc[0] + 0.8)} ${f(hc[1] + 4.6)} ${f(hc[0] - 0.8)} ${f(hc[1] + 3.8)} ` +
-          `Q${f(hc[0] + 0.4)} ${f(hc[1] + 2.8)} ${f(hc[0] + 1.4)} ${f(hc[1] + 1.4)}Z`
+        lid
+          ? ''
+          : `M${f(hc[0] + 1.4)} ${f(hc[1] + 1.4)} Q${f(hc[0] + 3.2)} ${f(hc[1] + 2)} ${f(hc[0] + 2.2)} ${f(hc[1] + 3.6)} ` +
+            `Q${f(hc[0] + 0.8)} ${f(hc[1] + 4.6)} ${f(hc[0] - 0.8)} ${f(hc[1] + 3.8)} ` +
+            `Q${f(hc[0] + 0.4)} ${f(hc[1] + 2.8)} ${f(hc[0] + 1.4)} ${f(hc[1] + 1.4)}Z`
+      );
+
+      /*
+        Kask. Kapalı bir kabuk: başı tümüyle örtüyor, siperlik koyu bir
+        leke. Saç ve sakal gizleniyor — yüz görünmüyor ama siluet
+        tanıdık kalıyor, bandın anlattığı şey zaten aynı kişinin beş
+        hâli.
+      */
+      helmet.setAttribute(
+        'd',
+        lid
+          ? `M${f(hc[0] + 5.4)} ${f(hc[1] - 2.8)} Q${f(hc[0] + 5.6)} ${f(hc[1] - 7.8)} ${f(hc[0] - 0.4)} ${f(hc[1] - 8)} ` +
+              `Q${f(hc[0] - 6.6)} ${f(hc[1] - 7.8)} ${f(hc[0] - 6.4)} ${f(hc[1] - 0.6)} ` +
+              `Q${f(hc[0] - 6.2)} ${f(hc[1] + 3.8)} ${f(hc[0] - 3.4)} ${f(hc[1] + 5.4)} ` +
+              `L${f(hc[0] + 0.8)} ${f(hc[1] + 5.8)} ` +
+              `Q${f(hc[0] + 6)} ${f(hc[1] + 5.2)} ${f(hc[0] + 6.4)} ${f(hc[1] + 1.4)} ` +
+              `Q${f(hc[0] + 6.6)} ${f(hc[1] - 0.8)} ${f(hc[0] + 5.4)} ${f(hc[1] - 2.8)}Z`
+          : ''
+      );
+      // Siperlik: öne bakan geniş koyu bant. Kaskı kafadan ayıran şey bu.
+      visor.setAttribute(
+        'd',
+        lid
+          ? `M${f(hc[0] - 0.2)} ${f(hc[1] - 5.6)} Q${f(hc[0] + 5)} ${f(hc[1] - 5.4)} ${f(hc[0] + 5.2)} ${f(hc[1] - 1.8)} ` +
+              `Q${f(hc[0] + 5)} ${f(hc[1] + 0.8)} ${f(hc[0] - 0.2)} ${f(hc[1] + 0.4)}Z`
+          : ''
+      );
+      // Çene barının alt kenarı
+      chinBar.setAttribute(
+        'd',
+        lid
+          ? `M${f(hc[0] + 0.8)} ${f(hc[1] + 2.2)} Q${f(hc[0] + 4.4)} ${f(hc[1] + 2)} ${f(hc[0] + 6.2)} ${f(hc[1] + 0.6)}`
+          : ''
       );
 
       // ── Kollar ───────────────────────────────────────────────
