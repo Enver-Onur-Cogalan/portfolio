@@ -21,6 +21,8 @@ export interface Station {
   readonly work: WorkPose;
   /** Bu durakta giyilen kıyafet. */
   readonly costume: Costume;
+  /** Durakta oturuluyor mu yoksa ayakta mı duruluyor. */
+  readonly pose: 'sit' | 'stand';
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;
@@ -122,6 +124,7 @@ export function microscopeStation(parent: Element): Station {
   return {
     g,
     costume: LAB_COAT,
+    pose: 'sit',
     // Baş okülerin hemen solunda; eller odak düğmesinde ve tablada.
     work: {
       head: [EYEPIECE[0] - 4.6, EYEPIECE[1] - 0.4],

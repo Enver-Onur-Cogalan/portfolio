@@ -83,6 +83,12 @@ export interface FigureState {
   go: number;
   /** 0 ayakta, 1 oturmuş. */
   sit: number;
+  /**
+   * Ellerin ve başın işe ne kadar yöneldiği (0–1). Oturan duraklarda
+   * `sit` ile birlikte gidiyor; ayakta çalışılan duraklarda gövde dik
+   * kalırken yalnızca bu değer yükseliyor.
+   */
+  reach?: number;
   /** Oturunca ellerin ve başın gideceği yerler. */
   work?: WorkPose;
 }
@@ -186,6 +192,7 @@ export function createFigure(parent: Element): Figure {
       const costume = state.costume;
       const go = clamp(state.go, 0, 1);
       const sit = clamp(state.sit, 0, 1);
+      const reach = clamp(state.reach ?? sit, 0, 1);
       phase += (dt / walk.period) * go;
 
       const p = walk.pose(phase, go);
@@ -208,11 +215,17 @@ export function createFigure(parent: Element): Figure {
       ];
       const sh = mix(standSh, sitSh, sit);
 
+      /*
+        Baş iş pozuna `reach` ile gidiyor, `sit` ile değil: ayakta
+        telefonuna bakan biri de başını eğiyor ama oturmuyor.
+      */
       const standHead: Vec = [42.6, 31.6 + b];
-      const sitHead: Vec = state.work
-        ? state.work.head
-        : [sitSh[0] + 5.2 * Math.sin(SIT_LEAN) + 1.4, sitSh[1] - 10.2 * Math.cos(SIT_LEAN)];
-      const hc = mix(standHead, sitHead, sit);
+      const restHead: Vec = mix(
+        standHead,
+        [sitSh[0] + 5.2 * Math.sin(SIT_LEAN) + 1.4, sitSh[1] - 10.2 * Math.cos(SIT_LEAN)],
+        sit
+      );
+      const hc = state.work ? mix(restHead, state.work.head, reach) : restHead;
 
       // ── Pantolon: bacak dolgularının rengi ───────────────────
       for (const fill of legFills) {
@@ -382,9 +395,9 @@ export function createFigure(parent: Element): Figure {
         nearElbStand[1] + 16 * Math.cos(nearA + 0.1),
       ];
 
-      if (state.work && sit > 0.001) {
-        const nearHand = mix(nearHandStand, state.work.nearHand, sit);
-        const farHand = mix(farHandStand, state.work.farHand, sit);
+      if (state.work && reach > 0.001) {
+        const nearHand = mix(nearHandStand, state.work.nearHand, reach);
+        const farHand = mix(farHandStand, state.work.farHand, reach);
         farArm.draw([shF, elbow(shF, farHand), farHand], [0.2, 0.5]);
         nearArm.draw([shN, elbow(shN, nearHand), nearHand], [0.2, 0.45]);
       } else {

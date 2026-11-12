@@ -73,6 +73,7 @@ export function deskStation(parent: Element): Station {
   return {
     g,
     costume: HOODIE as Costume,
+    pose: 'sit',
     work: {
       // Baş ekrana bakacak şekilde öne eğik, eller klavyede
       head: [50, 47.5],

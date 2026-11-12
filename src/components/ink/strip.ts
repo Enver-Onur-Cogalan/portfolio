@@ -17,6 +17,7 @@ import { applyPalette, palette } from '@/lib/ink/daynight';
 import { createFigure, TEE, type Costume } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
+import { phoneStation } from './stations/phone';
 
 export interface StripOptions {
   /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
@@ -98,7 +99,11 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   floor.setAttribute('d', floorPts.join(' '));
 
   // ── Duraklar ───────────────────────────────────────────────
-  const stations: Station[] = [microscopeStation(scene), deskStation(scene)];
+  const stations: Station[] = [
+    microscopeStation(scene),
+    deskStation(scene),
+    phoneStation(scene),
+  ];
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);
     placeAt(station.g, SLOTS[i]);
@@ -133,7 +138,8 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   let target = 0; // sıradaki durak
   let timer = 0;
   let go = 1;
-  let sit = 0;
+  /** 0 ayakta/serbest, 1 durakta yerleşmiş. */
+  let settle = 0;
   let x = -40;
 
   /* Oturulduğunda figür durağın tam yerine konuyor, böylece durağın
@@ -175,8 +181,14 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'sitting': {
         timer += dt;
-        sit = ease(Math.min(1, timer / SIT_TIME));
-        figure.update(dt, { costume: costumeFor(target), go: 0, sit, work: station?.work });
+        settle = ease(Math.min(1, timer / SIT_TIME));
+        figure.update(dt, {
+          costume: costumeFor(target),
+          go: 0,
+          sit: station?.pose === 'sit' ? settle : 0,
+          reach: settle,
+          work: station?.work,
+        });
         if (timer >= SIT_TIME) {
           phase = 'working';
           timer = 0;
@@ -185,7 +197,13 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'working': {
         timer += dt;
-        figure.update(dt, { costume: costumeFor(target), go: 0, sit: 1, work: station?.work });
+        figure.update(dt, {
+          costume: costumeFor(target),
+          go: 0,
+          sit: station?.pose === 'sit' ? 1 : 0,
+          reach: 1,
+          work: station?.work,
+        });
         if (timer >= WORK_TIME) {
           phase = 'standing';
           timer = 0;
@@ -194,11 +212,17 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'standing': {
         timer += dt;
-        sit = 1 - ease(Math.min(1, timer / SIT_TIME));
-        figure.update(dt, { costume: costumeFor(target), go: 0, sit, work: station?.work });
+        settle = 1 - ease(Math.min(1, timer / SIT_TIME));
+        figure.update(dt, {
+          costume: costumeFor(target),
+          go: 0,
+          sit: station?.pose === 'sit' ? settle : 0,
+          reach: settle,
+          work: station?.work,
+        });
         if (timer >= SIT_TIME) {
           phase = 'walking';
-          sit = 0;
+          settle = 0;
           go = 0;
           target = target + 1 < stations.length ? target + 1 : stations.length;
         }
