@@ -58,6 +58,8 @@ export interface Costume {
 
 /** Kot: tek düz renk, üslubun izin verdiği ikinci vurgu. */
 export const DENIM = '#53657f';
+/** Şeridin vurgu rengi; her durakta tekrar eden kupa bu renkte. */
+export const ACCENT = '#2e8f63';
 
 /*
   Kıyafetler. Hepsinin altında kot var; silueti ayıran şey üstteki tek
@@ -91,6 +93,12 @@ export interface FigureState {
   reach?: number;
   /** Oturunca ellerin ve başın gideceği yerler. */
   work?: WorkPose;
+  /**
+   * Yakın elde tutulan nesne. Durağın içine sabit koyulduğunda el ona
+   * yumuşayarak gittiği için nesne havada asılı kalıyordu; figüre bağlı
+   * olunca elle birlikte gidiyor.
+   */
+  prop?: 'mug';
 }
 
 export interface Figure {
@@ -122,7 +130,27 @@ function elbow(a: Vec, b: Vec, side: 1 | -1 = 1): Vec {
   );
   const ang = th + Math.acos(cosAl) * side;
   const e: Vec = [a[0] + UPPER_ARM * Math.cos(ang), a[1] + UPPER_ARM * Math.sin(ang)];
-  return mix([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], e, 0.55);
+
+  /*
+    Dirseğin omuz–el doğrusundan sapması sınırlanıyor. El ağza gelecek
+    kadar yakınsa (kahve içmek) kol tamamen katlanıyor ve gerçek IK
+    dirseği çok dışarı atıyor; `limb()` orta noktayı kuadratik kontrol
+    noktası alıp sapmayı 1.55 katına çıkardığı için sonuç kolun kendi
+    üstüne kıvrıldığı bir ilmek oluyordu.
+  */
+  const ux = dx / d;
+  const uy = dy / d;
+  const along = (e[0] - a[0]) * ux + (e[1] - a[1]) * uy;
+  let offX = e[0] - a[0] - along * ux;
+  let offY = e[1] - a[1] - along * uy;
+  const off = Math.hypot(offX, offY);
+  const MAX_OFF = 8;
+  if (off > MAX_OFF) {
+    offX *= MAX_OFF / off;
+    offY *= MAX_OFF / off;
+  }
+  const capped: Vec = [a[0] + along * ux + offX, a[1] + along * uy + offY];
+  return mix([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], capped, 0.55);
 }
 
 /*
@@ -181,6 +209,14 @@ export function createFigure(parent: Element): Figure {
   const beard = blot(g);
   const hoodUp = shape(g, PEN); // başa geçmiş kapüşon, saçın önünde
   const nearArm: Limb = limb(g, 4);
+  // Elde taşınan nesne kolun önünde
+  const propBody = el('path', {
+    fill: ACCENT,
+    stroke: 'currentColor',
+    'stroke-width': PEN * 0.7,
+    'stroke-linejoin': 'round',
+  }, g);
+  const propHandle = pen(g, PEN * 0.55);
 
   const walk: Gait = gait({ kind: 'walk' });
   const armSwing: [Spring, Spring] = [spring(60, 9), spring(60, 9)];
@@ -403,6 +439,27 @@ export function createFigure(parent: Element): Figure {
       } else {
         farArm.draw([shF, farElbStand, farHandStand], [0.2, 0.5]);
         nearArm.draw([shN, nearElbStand, nearHandStand], [0.2, 0.45]);
+      }
+
+      // ── Elde taşınan kupa ────────────────────────────────────
+      if (state.prop === 'mug' && reach > 0.001) {
+        const h = state.work
+          ? mix(nearHandStand, state.work.nearHand, reach)
+          : nearHandStand;
+        propBody.setAttribute(
+          'd',
+          `M${f(h[0] - 2.6)} ${f(h[1] - 3.4)} L${f(h[0] + 2.4)} ${f(h[1] - 3.4)} ` +
+            `L${f(h[0] + 1.9)} ${f(h[1] + 1.4)} L${f(h[0] - 2.1)} ${f(h[1] + 1.4)}Z`
+        );
+        propHandle.setAttribute(
+          'd',
+          `M${f(h[0] + 2.4)} ${f(h[1] - 2.4)} Q${f(h[0] + 5)} ${f(h[1] - 1.4)} ${f(h[0] + 1.9)} ${f(h[1] + 0.2)}`
+        );
+        propBody.setAttribute('opacity', f(reach));
+        propHandle.setAttribute('opacity', f(reach));
+      } else {
+        propBody.setAttribute('d', '');
+        propHandle.setAttribute('d', '');
       }
 
       return walk.speed * dt * go;

@@ -23,6 +23,8 @@ export interface Station {
   readonly costume: Costume;
   /** Durakta oturuluyor mu yoksa ayakta mı duruluyor. */
   readonly pose: 'sit' | 'stand';
+  /** Durakta elde taşınan nesne. */
+  readonly prop?: 'mug';
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;

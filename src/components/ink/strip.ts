@@ -17,7 +17,7 @@ import { applyPalette, palette } from '@/lib/ink/daynight';
 import { createFigure, TEE, type Costume } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
-import { phoneStation } from './stations/phone';
+import { coffeeStation } from './stations/coffee';
 
 export interface StripOptions {
   /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
@@ -102,7 +102,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   const stations: Station[] = [
     microscopeStation(scene),
     deskStation(scene),
-    phoneStation(scene),
+    coffeeStation(scene),
   ];
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);
@@ -188,6 +188,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           sit: station?.pose === 'sit' ? settle : 0,
           reach: settle,
           work: station?.work,
+          prop: station?.prop,
         });
         if (timer >= SIT_TIME) {
           phase = 'working';
@@ -203,6 +204,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           sit: station?.pose === 'sit' ? 1 : 0,
           reach: 1,
           work: station?.work,
+          prop: station?.prop,
         });
         if (timer >= WORK_TIME) {
           phase = 'standing';
@@ -219,6 +221,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           sit: station?.pose === 'sit' ? settle : 0,
           reach: settle,
           work: station?.work,
+          prop: station?.prop,
         });
         if (timer >= SIT_TIME) {
           phase = 'walking';
