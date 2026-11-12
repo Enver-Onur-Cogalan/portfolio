@@ -60,10 +60,11 @@ export interface Costume {
 export const DENIM = '#53657f';
 
 /*
-  Günlük kıyafetler. Hepsi kısa ve kot üstüne; silueti ayıran şey kapüşon
-  ve cep gibi tek bir ayrıntı. Uzun önlük denenip bırakıldı: bu ölçekte
-  elbiseye benziyor ve her oturuşta ayrı bir dert çıkarıyordu.
+  Kıyafetler. Hepsinin altında kot var; silueti ayıran şey üstteki tek
+  ayrıntı: önlüğün boyu ve yakası, kapüşonun başta olması, cep.
 */
+/** Mikroskop durağı: biyoloji geçmişini anlatan tek parça. */
+export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8, collar: true, trousers: DENIM };
 export const TEE: Costume = { hem: 76, sleeve: 3.6, trousers: DENIM };
 export const HOODIE: Costume = { hem: 78, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
 
