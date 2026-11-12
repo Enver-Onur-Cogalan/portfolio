@@ -32,6 +32,15 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // About
     'about.title': 'Hakkımda',
+    // Çizgi-sanat şeridi: durak adları ipucu balonunda ve ekran
+    // okuyucuda görünüyor, dolayısıyla çeviriye tabi.
+    'ink.scene': 'Çizgi çizimi: aynı kişinin beş hâli — mikroskop başında, dizüstüyle, kahve molasında, motosikletine binerken ve oyun oynarken',
+    'ink.station.lab': 'Laboratuvarda',
+    'ink.station.desk': 'Kod yazarken',
+    'ink.station.coffee': 'Kahve molası',
+    'ink.station.bike': 'Motosiklete binerken',
+    'ink.station.gaming': 'Oyun oynarken',
+    'ink.goTo': '{name} sahnesine git',
     'about.techTitle': 'Teknik Yetenekler',
     'about.techSubtitle': 'Projelerde ve sahada fiilen kullandığım araçlar.',
     'skills.category.ai': 'AI & Dil Modelleri',
@@ -185,6 +194,13 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // About
     'about.title': 'About Me',
+    'ink.scene': 'Line drawing: the same person in five lives — at a microscope, at a laptop, on a coffee break, getting on a motorbike and gaming',
+    'ink.station.lab': 'At the lab bench',
+    'ink.station.desk': 'Writing code',
+    'ink.station.coffee': 'Coffee break',
+    'ink.station.bike': 'Getting on the motorbike',
+    'ink.station.gaming': 'Gaming',
+    'ink.goTo': 'Go to {name}',
     'about.techTitle': 'Technical Skills',
     'about.techSubtitle': 'Tools I actually use in projects and in the field.',
     'skills.category.ai': 'AI & Language Models',

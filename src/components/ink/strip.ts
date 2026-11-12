@@ -91,6 +91,20 @@ const placeAt = (g: Element, x: number, face = 1): void =>
     `translate(${f(x)} ${GROUND}) scale(${f(SCALE * face)} ${f(SCALE)}) translate(-40 -120)`
   );
 
+/*
+  Dışarıdan gelen metinler. Durak adları ipucu balonunda ve ekran
+  okuyucuda görünüyor, yani sayfanın diline bağlılar — bileşenin içine
+  gömülürlerse dil değişince Türkçe kalıyorlar.
+*/
+export interface StripLabels {
+  /** Şeridin tamamını anlatan metin. */
+  readonly scene: string;
+  /** Durak adları, bandaki sırayla. */
+  readonly stations: readonly string[];
+  /** Bir durağa götüren düğmenin etiketi. */
+  action(name: string): string;
+}
+
 export interface StripOptions {
   /**
    * Her karede figürün bant üzerindeki yeri. Dar ekranda şerit yatayda
@@ -98,9 +112,18 @@ export interface StripOptions {
    * kaydırmayı ona tutturuyor.
    */
   onMove?(x: number, viewW: number): void;
+  /** İlk metinler; sonradan `setLabels` ile değiştirilebiliyor. */
+  labels?: StripLabels;
 }
 
-export function createStrip(host: HTMLElement, options: StripOptions = {}): () => void {
+export interface Strip {
+  /** Sahneyi söker, dinleyicileri bırakır. */
+  destroy(): void;
+  /** Dil değişince çağrılıyor; sahne yeniden kurulmuyor. */
+  setLabels(labels: StripLabels): void;
+}
+
+export function createStrip(host: HTMLElement, options: StripOptions = {}): Strip {
   const svg = el('svg', {
     viewBox: `0 ${VIEW_TOP} ${VIEW_W} ${VIEW_H - VIEW_TOP}`,
     role: 'img',
@@ -139,6 +162,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   */
   const grads: Array<{ stops: SVGStopElement[]; pick: (P: Palette) => RGB }> = [];
   const unbind: Array<() => void> = [];
+  const tips: SVGTitleElement[] = [];
   const lit: Array<{ g: SVGGElement; x: number }> = [];
 
   /*
@@ -274,6 +298,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     const tip = el('title', {});
     tip.textContent = station.label;
     g.insertBefore(tip, g.firstChild);
+    tips.push(tip);
     const hit = el('rect', { x: -60, y: 30, width: 200, height: 100, class: 'hit' });
     g.insertBefore(hit, tip.nextSibling);
     el('path', {
@@ -681,11 +706,24 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
 
   host.appendChild(svg);
 
-  return () => {
-    stop();
-    for (const off of unbind) off();
-    watch.disconnect();
-    themeWatch.disconnect();
-    svg.remove();
+  const setLabels = (labels: StripLabels): void => {
+    svg.setAttribute('aria-label', labels.scene);
+    stations.forEach((station, i) => {
+      const name = labels.stations[i] ?? station.label;
+      tips[i].textContent = name;
+      station.g.setAttribute('aria-label', labels.action(name));
+    });
+  };
+  if (options.labels) setLabels(options.labels);
+
+  return {
+    setLabels,
+    destroy() {
+      stop();
+      for (const off of unbind) off();
+      watch.disconnect();
+      themeWatch.disconnect();
+      svg.remove();
+    },
   };
 }

@@ -8,15 +8,42 @@
   sökülürken kapatıyor. Sahne kare başına yüzlerce öznitelik yazıyor;
   bunu React ağacından geçirmek hem gereksiz hem pahalı olurdu.
 */
-import { useEffect, useRef } from 'react';
-import { createStrip } from './strip';
+import { useEffect, useMemo, useRef } from 'react';
+import { createStrip, type Strip, type StripLabels } from './strip';
+import { useLanguage } from '@/context/LanguageContext';
+import { ScrollTrigger } from '@/lib/gsap';
 
 /** Kullanıcı kaydırdıktan sonra kameranın beklediği süre. */
 const HOLD_MS = 5000;
 
+const STATION_KEYS = [
+  'ink.station.lab',
+  'ink.station.desk',
+  'ink.station.coffee',
+  'ink.station.bike',
+  'ink.station.gaming',
+] as const;
+
 export default function InkStrip() {
   const host = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
+  const strip = useRef<Strip | null>(null);
+  const { t } = useLanguage();
+
+  /*
+    Durak adları ipucu balonunda ve ekran okuyucuda görünüyor, yani
+    sayfanın diline bağlılar. Dil değişince sahne yeniden kurulmuyor —
+    kişi yürüdüğü yerde kalıyor, yalnızca metinler değişiyor.
+  */
+  const labels: StripLabels = useMemo(
+    () => ({
+      scene: t('ink.scene'),
+      stations: STATION_KEYS.map((key) => t(key)),
+      action: (name) => t('ink.goTo').replace('{name}', name),
+    }),
+    [t]
+  );
+  const first = useRef(labels);
 
   useEffect(() => {
     const node = host.current;
@@ -44,7 +71,8 @@ export default function InkStrip() {
     scroller.addEventListener('pointerdown', bump);
     scroller.addEventListener('wheel', bump, { passive: true });
 
-    const close = createStrip(node, {
+    strip.current = createStrip(node, {
+      labels: first.current,
       onMove(x, viewW) {
         const max = scroller.scrollWidth - scroller.clientWidth;
         if (max < 8 || performance.now() < hold) return;
@@ -55,12 +83,26 @@ export default function InkStrip() {
       },
     });
 
+    /*
+      Şerit sayfaya yaklaşık 170 piksel ekliyor ve bunu React
+      bağlandıktan sonra yapıyor. Sayfadaki pin'li bölümler (Hero,
+      Hakkımda maskesi) ölçülerini önbelleğe aldığı için ScrollTrigger'a
+      haber veriliyor; bölüm bağlantıları zaten hedefi her karede
+      yeniden ölçüyor, bu da pin'lerin kendi hesabını güncelliyor.
+    */
+    ScrollTrigger.refresh();
+
     return () => {
       scroller.removeEventListener('pointerdown', bump);
       scroller.removeEventListener('wheel', bump);
-      close();
+      strip.current?.destroy();
+      strip.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    strip.current?.setLabels(labels);
+  }, [labels]);
 
   return (
     <div
