@@ -9,7 +9,7 @@
   tabure yüksekliği ile figürün oturuşu birbirini tutuyor.
 */
 import { blot, el, f, pen, pt, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
-import type { WorkPose } from '../figure';
+import { LAB_COAT, type Costume, type WorkPose } from '../figure';
 
 /** Şeridin tek vurgu rengi. Her durakta tekrar eden kupa bu renkte. */
 export const ACCENT = '#2e8f63';
@@ -19,6 +19,8 @@ export interface Station {
   readonly g: SVGGElement;
   /** Kişi oturduğunda ellerini ve başını götüreceği yerler (yerel uzay). */
   readonly work: WorkPose;
+  /** Bu durakta giyilen kıyafet. */
+  readonly costume: Costume;
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;
@@ -119,6 +121,7 @@ export function microscopeStation(parent: Element): Station {
 
   return {
     g,
+    costume: LAB_COAT,
     // Baş okülerin hemen solunda; eller odak düğmesinde ve tablada.
     work: {
       head: [EYEPIECE[0] - 4.6, EYEPIECE[1] - 0.4],

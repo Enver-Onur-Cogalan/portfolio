@@ -38,13 +38,20 @@ import { clamp, lerp, spring, type Spring } from '@/lib/ink/motion';
 export interface Costume {
   /** Giysinin eteği nereye iner: 94 uzun önlük, 78 kısa sweatshirt. */
   hem: number;
-  /** Gövde dolgusu: verilmezse kâğıt (beyaz önlük). */
+  /** Gövde dolgusu: verilmezse kâğıt. */
   colour?: string;
   /** Kol kalınlığı — paltolu kol biraz kalın. */
   sleeve?: number;
+  /** Ensede kapüşon lekesi. */
+  hood?: boolean;
+  /** Önde kanguru cebi çizgisi. */
+  pocket?: boolean;
+  /** Yaka V'si çizilsin mi — kapüşonlularda yok. */
+  collar?: boolean;
 }
 
-export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8 };
+export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8, collar: true };
+export const HOODIE: Costume = { hem: 78, sleeve: 4.2, hood: true, pocket: true };
 
 /** Figürün oturduğunda ellerini ve başını götüreceği yerler. */
 export interface WorkPose {
@@ -55,6 +62,8 @@ export interface WorkPose {
 }
 
 export interface FigureState {
+  /** O anki kıyafet. Duraklar arasında değişiyor; iskelet değişmiyor. */
+  costume: Costume;
   /** 0 durdu, 1 tam yürüyor. Aradaki değerler adımı yerinde söndürüyor. */
   go: number;
   /** 0 ayakta, 1 oturmuş. */
@@ -110,7 +119,7 @@ const SIT_ANKLE_NEAR: Vec = [59, 116];
 const SIT_ANKLE_FAR: Vec = [49, 116];
 const SIT_LEAN = (17 * Math.PI) / 180;
 
-export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figure {
+export function createFigure(parent: Element): Figure {
   const g = el('g', {}, parent);
 
   /*
@@ -121,22 +130,21 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
   */
   el('rect', { x: 8, y: 18, width: 76, height: 108, fill: 'none', stroke: 'none' }, g);
 
-  const sleeveW = costume.sleeve ?? 3.6;
-  const farArm: Limb = limb(g, sleeveW);
+  /*
+    Kol kalınlığı kostümle değişiyor ama `limb()` genişliği kuruluşta
+    alıyor. En kalın değerle kurulup ince kostümlerde biraz dar görünmesi
+    yerine, iki uzuv da orta bir değerde: fark gözle seçilmiyor, buna
+    karşılık kostüm değiştiğinde parçaları yeniden yaratmak gerekmiyor.
+  */
+  const farArm: Limb = limb(g, 4);
   const farLeg: Limb = limb(g, 4.2);
   const farShoe = blot(g);
   const nearLeg: Limb = limb(g, 4.2);
   const nearShoe = blot(g);
-  const garment = costume.colour
-    ? el('path', {
-        fill: costume.colour,
-        stroke: 'currentColor',
-        'stroke-width': PEN,
-        'stroke-linejoin': 'round',
-        'stroke-linecap': 'round',
-      }, g)
-    : shape(g);
+  const hood = blot(g); // ensede, giysinin arkasında
+  const garment = shape(g);
   const seam = pen(g, PEN * 0.55);
+  const pocket = pen(g, PEN * 0.5);
   const neck = pen(g, PEN * 0.75);
   const head = el('ellipse', {
     rx: 3.7,
@@ -147,7 +155,7 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
   }, g);
   const hair = blot(g);
   const beard = blot(g);
-  const nearArm: Limb = limb(g, sleeveW);
+  const nearArm: Limb = limb(g, 4);
 
   const walk: Gait = gait({ kind: 'walk' });
   const armSwing: [Spring, Spring] = [spring(60, 9), spring(60, 9)];
@@ -156,6 +164,7 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
   return {
     g,
     update(dt, state) {
+      const costume = state.costume;
       const go = clamp(state.go, 0, 1);
       const sit = clamp(state.sit, 0, 1);
       phase += (dt / walk.period) * go;
@@ -211,13 +220,32 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
       const py = Math.sin(lean);
       const side = (base: Vec, w: number): Vec => [base[0] + px * w, base[1] + py * w];
 
-      const hem = lerp(costume.hem, 88, sit);
+      /*
+        Oturuşta etek dar bir aralığa çekiliyor: 88'den aşağısı tabureyi
+        ve baldırları örtüyor, 84'ten yukarısı ise kısa bir kapüşonluda
+        kalçanın üstünde kalıp bacakla arasında boşluk bırakıyor.
+      */
+      const hem = lerp(costume.hem, clamp(costume.hem, 84, 88), sit);
       const frontX = Math.max(kneeN[0] + 1.6, 44.6);
+
+      /*
+        Giysinin beli her zaman eteğinin üstünde kalmalı. Kısa bir
+        kapüşonluda etek kalçanın üstüne çıkıyor; bel yine kalçada
+        bırakılırsa siluet kendi üstüne katlanıp sivri bir kama
+        oluşturuyor. Bel, gövde ekseni üzerinde eteğin biraz üstüne
+        kaydırılıyor.
+      */
+      const waistY = Math.min(hip[1], hem - 5);
+      const axisSpan = hip[1] - sh[1] || 1;
+      const waist: Vec = [
+        lerp(hip[0], sh[0], (hip[1] - waistY) / axisSpan),
+        waistY,
+      ];
 
       const shBack = side(sh, -5);
       const shFront = side(sh, 4.6);
-      const hipFront = side(hip, 5.5);
-      const hipBack = side(hip, -6);
+      const hipFront = side(waist, 5.5);
+      const hipBack = side(waist, -6);
       const hemFront: Vec = [frontX, hem];
       const hemBack: Vec = [lerp(34.2, hip[0] - 4, sit), hem + 1];
 
@@ -230,9 +258,27 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
       );
       seam.setAttribute(
         'd',
-        `M${f(sh[0] - 2.6 * px)} ${f(sh[1] + 0.4)} L${f(sh[0] + 0.4)} ${f(sh[1] + 5)} ` +
-          `L${f(sh[0] + 3.2 * px)} ${f(sh[1] - 0.4)} ` +
-          `M${f(sh[0] + 0.6)} ${f(sh[1] + 6)} L${f(hipFront[0] - 3)} ${f(hipFront[1] - 3)}`
+        costume.collar
+          ? `M${f(sh[0] - 2.6 * px)} ${f(sh[1] + 0.4)} L${f(sh[0] + 0.4)} ${f(sh[1] + 5)} ` +
+              `L${f(sh[0] + 3.2 * px)} ${f(sh[1] - 0.4)} ` +
+              `M${f(sh[0] + 0.6)} ${f(sh[1] + 6)} L${f(hipFront[0] - 3)} ${f(hipFront[1] - 3)}`
+          : `M${f(sh[0] - 2.2)} ${f(sh[1] + 1.6)} Q${f(sh[0] + 0.2)} ${f(sh[1] + 4.6)} ${f(sh[0] + 2.6)} ${f(sh[1] + 1.4)}`
+      );
+      // Kapüşon: ensede, omuzların arkasına düşen bir leke
+      hood.setAttribute(
+        'd',
+        costume.hood
+          ? `M${f(sh[0] - 4.6)} ${f(sh[1] - 0.6)} Q${f(sh[0] - 7.4)} ${f(sh[1] + 7)} ${f(sh[0] - 2.2)} ${f(sh[1] + 9.4)} ` +
+              `Q${f(sh[0] + 1.4)} ${f(sh[1] + 6)} ${f(sh[0] + 1.6)} ${f(sh[1] - 0.4)}Z`
+          : ''
+      );
+      // Kanguru cebi
+      pocket.setAttribute(
+        'd',
+        costume.pocket
+          ? `M${f(hipFront[0] - 9)} ${f(hipFront[1] - 11)} L${f(hipFront[0] - 2.4)} ${f(hipFront[1] - 10)} ` +
+              `M${f(hipFront[0] - 9.6)} ${f(hipFront[1] - 5)} L${f(hipFront[0] - 2)} ${f(hipFront[1] - 4)}`
+          : ''
       );
 
       // ── Baş, saç, sakal ──────────────────────────────────────

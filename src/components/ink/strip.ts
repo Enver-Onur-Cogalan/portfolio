@@ -14,8 +14,9 @@
 import { el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
 import { ease, seeded } from '@/lib/ink/motion';
 import { applyPalette, palette } from '@/lib/ink/daynight';
-import { createFigure, LAB_COAT } from './figure';
+import { createFigure, LAB_COAT, type Costume } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
+import { deskStation } from './stations/desk';
 
 export interface StripOptions {
   /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
@@ -97,15 +98,22 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
   floor.setAttribute('d', floorPts.join(' '));
 
   // ── Duraklar ───────────────────────────────────────────────
-  const stations: Station[] = [microscopeStation(scene)];
+  const stations: Station[] = [microscopeStation(scene), deskStation(scene)];
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);
     placeAt(station.g, SLOTS[i]);
   });
 
   // ── Yürüyen kişi ───────────────────────────────────────────
-  const figure = createFigure(scene, LAB_COAT);
+  const figure = createFigure(scene);
   figure.g.setAttribute('filter', filter);
+
+  /*
+    Kıyafet, gidilen durağınki. Yürürken bir sonraki durağın kıyafeti
+    giyiliyor — hikâye zaten o: önlüğü çıkarıp sweatshirt'ü geçirmek
+    iki durak arasında oluyor.
+  */
+  const costumeFor = (i: number): Costume => stations[i]?.costume ?? LAB_COAT;
 
   /*
     Durum makinesi. Figür yürür, durağa varınca yavaşlar, oturur, bir süre
@@ -142,12 +150,13 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     switch (phase) {
       case 'walking': {
         go = Math.min(1, go + dt * 3);
-        const dx = figure.update(dt, { go, sit: 0 });
+        const dx = figure.update(dt, { costume: costumeFor(target), go, sit: 0 });
         x += dx * SCALE;
         if (station && x >= seatX(target) - 2) {
           phase = 'stopping';
           timer = 0;
         } else if (!station && x > VIEW_W + 40) {
+          // Son duraktan sonra bandın dışına çıkıp baştan başlıyor
           x = -40;
           target = 0;
         }
@@ -156,7 +165,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       case 'stopping': {
         timer += dt;
         go = Math.max(0, 1 - timer / STOP_TIME);
-        figure.update(dt, { go, sit: 0 });
+        figure.update(dt, { costume: costumeFor(target), go, sit: 0 });
         if (timer >= STOP_TIME) {
           phase = 'sitting';
           timer = 0;
@@ -167,7 +176,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       case 'sitting': {
         timer += dt;
         sit = ease(Math.min(1, timer / SIT_TIME));
-        figure.update(dt, { go: 0, sit, work: station?.work });
+        figure.update(dt, { costume: costumeFor(target), go: 0, sit, work: station?.work });
         if (timer >= SIT_TIME) {
           phase = 'working';
           timer = 0;
@@ -176,7 +185,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'working': {
         timer += dt;
-        figure.update(dt, { go: 0, sit: 1, work: station?.work });
+        figure.update(dt, { costume: costumeFor(target), go: 0, sit: 1, work: station?.work });
         if (timer >= WORK_TIME) {
           phase = 'standing';
           timer = 0;
@@ -186,7 +195,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       case 'standing': {
         timer += dt;
         sit = 1 - ease(Math.min(1, timer / SIT_TIME));
-        figure.update(dt, { go: 0, sit, work: station?.work });
+        figure.update(dt, { costume: costumeFor(target), go: 0, sit, work: station?.work });
         if (timer >= SIT_TIME) {
           phase = 'walking';
           sit = 0;
