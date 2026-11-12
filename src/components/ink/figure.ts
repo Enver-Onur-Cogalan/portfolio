@@ -65,8 +65,8 @@ export const DENIM = '#53657f';
 */
 /** Mikroskop durağı: biyoloji geçmişini anlatan tek parça. */
 export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8, collar: true, trousers: DENIM };
-export const TEE: Costume = { hem: 76, sleeve: 3.6, trousers: DENIM };
-export const HOODIE: Costume = { hem: 78, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
+export const TEE: Costume = { hem: 71, sleeve: 3.6, trousers: DENIM };
+export const HOODIE: Costume = { hem: 74, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
 
 /** Figürün oturduğunda ellerini ve başını götüreceği yerler. */
 export interface WorkPose {
@@ -257,7 +257,6 @@ export function createFigure(parent: Element): Figure {
         kalçanın üstünde kalıp bacakla arasında boşluk bırakıyor.
       */
       const hem = lerp(costume.hem, clamp(costume.hem, 84, 88), sit);
-      const frontX = Math.max(kneeN[0] + 1.6, 44.6);
 
       /*
         Giysinin beli her zaman eteğinin üstünde kalmalı. Kısa bir
@@ -277,6 +276,15 @@ export function createFigure(parent: Element): Figure {
       const shFront = side(sh, 4.6);
       const hipFront = side(waist, 5.5);
       const hipBack = side(waist, -6);
+      /*
+        Etek yalnızca giysi gerçekten dize kadar iniyorsa öndeki dizi
+        takip ediyor — uzun paltonun adımla açılıp kapanması bundan.
+        Kısa bir kapüşonluda etek dizin epey üstünde bitiyor; dizi yine
+        takip ederse kumaş boşlukta öne doğru uzanıp kasıkta bir çıkıntı
+        yapıyor. Takip oranı eteğin dize ne kadar yaklaştığıyla ölçülüyor.
+      */
+      const kneeFollow = clamp((hem - 84) / 8, 0, 1);
+      const frontX = lerp(hipFront[0] + 1.4, Math.max(kneeN[0] + 1.6, 44.6), kneeFollow);
       const hemFront: Vec = [frontX, hem];
       const hemBack: Vec = [lerp(34.2, hip[0] - 4, sit), hem + 1];
 
@@ -307,8 +315,8 @@ export function createFigure(parent: Element): Figure {
       pocket.setAttribute(
         'd',
         costume.pocket
-          ? `M${f(hipFront[0] - 9)} ${f(hipFront[1] - 11)} L${f(hipFront[0] - 2.4)} ${f(hipFront[1] - 10)} ` +
-              `M${f(hipFront[0] - 9.6)} ${f(hipFront[1] - 5)} L${f(hipFront[0] - 2)} ${f(hipFront[1] - 4)}`
+          ? `M${f(hipFront[0] - 8.6)} ${f(hem - 11)} L${f(hipFront[0] - 2.2)} ${f(hem - 10.2)} ` +
+              `M${f(hipFront[0] - 9)} ${f(hem - 5.4)} L${f(hipFront[0] - 1.8)} ${f(hem - 4.6)}`
           : ''
       );
 
