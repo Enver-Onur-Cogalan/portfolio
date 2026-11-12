@@ -65,6 +65,14 @@ const STOPS = 64;
 const VIEW_W = 900;
 const VIEW_H = 180;
 const GROUND = 150;
+/*
+  Görünen pencerenin üst kenarı. Koordinatlar 0'dan başlıyor ama en
+  yüksek çizim (kasklı başın tepesi, oyuncu koltuğunun boyunluğu) y≈68'de
+  bitiyor; üstündeki her şey boş kâğıt. Sayfaya konunca bu boşluk
+  çizimden çok yer kaplıyordu. Pencere aşağıdan başlayınca oran 5:1'den
+  6.6:1'e iniyor — istenen "ince bant" bu.
+*/
+const VIEW_TOP = 44;
 /** Mobilya ve figür ortak ölçek kullanıyor. */
 const SCALE = 0.85;
 /** Durakların bant üzerindeki yerleri. */
@@ -83,9 +91,18 @@ const placeAt = (g: Element, x: number, face = 1): void =>
     `translate(${f(x)} ${GROUND}) scale(${f(SCALE * face)} ${f(SCALE)}) translate(-40 -120)`
   );
 
-export function createStrip(host: HTMLElement): () => void {
+export interface StripOptions {
+  /**
+   * Her karede figürün bant üzerindeki yeri. Dar ekranda şerit yatayda
+   * kayıyor ve kişi görüş alanından çıkıyor; sarmalayıcı bunu kullanıp
+   * kaydırmayı ona tutturuyor.
+   */
+  onMove?(x: number, viewW: number): void;
+}
+
+export function createStrip(host: HTMLElement, options: StripOptions = {}): () => void {
   const svg = el('svg', {
-    viewBox: `0 0 ${VIEW_W} ${VIEW_H}`,
+    viewBox: `0 ${VIEW_TOP} ${VIEW_W} ${VIEW_H - VIEW_TOP}`,
     role: 'img',
     'aria-label':
       'Çizgi çizimi: aynı kişinin beş hâli — mikroskop başında, dizüstüyle, kahve molasında, motosikletine binerken ve oyun oynarken',
@@ -151,7 +168,7 @@ export function createStrip(host: HTMLElement): () => void {
   };
 
   el('rect', {
-    x: 0, y: 0, width: VIEW_W, height: VIEW_H,
+    x: 0, y: VIEW_TOP, width: VIEW_W, height: VIEW_H - VIEW_TOP,
     fill: gradient((P) => P.paper, 0, VIEW_W),
   }, svg);
 
@@ -170,7 +187,7 @@ export function createStrip(host: HTMLElement): () => void {
       const t = r(0, 1) ** 2;
       el('circle', {
         cx: f(sx),
-        cy: f(8 + t * 86),
+        cy: f(VIEW_TOP + 5 + t * 62),
         r: f(r(0.5, 1.25)),
         fill: 'rgb(239,230,207)',
         opacity: f(r(0.35, 1)),
@@ -659,6 +676,7 @@ export function createStrip(host: HTMLElement): () => void {
     if (acc > STEP * MAX_STEPS) acc = 0;
     placeAt(figure.g, x, flip);
     placeAt(figure.gFar, x, flip);
+    options.onMove?.(x, VIEW_W);
   });
 
   host.appendChild(svg);
