@@ -32,16 +32,24 @@ export function coffeeStation(parent: Element): Station {
   pen(g, PEN * 0.8).setAttribute('d', `M72 ${TABLE_TOP + 3} L72 115 M78 ${TABLE_TOP + 3} L78 115`);
   shape(g, PEN * 0.8).setAttribute('d', 'M64 115 L86 115 L84 119 L66 119Z');
 
-  // ── Masadaki ufak şeyler: tabak ve açık bir defter ───────────
-  shape(g, PEN * 0.7).setAttribute('d', `M59 ${TABLE_TOP - 1.6} L67 ${TABLE_TOP - 1.6} L67 ${TABLE_TOP} L59 ${TABLE_TOP}Z`);
-  pen(g, PEN * 0.45).setAttribute(`d`, `M61 ${TABLE_TOP - 0.8} L65 ${TABLE_TOP - 0.8}`);
-  pen(g, PEN * 0.5).setAttribute('d', `M82 ${TABLE_TOP} L82 ${TABLE_TOP - 2.4} L89 ${TABLE_TOP - 2.4} L89 ${TABLE_TOP}`);
+  /*
+    Masadaki ufak şeyler masanın sağ yarısında toplanıyor: sol ön köşe
+    boş kalsın ki sol kol oraya yayılabilsin.
+  */
+  shape(g, PEN * 0.7).setAttribute('d', `M77 ${TABLE_TOP - 1.6} L85 ${TABLE_TOP - 1.6} L85 ${TABLE_TOP} L77 ${TABLE_TOP}Z`);
+  pen(g, PEN * 0.45).setAttribute('d', `M79 ${TABLE_TOP - 0.8} L83 ${TABLE_TOP - 0.8}`);
 
   /*
     Masadaki kupa. Figür onu eline aldığında gizleniyor; figürün elindeki
     kupa tam bu noktada başladığı için geçiş görünmüyor.
   */
   const MUG: Vec = [70, 78.6];
+  /*
+    Sol elin masadaki yeri. Kol omuzdan 33 birim; önceki hedef masanın öbür
+    ucundaydı (omuzdan 45 birim) ve kol gerilip düz bir çubuğa dönüyordu.
+    Burası omuzdan 28 birim: dirsek bükülü kalıyor, el masaya yayılıyor.
+  */
+  const FAR_REST: Vec = [59.4, 80.2];
   const tableMug = el('g', {}, g);
   el('path', {
     d:
@@ -68,13 +76,13 @@ export function coffeeStation(parent: Element): Station {
     work: {
       head: [45.4, 45.6],
       nearHand: MUG,
-      farHand: [83, 78],
+      farHand: FAR_REST,
     } satisfies WorkPose,
     // Yudum pozu: kupa ağızda, baş hafifçe geriye
     workAlt: {
       head: [45.2, 43],
       nearHand: [50.4, 48.4],
-      farHand: [83, 78],
+      farHand: FAR_REST,
     } satisfies WorkPose,
     prop: 'mug',
     setPropHeld(held) {
@@ -88,7 +96,7 @@ export function coffeeStation(parent: Element): Station {
       // Buhar masadaki tabaktan; kupa yer değiştirdiği için ona bağlı değil
       steam.setAttribute(
         'd',
-        `M62.6 ${TABLE_TOP - 2.4} q${f(1.5 + Math.sin(t * 1.3) * 0.9)} -2.2 0 -4.4 ` +
+        `M80.6 ${TABLE_TOP - 2.4} q${f(1.5 + Math.sin(t * 1.3) * 0.9)} -2.2 0 -4.4 ` +
           `q${f(-1.5 + Math.sin(t * 1.3 + 1.2) * 0.9)} -2.2 0 -4.4`
       );
       steam.setAttribute('opacity', f(0.34 + Math.sin(t * 0.8) * 0.14));
