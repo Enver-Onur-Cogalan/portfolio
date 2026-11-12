@@ -11,10 +11,10 @@
   `run()` hareket azaltma tercihini ve `?debug` / `?t=` parametrelerini
   kendisi yönetiyor: hareket kısıtlıysa tek kare çizip duruyor.
 */
-import { el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
-import { ease, seeded } from '@/lib/ink/motion';
+import { curve, el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
+import { clamp, ease, lerp, seeded } from '@/lib/ink/motion';
 import { applyPalette, palette } from '@/lib/ink/daynight';
-import { createFigure, TEE, type Costume } from './figure';
+import { createFigure, TEE, type Costume, type WorkPose } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
 import { coffeeStation } from './stations/coffee';
@@ -147,6 +147,20 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
      mobilyanın verdiği noktalara gidebiliyor. */
   const seatX = (i: number): number => SLOTS[i];
 
+  /*
+    Yudum döngüsü. Durakta çalışırken ikinci poz varsa `work` ile onun
+    arasında gidip geliniyor: kupa masada durur, kalkar, bir süre ağızda
+    kalır, geri iner. Keyfi bir sinüs yerine anahtarlanmış eğri —
+    duraklama süreleri böyle okunur kalıyor.
+  */
+  const ALT_PERIOD = 6.4;
+  const altCurve = curve([[0, 0], [1.9, 0], [2.7, 1], [4.1, 1], [5, 0]], ALT_PERIOD);
+  const mixPose = (a: WorkPose, b: WorkPose, u: number): WorkPose => ({
+    head: [lerp(a.head[0], b.head[0], u), lerp(a.head[1], b.head[1], u)],
+    nearHand: [lerp(a.nearHand[0], b.nearHand[0], u), lerp(a.nearHand[1], b.nearHand[1], u)],
+    farHand: [lerp(a.farHand[0], b.farHand[0], u), lerp(a.farHand[1], b.farHand[1], u)],
+  });
+
   const STEP = 1 / 60;
   const MAX_STEPS = 5;
   let acc = 0;
@@ -181,6 +195,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'sitting': {
         timer += dt;
+        station?.setPropHeld?.(false);
         settle = ease(Math.min(1, timer / SIT_TIME));
         figure.update(dt, {
           costume: costumeFor(target),
@@ -188,7 +203,6 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           sit: station?.pose === 'sit' ? settle : 0,
           reach: settle,
           work: station?.work,
-          prop: station?.prop,
         });
         if (timer >= SIT_TIME) {
           phase = 'working';
@@ -198,13 +212,22 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'working': {
         timer += dt;
+        const alt = station?.workAlt ? clamp(altCurve(timer), 0, 1) : 0;
+        const pose =
+          station?.work && station.workAlt
+            ? mixPose(station.work, station.workAlt, alt)
+            : station?.work;
+        // Nesne elde sayıldığı anda masadaki kopyası gizleniyor; el o anda
+        // zaten kupanın masadaki yerinde olduğu için geçiş görünmüyor.
+        const held = alt > 0.02;
+        station?.setPropHeld?.(held);
         figure.update(dt, {
           costume: costumeFor(target),
           go: 0,
           sit: station?.pose === 'sit' ? 1 : 0,
           reach: 1,
-          work: station?.work,
-          prop: station?.prop,
+          work: pose,
+          prop: held ? station?.prop : undefined,
         });
         if (timer >= WORK_TIME) {
           phase = 'standing';
@@ -214,6 +237,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
       }
       case 'standing': {
         timer += dt;
+        station?.setPropHeld?.(false);
         settle = 1 - ease(Math.min(1, timer / SIT_TIME));
         figure.update(dt, {
           costume: costumeFor(target),
@@ -221,7 +245,6 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
           sit: station?.pose === 'sit' ? settle : 0,
           reach: settle,
           work: station?.work,
-          prop: station?.prop,
         });
         if (timer >= SIT_TIME) {
           phase = 'walking';

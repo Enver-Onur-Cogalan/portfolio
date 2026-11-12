@@ -25,6 +25,13 @@ export interface Station {
   readonly pose: 'sit' | 'stand';
   /** Durakta elde taşınan nesne. */
   readonly prop?: 'mug';
+  /**
+   * İkinci poz. Varsa durakta çalışırken `work` ile bunun arasında
+   * yavaşça gidip geliniyor — kupayı masadan alıp içmek gibi.
+   */
+  readonly workAlt?: WorkPose;
+  /** Nesne elde mi: durak masadaki kopyasını gizlesin diye. */
+  setPropHeld?(held: boolean): void;
   /** Yerel uzaydaki genişlik — bantta duraklar arası boşluğu belirler. */
   readonly width: number;
   update(t: number, dt: number): void;
