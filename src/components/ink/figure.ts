@@ -50,6 +50,10 @@ export interface Costume {
   collar?: boolean;
   /** Kapalı kask: başı tümüyle örtüyor, saç ve sakal gizleniyor. */
   helmet?: boolean;
+  /** Kulaklık: başın üstünden geçen kemer ve kulakta bir yastık. */
+  phones?: boolean;
+  /** Gövdede yatay çizgiler — pijamayı anlatan tek ayrıntı. */
+  stripes?: boolean;
   /**
    * Pantolon dolgusu. Verilmezse bacaklar kâğıt kalıyor; bir renk
    * verilince `limb()`'in kâğıt dolgusu o renge çevriliyor — üslubun
@@ -73,6 +77,15 @@ export const TEE: Costume = { hem: 71, sleeve: 3.6, trousers: DENIM };
 export const HOODIE: Costume = { hem: 74, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
 /** Motosiklet durağı: kısa mont ve kapalı kask. */
 export const BIKER: Costume = { hem: 76, sleeve: 4, collar: true, helmet: true, trousers: DENIM };
+/** Oyun durağı: bol pijama ve kulaklık. Kot yok — alt da pijama. */
+export const PYJAMA: Costume = {
+  hem: 80,
+  sleeve: 4.2,
+  colour: '#cdd5e3',
+  stripes: true,
+  phones: true,
+  trousers: '#9aa6bd',
+};
 
 /** Figürün oturduğunda ellerini ve başını götüreceği yerler. */
 export interface WorkPose {
@@ -210,6 +223,7 @@ export function createFigure(parent: Element): Figure {
   const hoodDown = blot(g); // ensede, giysinin arkasında
   const garment = shape(g);
   const seam = pen(g, PEN * 0.55);
+  const stripes = pen(g, PEN * 0.45);
   const pocket = pen(g, PEN * 0.5);
   const neck = pen(g, PEN * 0.75);
   const head = el('ellipse', {
@@ -225,6 +239,9 @@ export function createFigure(parent: Element): Figure {
   const helmet = shape(g, PEN); // kask kabuğu — saçın ve sakalın önünde
   const visor = blot(g);
   const chinBar = pen(g, PEN * 0.5);
+  const phoneBand = pen(g, PEN * 0.75);
+  const phoneCup = shape(g, PEN * 0.7);
+  const phoneInner = pen(g, PEN * 0.45);
   const nearArm: Limb = limb(g, 4);
   // Elde taşınan nesne kolun önünde
   const propBody = el('path', {
@@ -362,6 +379,42 @@ export function createFigure(parent: Element): Figure {
           `Q${f(lerp(frontX, hipFront[0] + 6, sit))} ${f(lerp(hem - 9, hipFront[1] + 0.4, sit))} ${pt(hemFront)} ` +
           `L${pt(hemBack)} L${pt(hipBack)}Z`
       );
+      /*
+        Gövde dolgusu. `limb()`'in pantolonu gibi: renk verilince kâğıt
+        sınıfı kalkıyor ki tema değiştiğinde CSS onu geri boyamasın.
+      */
+      if (costume.colour) {
+        garment.classList.remove('pp');
+        garment.setAttribute('fill', costume.colour);
+      } else {
+        garment.classList.add('pp');
+        garment.setAttribute('fill', PAPER);
+      }
+
+      /*
+        Pijama çizgileri. Gövde ekseni boyunca üç yatay çizgi; uçları
+        siluetin kenarından içeri çekiliyor ki dikişle çakışmasınlar.
+        Oran olarak çizildikleri için eğilme ve oturma ile birlikte
+        dönüyorlar.
+      */
+      stripes.setAttribute(
+        'd',
+        costume.stripes
+          ? [0.3, 0.52, 0.74]
+              .map((u) => {
+                const bx = lerp(shBack[0], hipBack[0], u);
+                const by = lerp(shBack[1], hipBack[1], u);
+                const fx = lerp(shFront[0], hipFront[0], u);
+                const fy = lerp(shFront[1], hipFront[1], u);
+                return (
+                  `M${f(lerp(bx, fx, 0.14))} ${f(lerp(by, fy, 0.14))} ` +
+                  `L${f(lerp(bx, fx, 0.86))} ${f(lerp(by, fy, 0.86))}`
+                );
+              })
+              .join(' ')
+          : ''
+      );
+
       seam.setAttribute(
         'd',
         costume.collar
@@ -461,6 +514,33 @@ export function createFigure(parent: Element): Figure {
         'd',
         lid
           ? `M${f(hc[0] + 0.8)} ${f(hc[1] + 2.2)} Q${f(hc[0] + 4.4)} ${f(hc[1] + 2)} ${f(hc[0] + 6.2)} ${f(hc[1] + 0.6)}`
+          : ''
+      );
+
+      /*
+        Kulaklık. Kemer başın üstünden geçiyor, yastık kulağın
+        hizasında — başın biraz gerisinde, yüz açıkta kalsın diye.
+      */
+      const cans = costume.phones === true && !lid;
+      phoneBand.setAttribute(
+        'd',
+        cans
+          ? `M${f(hc[0] - 4.4)} ${f(hc[1] - 1.6)} Q${f(hc[0] - 0.8)} ${f(hc[1] - 8.4)} ${f(hc[0] + 3.4)} ${f(hc[1] - 3.8)}`
+          : ''
+      );
+      phoneCup.setAttribute(
+        'd',
+        cans
+          ? `M${f(hc[0] - 4.6)} ${f(hc[1] - 3)} Q${f(hc[0] - 1.2)} ${f(hc[1] - 3.2)} ${f(hc[0] - 0.8)} ${f(hc[1] + 0.4)} ` +
+              `Q${f(hc[0] - 1.2)} ${f(hc[1] + 3.8)} ${f(hc[0] - 4.8)} ${f(hc[1] + 3.4)} ` +
+              `Q${f(hc[0] - 6.4)} ${f(hc[1] + 0.2)} ${f(hc[0] - 4.6)} ${f(hc[1] - 3)}Z`
+          : ''
+      );
+      // Yastığın iç halkası: beyaz lekeyi kulaklık diye okutan ayrıntı
+      phoneInner.setAttribute(
+        'd',
+        cans
+          ? `M${f(hc[0] - 2.6)} ${f(hc[1] - 1.6)} Q${f(hc[0] - 1.6)} ${f(hc[1] + 0.2)} ${f(hc[0] - 2.6)} ${f(hc[1] + 2)}`
           : ''
       );
 

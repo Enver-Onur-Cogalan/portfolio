@@ -19,6 +19,7 @@ import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
 import { coffeeStation } from './stations/coffee';
 import { bikeStation } from './stations/bike';
+import { gamingStation } from './stations/gaming';
 
 export interface StripOptions {
   /** Günün saati: 0 gece yarısı, 0.5 öğlen. */
@@ -105,6 +106,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     deskStation(scene),
     coffeeStation(scene),
     bikeStation(scene),
+    gamingStation(scene),
   ];
   stations.forEach((station, i) => {
     station.g.setAttribute('filter', filter);
