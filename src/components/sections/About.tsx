@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import Skills from '@/components/sections/Skills';
+import InkStrip from '@/components/ink/InkStrip';
 import { aboutStats, aboutPrinciples, tint } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
@@ -356,6 +357,13 @@ export default function About() {
             </div>
           ))}
         </div>
+
+        {/*
+          Hakkımda ile Yetenekler arasındaki geçiş: aynı kişinin beş
+          hâli, bir günün ışığı içinde. Metinden listeye geçmeden önce
+          nefes aldıran bir şerit.
+        */}
+        <InkStrip />
 
         <Skills />
       </div>
