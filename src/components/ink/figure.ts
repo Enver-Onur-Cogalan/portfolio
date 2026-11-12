@@ -23,6 +23,7 @@ import {
   f,
   limb,
   pen,
+  pt,
   shape,
   shoe,
   PEN,
@@ -193,37 +194,45 @@ export function createFigure(parent: Element, costume: Costume = LAB_COAT): Figu
 
       // ── Giysi ────────────────────────────────────────────────
       /*
-        Dar bir sütun. Geniş bırakınca kollar siluetin içinde kalıp
-        kayboluyor ve figür elbise giymiş gibi duruyor.
+        Siluet altı noktadan kuruluyor ve iki poz da aynı yapıyı
+        kullanıyor: omuzlar, kalça hizasında ön ve arka, sonra etek.
+
+        Kritik olan kalça hizasındaki iki nokta. Onlar olmadan ön kenar
+        omuzdan doğrudan dize iniyor, gövde ile kucak tek bir kamada
+        birleşiyor ve oturan figür çuval gibi duruyordu. Kalçada daralıp
+        oradan öne açılınca gövde dar bir sütun, kucak da yatay bir bant
+        olarak okunuyor.
+
+        Eksen `lean` ile dönüyor: ayakta 0, otururken 17°. Böylece tek
+        bir yapı iki pozu da veriyor ve aradaki kareler tutarlı kalıyor.
       */
-      /*
-        Otururken etek koltuk hizasında bitiyor. Ayaktaki boyunda
-        bırakılınca tabureyi ve baldırları tamamen örtüyor, figürün
-        oturduğu anlaşılmıyordu.
-      */
+      const lean = SIT_LEAN * sit;
+      const px = Math.cos(lean);
+      const py = Math.sin(lean);
+      const side = (base: Vec, w: number): Vec => [base[0] + px * w, base[1] + py * w];
+
       const hem = lerp(costume.hem, 88, sit);
-      /*
-        Oturuşta arka kenar gövde eksenini izliyor. Gövde 25° öne
-        eğilince omuz ileri gidiyor; arka kenarı hâlâ kalçanın sabit bir
-        mesafe arkasına çizince palto geriye doğru yelpaze gibi açılıyor
-        ve figürün arkası şişiyordu. Kalçanın arkası, eksene dik
-        yöndeki kalınlık kadar geride — o kadar.
-      */
-      const backOffset = 5;
-      const backHem = SIT_HIP[0] - backOffset * Math.cos(SIT_LEAN);
-      const backWaist = SIT_HIP[0] - backOffset * Math.cos(SIT_LEAN) + 2.4;
-      const fx = Math.max(kneeN[0] + 1.6, 44.6);
+      const frontX = Math.max(kneeN[0] + 1.6, 44.6);
+
+      const shBack = side(sh, -5);
+      const shFront = side(sh, 4.6);
+      const hipFront = side(hip, 5.5);
+      const hipBack = side(hip, -6);
+      const hemFront: Vec = [frontX, hem];
+      const hemBack: Vec = [lerp(34.2, hip[0] - 4, sit), hem + 1];
+
       garment.setAttribute(
         'd',
-        `M${f(sh[0] - 4.8)} ${f(sh[1] + 1)} Q${f(sh[0] - 1)} ${f(sh[1] - 2.4)} ${f(sh[0] + 4.2)} ${f(sh[1] + 1)} ` +
-          `L${f(fx - 0.6)} ${f(hem - 22 + b)} Q${f(fx)} ${f(hem - 10 + b * 0.5)} ${f(Math.max(fx, ankleN[0] - 4))} ${f(hem)} ` +
-          `L${f(lerp(34.2, backHem, sit))} ${f(hem + 1)} ` +
-          `L${f(lerp(35.8, backWaist, sit))} ${f(hem - 22 + b)}Z`
+        `M${pt(shBack)} Q${f(sh[0] - py * 3)} ${f(sh[1] - 3)} ${pt(shFront)} ` +
+          `L${pt(hipFront)} ` +
+          `Q${f(lerp(frontX, hipFront[0] + 6, sit))} ${f(lerp(hem - 9, hipFront[1] + 0.4, sit))} ${pt(hemFront)} ` +
+          `L${pt(hemBack)} L${pt(hipBack)}Z`
       );
       seam.setAttribute(
         'd',
-        `M${f(sh[0] - 2.6)} ${f(sh[1] + 0.4)} L${f(sh[0] + 0.4)} ${f(sh[1] + 5)} L${f(sh[0] + 3.2)} ${f(sh[1] - 0.4)} ` +
-          `M${f(sh[0] + 0.6)} ${f(sh[1] + 6)} L${f(sh[0] + 1.6)} ${f(hem - 26 + b)}`
+        `M${f(sh[0] - 2.6 * px)} ${f(sh[1] + 0.4)} L${f(sh[0] + 0.4)} ${f(sh[1] + 5)} ` +
+          `L${f(sh[0] + 3.2 * px)} ${f(sh[1] - 0.4)} ` +
+          `M${f(sh[0] + 0.6)} ${f(sh[1] + 6)} L${f(hipFront[0] - 3)} ${f(hipFront[1] - 3)}`
       );
 
       // ── Baş, saç, sakal ──────────────────────────────────────
