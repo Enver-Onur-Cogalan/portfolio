@@ -9,7 +9,7 @@
   tabure yüksekliği ile figürün oturuşu birbirini tutuyor.
 */
 import { blot, el, f, pen, pt, shape, PEN, PAPER, type Vec } from '@/lib/ink/ink';
-import { LAB_COAT, type Costume, type WorkPose } from '../figure';
+import { TEE, type Costume, type WorkPose } from '../figure';
 
 /** Şeridin tek vurgu rengi. Her durakta tekrar eden kupa bu renkte. */
 export const ACCENT = '#2e8f63';
@@ -121,7 +121,7 @@ export function microscopeStation(parent: Element): Station {
 
   return {
     g,
-    costume: LAB_COAT,
+    costume: TEE,
     // Baş okülerin hemen solunda; eller odak düğmesinde ve tablada.
     work: {
       head: [EYEPIECE[0] - 4.6, EYEPIECE[1] - 0.4],

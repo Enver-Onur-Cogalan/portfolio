@@ -42,16 +42,30 @@ export interface Costume {
   colour?: string;
   /** Kol kalınlığı — paltolu kol biraz kalın. */
   sleeve?: number;
-  /** Ensede kapüşon lekesi. */
-  hood?: boolean;
+  /** Kapüşon: ensede duruyor ya da başa geçmiş. */
+  hood?: 'down' | 'up';
   /** Önde kanguru cebi çizgisi. */
   pocket?: boolean;
   /** Yaka V'si çizilsin mi — kapüşonlularda yok. */
   collar?: boolean;
+  /**
+   * Pantolon dolgusu. Verilmezse bacaklar kâğıt kalıyor; bir renk
+   * verilince `limb()`'in kâğıt dolgusu o renge çevriliyor — üslubun
+   * "düz renk pantolon" dediği şey bu.
+   */
+  trousers?: string;
 }
 
-export const LAB_COAT: Costume = { hem: 94, sleeve: 3.8, collar: true };
-export const HOODIE: Costume = { hem: 78, sleeve: 4.2, hood: true, pocket: true };
+/** Kot: tek düz renk, üslubun izin verdiği ikinci vurgu. */
+export const DENIM = '#53657f';
+
+/*
+  Günlük kıyafetler. Hepsi kısa ve kot üstüne; silueti ayıran şey kapüşon
+  ve cep gibi tek bir ayrıntı. Uzun önlük denenip bırakıldı: bu ölçekte
+  elbiseye benziyor ve her oturuşta ayrı bir dert çıkarıyordu.
+*/
+export const TEE: Costume = { hem: 76, sleeve: 3.6, trousers: DENIM };
+export const HOODIE: Costume = { hem: 78, sleeve: 4.2, hood: 'up', pocket: true, trousers: DENIM };
 
 /** Figürün oturduğunda ellerini ve başını götüreceği yerler. */
 export interface WorkPose {
@@ -141,7 +155,10 @@ export function createFigure(parent: Element): Figure {
   const farShoe = blot(g);
   const nearLeg: Limb = limb(g, 4.2);
   const nearShoe = blot(g);
-  const hood = blot(g); // ensede, giysinin arkasında
+  // `limb()` kâğıt dolgusunu ilk alt yola koyuyor; pantolon için onu
+  // kare başına boyuyoruz (`solid()` tek seferlik, kostüm değişemiyor).
+  const legFills = [farLeg, nearLeg].map((l) => l.g.querySelector('path'));
+  const hoodDown = blot(g); // ensede, giysinin arkasında
   const garment = shape(g);
   const seam = pen(g, PEN * 0.55);
   const pocket = pen(g, PEN * 0.5);
@@ -155,6 +172,7 @@ export function createFigure(parent: Element): Figure {
   }, g);
   const hair = blot(g);
   const beard = blot(g);
+  const hoodUp = shape(g, PEN); // başa geçmiş kapüşon, saçın önünde
   const nearArm: Limb = limb(g, 4);
 
   const walk: Gait = gait({ kind: 'walk' });
@@ -194,6 +212,18 @@ export function createFigure(parent: Element): Figure {
         ? state.work.head
         : [sitSh[0] + 5.2 * Math.sin(SIT_LEAN) + 1.4, sitSh[1] - 10.2 * Math.cos(SIT_LEAN)];
       const hc = mix(standHead, sitHead, sit);
+
+      // ── Pantolon: bacak dolgularının rengi ───────────────────
+      for (const fill of legFills) {
+        if (!fill) continue;
+        if (costume.trousers) {
+          fill.classList.remove('pp');
+          fill.setAttribute('fill', costume.trousers);
+        } else {
+          fill.classList.add('pp');
+          fill.setAttribute('fill', PAPER);
+        }
+      }
 
       // ── Bacaklar; öndeki bacak üstte ─────────────────────────
       farLeg.draw([hip, kneeF, ankleF], [0.3, 0.8]);
@@ -264,10 +294,10 @@ export function createFigure(parent: Element): Figure {
               `M${f(sh[0] + 0.6)} ${f(sh[1] + 6)} L${f(hipFront[0] - 3)} ${f(hipFront[1] - 3)}`
           : `M${f(sh[0] - 2.2)} ${f(sh[1] + 1.6)} Q${f(sh[0] + 0.2)} ${f(sh[1] + 4.6)} ${f(sh[0] + 2.6)} ${f(sh[1] + 1.4)}`
       );
-      // Kapüşon: ensede, omuzların arkasına düşen bir leke
-      hood.setAttribute(
+      // Kapüşon ensede: omuzların arkasına düşen bir leke
+      hoodDown.setAttribute(
         'd',
-        costume.hood
+        costume.hood === 'down'
           ? `M${f(sh[0] - 4.6)} ${f(sh[1] - 0.6)} Q${f(sh[0] - 7.4)} ${f(sh[1] + 7)} ${f(sh[0] - 2.2)} ${f(sh[1] + 9.4)} ` +
               `Q${f(sh[0] + 1.4)} ${f(sh[1] + 6)} ${f(sh[0] + 1.6)} ${f(sh[1] - 0.4)}Z`
           : ''
@@ -289,12 +319,29 @@ export function createFigure(parent: Element): Figure {
         `M${f(hc[0] - 2.2)} ${f(hc[1] + 4.2)} L${f(sh[0] - 1.4)} ${f(sh[1] - 0.6)} ` +
           `M${f(hc[0] + 1.6)} ${f(hc[1] + 4.4)} L${f(sh[0] + 2.4)} ${f(sh[1] - 0.4)}`
       );
+      /*
+        Kapüşon başa geçtiğinde saç gizleniyor: ikisi birden çizilince
+        kapüşonun altından leke taşıyor. Kapüşon başın arkasını ve üstünü
+        sarıyor, yüz tarafı (+x) açık kalıyor.
+      */
+      const up = costume.hood === 'up';
+      hoodUp.setAttribute(
+        'd',
+        up
+          ? `M${f(hc[0] + 3.4)} ${f(hc[1] - 4.2)} Q${f(hc[0] - 1.4)} ${f(hc[1] - 8.4)} ${f(hc[0] - 5.6)} ${f(hc[1] - 3.4)} ` +
+              `Q${f(hc[0] - 8)} ${f(hc[1] + 2.6)} ${f(hc[0] - 4.6)} ${f(hc[1] + 6.8)} ` +
+              `L${f(hc[0] - 1.6)} ${f(hc[1] + 6)} Q${f(hc[0] - 4.4)} ${f(hc[1] + 1.6)} ${f(hc[0] - 2.6)} ${f(hc[1] - 2.6)} ` +
+              `Q${f(hc[0] + 0.6)} ${f(hc[1] - 6)} ${f(hc[0] + 3.4)} ${f(hc[1] - 4.2)}Z`
+          : ''
+      );
       hair.setAttribute(
         'd',
-        `M${f(hc[0] - 4.1)} ${f(hc[1] - 1.3)} Q${f(hc[0] - 4.5)} ${f(hc[1] - 6.3)} ${f(hc[0] + 0.5)} ${f(hc[1] - 5.2)} ` +
+        up
+          ? ''
+          : `M${f(hc[0] - 4.1)} ${f(hc[1] - 1.3)} Q${f(hc[0] - 4.5)} ${f(hc[1] - 6.3)} ${f(hc[0] + 0.5)} ${f(hc[1] - 5.2)} ` +
           `Q${f(hc[0] + 3.7)} ${f(hc[1] - 4.4)} ${f(hc[0] + 3.5)} ${f(hc[1] - 2.5)} ` +
           `Q${f(hc[0] + 1.3)} ${f(hc[1] - 3.9)} ${f(hc[0] - 1.7)} ${f(hc[1] - 3.2)} ` +
-          `Q${f(hc[0] - 3.4)} ${f(hc[1] - 2.8)} ${f(hc[0] - 4.1)} ${f(hc[1] - 1.3)}Z`
+            `Q${f(hc[0] - 3.4)} ${f(hc[1] - 2.8)} ${f(hc[0] - 4.1)} ${f(hc[1] - 1.3)}Z`
       );
       // Sakal: çene hattında ince bir leke. Büyük çizilince yüzü kaplayıp
       // maske gibi duruyordu.

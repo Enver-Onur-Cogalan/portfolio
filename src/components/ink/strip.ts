@@ -14,7 +14,7 @@
 import { el, f, inkDefs, run, INK_DAY, PAPER } from '@/lib/ink/ink';
 import { ease, seeded } from '@/lib/ink/motion';
 import { applyPalette, palette } from '@/lib/ink/daynight';
-import { createFigure, LAB_COAT, type Costume } from './figure';
+import { createFigure, TEE, type Costume } from './figure';
 import { microscopeStation, type Station } from './stations/microscope';
 import { deskStation } from './stations/desk';
 
@@ -113,7 +113,7 @@ export function createStrip(host: HTMLElement, options: StripOptions = {}): () =
     giyiliyor — hikâye zaten o: önlüğü çıkarıp sweatshirt'ü geçirmek
     iki durak arasında oluyor.
   */
-  const costumeFor = (i: number): Costume => stations[i]?.costume ?? LAB_COAT;
+  const costumeFor = (i: number): Costume => stations[i]?.costume ?? TEE;
 
   /*
     Durum makinesi. Figür yürür, durağa varınca yavaşlar, oturur, bir süre
