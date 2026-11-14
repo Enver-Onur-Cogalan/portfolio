@@ -484,3 +484,49 @@ h1, h2, h3, h4, h5, h6 {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+  Hero girişi. Yalnızca transform kullanıyor, opaklık değil: metin ve
+  fotoğraf ilk karede görünür olsun ki tarayıcı ana içeriği (LCP)
+  JavaScript'i beklemeden boyayabilsin. Hareket azaltma tercihinde
+  yukarıdaki genel kural animasyonu anında bitiriyor.
+*/
+@keyframes hero-rise {
+  from {
+    transform: translateY(18px);
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-rise-delay {
+  animation-delay: 0.12s;
+}
+
+/*
+  lg'den dar ekranlarda telefon maketi, metin ve düğmelerle alt alta
+  aynı ekrana sığmalı.
+  Genişliği küçültmek maketin içini (saat, çentik, isim) bozuyordu;
+  `zoom` maketi bütün olarak, kapladığı yerle birlikte ölçekliyor.
+*/
+@media (max-width: 1023px) {
+  .hero-phone-size {
+    zoom: 0.8;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 760px) {
+  .hero-phone-size {
+    zoom: 0.58;
+  }
+}
+
+/* Kısa masaüstü ekranlarda (1280×720 dizüstü gibi) tam boy telefon
+   üst çubuğa dayanıyor ve metinden ağır basıyordu. */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .hero-phone-size {
+    zoom: 0.8;
+  }
+}
