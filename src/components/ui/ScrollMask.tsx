@@ -1,18 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
-import type { Cell, HeroVideoSource } from '@/data/heroVideo';
 
-export type ScrollMaskVariant = 'iris' | 'wipe' | 'curtain' | 'slats' | 'grid' | 'cells';
-
-/** cells için örtünün zemini: bir önceki bölümün son karesi */
-interface CellsBackdrop {
-  landscape: HeroVideoSource;
-  portrait: HeroVideoSource;
-  /** Bu sorgu eşleşirse portrait kullanılır */
-  portraitQuery: string;
-}
+export type ScrollMaskVariant = 'iris' | 'wipe' | 'curtain' | 'slats' | 'grid';
 
 interface ScrollMaskProps {
   children: ReactNode;
@@ -32,16 +23,6 @@ interface ScrollMaskProps {
   stagger?: number;
   /** Kaydırma ile maske arasındaki yumuşatma; 0 = anlık */
   smooth?: number;
-  /** cells: açılacak hücreler, zeminin kaynak karesine göre */
-  cells?: Cell[];
-  /** cells: örtüde gösterilecek kare */
-  backdrop?: CellsBackdrop;
-  /**
-   * Bölümü bir önceki bölümün (pin'li hero) son ekranının altına bindirir.
-   * Hero bittiği anda maske başlar; arada boş bir ekran kaymaz. Bölüm,
-   * sırası gelene kadar görünmez tutulur.
-   */
-  overlapPrevious?: boolean;
   /**
    * Kaydırmayı yok sayıp maskeyi verilen ilerlemede (0–1) dondurur.
    * Yalnızca geliştirme ve görsel doğrulama içindir.
@@ -68,25 +49,10 @@ export default function ScrollMask({
   angle = 108,
   stagger = 0.5,
   smooth = 0.4,
-  cells = [],
-  backdrop,
-  overlapPrevious = false,
   frozenProgress,
 }: ScrollMaskProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  // cells zemini ancak geçişte gerekiyor. Sayfa açılırken istenince
-  // telefondaki fotoğrafla (LCP) bant genişliği için yarışıyordu; sayfa
-  // yüklendikten sonra isteniyor. Hero'nun videosu bitene kadar çoktan inmiş oluyor.
-  const [backdropReady, setBackdropReady] = useState(false);
-
-  useEffect(() => {
-    if (variant !== 'cells') return;
-    const ready = () => setBackdropReady(true);
-    if (document.readyState === 'complete') ready();
-    else window.addEventListener('load', ready, { once: true });
-    return () => window.removeEventListener('load', ready);
-  }, [variant]);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -116,64 +82,8 @@ export default function ScrollMask({
       return gsap.utils.clamp(0, 1, (progress - start) / (1 - spread));
     };
 
-    // cells: hücre konumları kaynak karede veriliyor; ekranda nereye
-    // düştükleri, karenin object-cover ile nasıl yerleştiğine bağlı.
-    const placeCells = () => {
-      if (!backdrop) return [];
-      const width = overlay.clientWidth;
-      const height = overlay.clientHeight;
-      const source = window.matchMedia(backdrop.portraitQuery).matches
-        ? backdrop.portrait
-        : backdrop.landscape;
-      const { region } = source;
-      const scale = Math.max(width / region.width, height / region.height);
-      const offsetX = (width - region.width * scale) / 2;
-      const offsetY = (height - region.height * scale) / 2;
-      return cells.map((cell) => {
-        const x = (cell.x - region.x) * scale + offsetX;
-        const y = (cell.y - region.y) * scale + offsetY;
-        // Bu hücre tek başına ekranı kaplayacak kadar büyüyebilmeli
-        const reach = Math.max(
-          Math.hypot(x, y),
-          Math.hypot(width - x, y),
-          Math.hypot(x, height - y),
-          Math.hypot(width - x, height - y)
-        );
-        return { x, y, r: cell.r * scale, reach: reach * 1.05, delay: cell.delay };
-      });
-    };
-    const maxDelay = Math.max(0, ...cells.map((cell) => cell.delay));
-    const easeOut = gsap.parseEase('power2.out');
-    const easeIn = gsap.parseEase('power2.in');
-
     const apply = (progress: number) => {
       switch (variant) {
-        case 'cells': {
-          // Her hücre önce kendi boyutunda bir pencereye dönüşüyor, sonra
-          // büyüyüp diğerleriyle birleşerek ekranı kaplıyor. Kenarlar hafifçe
-          // nefes alıyor; tam daire, hücre gibi durmuyordu.
-          const layers = placeCells().map((cell, index) => {
-            const local = gsap.utils.clamp(0, 1, (progress - cell.delay) / (1 - maxDelay));
-            const radius =
-              local < 0.5
-                ? cell.r * easeOut(local / 0.5)
-                : cell.r + (cell.reach - cell.r) * easeIn((local - 0.5) / 0.5);
-            // Henüz açılmamış hücre delik bırakmasın; çok küçük bir yarıçap
-            // bile ekranda bir nokta olarak görünüyordu.
-            if (radius < 1) return 'linear-gradient(black, black)';
-            const rx = radius * (1 + 0.05 * Math.sin(progress * 11 + index * 1.7));
-            const ry = radius * (1 + 0.05 * Math.cos(progress * 9 + index * 2.3));
-            return `radial-gradient(ellipse ${rx}px ${ry}px at ${cell.x}px ${cell.y}px, transparent 84%, black 100%)`;
-          });
-          const mask = layers.join(', ');
-          overlay.style.maskImage = mask;
-          overlay.style.webkitMaskImage = mask;
-          // Delikler birleşmeli: örtü yalnızca hiçbir hücrenin olmadığı
-          // yerde kalır, yani katmanların kesişimi.
-          overlay.style.maskComposite = 'intersect';
-          overlay.style.setProperty('-webkit-mask-composite', 'source-in');
-          break;
-        }
         case 'iris': {
           // Ortadan açılan dairesel delik
           const radius = progress * 150;
@@ -216,33 +126,11 @@ export default function ScrollMask({
 
     apply(0);
 
-    if (overlapPrevious) {
-      // Hero'nun pin'li son ekranı 100vh; bölüm tam onun altına oturuyor.
-      // Arka plan, hero'nun son karesi Hakkımda'nın arkasından görünmesin diye.
-      wrapper.style.marginTop = '-100vh';
-      wrapper.style.background = 'var(--background)';
-    }
-    // Bindirilmiş bölüm, sırası gelene kadar hero'nun üstünde görünmemeli.
-    //
-    // Karar, bölümün ekrandaki gerçek konumundan veriliyor: tepesi ekranın
-    // üstüne dayanmışsa (pin'li ya da geçilmiş) görünür, aşağıdaysa gizli.
-    // Önce kaydırma konumunu başlangıçla karşılaştırdık, sonra GSAP'in
-    // giriş/çıkış olaylarına bağladık; ikisi de gerçek Safari'de (kaydırma
-    // ayrı iş parçacığında, momentumlu) bölümü yanlış durumda bıraktı.
-    // Konuma bakmak olayların sırasından bağımsız: her kaydırmada yeniden
-    // hesaplanıyor, yanlış bir durum en geç bir sonraki kaydırmada düzeliyor.
-    const syncVisibility = () => {
-      if (!overlapPrevious) return;
-      const top = wrapper.getBoundingClientRect().top;
-      wrapper.style.visibility = top <= 1 ? '' : 'hidden';
-    };
-
     // Bölüm, maske açılırken ekranda sabit tutulur (pin). Pin olmadan
     // sayfa açılma boyunca kaymaya devam ediyor ve maske tamamlandığında
     // bölümün başlığı çoktan ekranın üstünde kalmış oluyordu.
-    let trigger: ScrollTrigger | undefined;
     const ctx = gsap.context(() => {
-      trigger = ScrollTrigger.create({
+      ScrollTrigger.create({
         trigger: wrapper,
         start: 'top top',
         // Fonksiyon olarak veriliyor: ekran yeniden boyutlandığında
@@ -257,12 +145,7 @@ export default function ScrollMask({
         // düşük bir öncelik alıyoruz.
         refreshPriority: 1,
         scrub: smooth,
-        onUpdate: (self) => {
-          apply(self.progress);
-          syncVisibility();
-        },
-        onToggle: syncVisibility,
-        onRefresh: syncVisibility,
+        onUpdate: (self) => apply(self.progress),
         onLeave: () => {
           overlay.style.visibility = 'hidden';
         },
@@ -270,7 +153,6 @@ export default function ScrollMask({
           overlay.style.visibility = 'visible';
         },
       });
-      syncVisibility();
     }, wrapper);
 
     // Pin, kendisinden sonraki her şeyin sayfa konumunu kaydırır. İçerideki
@@ -279,21 +161,11 @@ export default function ScrollMask({
     // bozulma oluyordu; kurulum bittikten sonra hepsini yeniden ölçtürüyoruz.
     const refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 0);
 
-    // Ekran döndüğünde (dikey/yatay) hücreler yeni yerleşime göre çizilsin
-    const onResize = () => apply(trigger?.progress ?? 0);
-    if (variant === 'cells') window.addEventListener('resize', onResize);
-    if (overlapPrevious) window.addEventListener('scroll', syncVisibility, { passive: true });
-
     return () => {
       clearTimeout(refreshTimer);
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', syncVisibility);
       ctx.revert();
-      wrapper.style.marginTop = '';
-      wrapper.style.background = '';
-      wrapper.style.visibility = '';
     };
-  }, [variant, scrollLength, feather, columns, rows, angle, stagger, smooth, frozenProgress, cells, backdrop, overlapPrevious]);
+  }, [variant, scrollLength, feather, columns, rows, angle, stagger, smooth, frozenProgress]);
 
   // grid parçaları merkeze olan uzaklığa göre sıralanır; böylece açılma
   // rastgele değil, dışa doğru yayılan bir dalga gibi ilerler.
@@ -320,20 +192,6 @@ export default function ScrollMask({
         aria-hidden="true"
         className="absolute top-0 left-0 right-0 h-screen z-30 pointer-events-none overflow-hidden"
       >
-        {variant === 'cells' && backdrop && backdropReady && (
-          // Örtünün zemini hero'nun son karesi: video bittiği anda aynı
-          // görüntü burada devam ediyor ve hücreler pencereye dönüşüyor.
-          <picture>
-            <source media={backdrop.portraitQuery} srcSet={backdrop.portrait.last} />
-            <img
-              src={backdrop.landscape.last}
-              alt=""
-              decoding="async"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          </picture>
-        )}
-
         {(variant === 'iris' || variant === 'wipe') && (
           <div className="absolute inset-0" style={{ background: 'var(--background)' }} />
         )}

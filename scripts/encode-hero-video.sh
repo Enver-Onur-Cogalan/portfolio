@@ -11,7 +11,6 @@
 #   hero-landscape.mp4         yatay ekranlar
 #   hero-portrait.mp4          dikey ekranlar (ortadan dikey kesim)
 #   hero-*-first.webp          ilk kare: video yüklenene kadar poster
-#   hero-*-last.webp           son kare: Hakkımda'yı açan maskenin zemini
 #
 # Kodlama kararları:
 #
@@ -25,15 +24,15 @@
 #   Telefonda yatay video ekranı kaplamak için büyütüldüğünde zaten
 #   yalnızca bu şerit görünüyordu; 540×960 aynı piksel sayısıyla
 #   görünen kısmı yaklaşık 1,8 kat daha net veriyor.
-# - Kaynak 4,4. saniyede kesiliyor: sonrasında görüntü karanlığa soluyor.
-#   Geçiş son kareden başladığı için son kare parlak olmalı; kesilen
-#   kısım ayrıca kaydırmada boşa geçen mesafeydi.
+# - Kaynak 4,4. saniyede kesiliyor: sonrasında görüntü karanlığa
+#   soluyordu ve kaydırmada boşa geçen mesafeydi. Geçişi (hücreye dalış
+#   ve arka plan rengine erime) sayfa kendisi yapıyor.
 # - Ses izi atılıyor: video her zaman sessiz.
 # - +faststart: dosya bilgisi başa yazılır, tarayıcı tümünü indirmeden
 #   oynatmaya başlayabilir.
 #
 # Son kareyi değiştiren bir kaynak verilirse src/data/heroVideo.ts'deki
-# hücre konumları da yeni kareye göre güncellenmeli.
+# diveTarget (büyük hücrenin merkezi) yeni kareye göre güncellenmeli.
 
 set -euo pipefail
 
@@ -59,19 +58,14 @@ x264 -vf "$PORTRAIT_CROP" -c:v libx264 -preset slow -profile:v high -pix_fmt yuv
   -x264-params keyint=1 \
   -movflags +faststart "$OUT/hero-portrait.mp4"
 
-# Kareler kodlanmış dosyalardan alınıyor ki video ile birebir aynı olsun;
-# maske açılmadan önce video karesinden resme geçiş görünmemeli.
-frame() { # <video> <ilk|son> <genişlik> <kalite> <çıktı>
-  local seek=(-ss 0)
-  [[ "$2" == "last" ]] && seek=(-sseof -0.04)
-  ffmpeg -v error -y "${seek[@]}" -i "$1" -frames:v 1 -vf "scale=$3:-2" \
-    -c:v libwebp -quality "$4" "$5"
+# Poster kodlanmış dosyadan alınıyor ki videonun ilk karesiyle birebir
+# aynı olsun; video yüklenince posterden videoya geçiş görünmüyor.
+poster() { # <video> <genişlik> <çıktı>
+  ffmpeg -v error -y -i "$1" -frames:v 1 -vf "scale=$2:-2" -c:v libwebp -quality 72 "$3"
 }
 
-echo "kareler…"
-frame "$OUT/hero-landscape.mp4" first 1280 72 "$OUT/hero-landscape-first.webp"
-frame "$OUT/hero-landscape.mp4" last 1920 74 "$OUT/hero-landscape-last.webp"
-frame "$OUT/hero-portrait.mp4" first 540 72 "$OUT/hero-portrait-first.webp"
-frame "$OUT/hero-portrait.mp4" last 540 74 "$OUT/hero-portrait-last.webp"
+echo "posterler…"
+poster "$OUT/hero-landscape.mp4" 1280 "$OUT/hero-landscape-first.webp"
+poster "$OUT/hero-portrait.mp4" 540 "$OUT/hero-portrait-first.webp"
 
 ls -lh "$OUT"
