@@ -8,146 +8,201 @@ import { scrollToSection } from '@/lib/scroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { socialLinks } from '@/data/portfolio';
 import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
+import { heroVideo, PORTRAIT_QUERY, type HeroVideoSource } from '@/data/heroVideo';
 
-interface HeroProps {
-  /** Video kaydırması bittiğinde tetiklenir */
-  onVideoEnd?: () => void;
+/**
+ * Hakkımda'ya geçiş, kaydırmanın bu noktasından sonra başlıyor: kamera
+ * büyük hücrenin içine dalıyor, ardından görüntü sitenin arka plan
+ * rengine eriyor. Pin bittiğinde ekran düz arka plan rengi olduğu için
+ * Hakkımda normal akışla, hiçbir örtü ya da maske olmadan gelir.
+ */
+const DIVE_START = 0.78;
+const FADE_START = 0.86;
+/** Dalışın sonunda video kaç kat büyümüş olacak */
+const DIVE_SCALE = 2.4;
+
+/** Kaynak karedeki bir noktanın, object-cover ile yerleşmiş ekrandaki yeri */
+function placeOnScreen(source: HeroVideoSource, point: { x: number; y: number }, width: number, height: number) {
+  const { region } = source;
+  const scale = Math.max(width / region.width, height / region.height);
+  return {
+    x: (point.x - region.x) * scale + (width - region.width * scale) / 2,
+    y: (point.y - region.y) * scale + (height - region.height * scale) / 2,
+  };
 }
 
-export default function Hero({ onVideoEnd }: HeroProps) {
+export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const welcomeRef = useRef<HTMLDivElement>(null);
-  const blackoutRef = useRef<HTMLDivElement>(null);
-  const hasLeftRef = useRef(false);
+  const shadeRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const fadeRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
-
-  // Set correct video source based on device
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const mobile = window.innerWidth < 768;
-    const correctSrc = mobile ? '/scroll-video-mobile.mp4' : '/scroll-video-opt.mp4';
-
-    if (!video.src.endsWith(correctSrc)) {
-      video.src = correctSrc;
-      video.load();
-    }
-  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
     const welcome = welcomeRef.current;
-    const blackout = blackoutRef.current;
-
-    if (!container || !video || !welcome || !blackout) return;
+    const shade = shadeRef.current;
+    const media = mediaRef.current;
+    const fade = fadeRef.current;
+    if (!container || !video || !welcome || !shade || !media || !fade) return;
 
     const mobile = window.innerWidth < 768;
 
+    // Ekrana uygun sürüm: dikey ekranlara ortadan kesilmiş dikey video
+    const source = window.matchMedia(PORTRAIT_QUERY).matches
+      ? heroVideo.portrait
+      : heroVideo.landscape;
+    if (!video.src.endsWith(source.video)) {
+      video.src = source.video;
+      video.load();
+    }
     video.pause();
     video.currentTime = 0;
 
-    // Giriş animasyonu CSS'te (.hero-rise): ilk karede görünür olmalı ki
-    // tarayıcı ana içeriği JavaScript'i beklemeden boyayabilsin.
+    // Video ilk karesini çizene kadar görünmez; altında aynı karenin
+    // posteri duruyor. Böylece yavaş bağlantıda siyah ekran görünmüyor.
+    const reveal = () => {
+      video.style.opacity = '1';
+    };
+    video.addEventListener('loadeddata', reveal);
+    video.addEventListener('seeked', reveal);
+    if (video.readyState >= 2) reveal();
 
-    let ctx: gsap.Context;
-    let rafId: number;
-    let lastProgress = 0;
+    // Video kare kare, kaydırdıkça iniyordu; yavaş bağlantıda takılıyordu.
+    // Sayfa yüklendikten sonra tamamını arka planda indir.
+    const preloadAll = () => {
+      video.preload = 'auto';
+    };
+    if (document.readyState === 'complete') preloadAll();
+    else window.addEventListener('load', preloadAll, { once: true });
 
-    const setupScrollTrigger = () => {
-      if (!video.duration) return;
+    // Dalışın merkezi: büyük hücrenin ekrandaki yeri. Ekran boyutu
+    // değişince yeniden hesaplanıyor.
+    const aimAtCell = () => {
+      const point = placeOnScreen(source, heroVideo.diveTarget, container.clientWidth, container.clientHeight);
+      media.style.transformOrigin = `${point.x}px ${point.y}px`;
+    };
+    aimAtCell();
+    window.addEventListener('resize', aimAtCell);
 
-      ctx = gsap.context(() => {
-        ScrollTrigger.create({
-          trigger: container,
-          start: 'top top',
-          end: mobile ? '+=1500' : '+=3000',
-          pin: true,
-          // Sayfadaki ilk pin — ScrollMask'ten önce ölçülmeli
-          refreshPriority: 2,
-          scrub: mobile ? 2 : 0.5,
-          onUpdate: (self) => {
-            // On mobile, skip tiny progress changes to reduce decode calls
-            if (mobile && Math.abs(self.progress - lastProgress) < 0.008) return;
-            lastProgress = self.progress;
+    const easeIn = gsap.parseEase('power2.in');
+    const easeInOut = gsap.parseEase('power1.inOut');
 
-            cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(() => {
-              if (video.duration) {
-                video.currentTime = self.progress * video.duration;
-              }
-              const opacity = Math.max(0, 1 - self.progress * 3);
-              gsap.to(welcome, { opacity, duration: 0.1 });
-              // Solmuş düğmeler görünmez olsa da tıklanabiliyordu
-              welcome.style.pointerEvents = opacity < 0.2 ? 'none' : '';
-            });
-          },
-          onLeave: () => {
-            hasLeftRef.current = true;
-            blackout.style.opacity = '1';
-            video.pause();
-            onVideoEnd?.();
-          },
-          onEnterBack: () => {
-            hasLeftRef.current = false;
-            blackout.style.opacity = '0';
-          },
-          onLeaveBack: () => {
-            hasLeftRef.current = false;
-          },
-        });
-      }, container);
+    // Geçişin bütün görüntüsü yalnızca ilerlemeden hesaplanıyor: aynı
+    // kaydırma konumunda, hangi yönden gelinirse gelinsin ve araya ne
+    // kadar takılma girerse girsin, ekranda hep aynı şey var. Açılıp
+    // kapanan bir durum (göster/gizle) yok; bozulabilecek bir şey de yok.
+    const drawTransition = (progress: number) => {
+      const dive = gsap.utils.clamp(0, 1, (progress - DIVE_START) / (1 - DIVE_START));
+      const melt = gsap.utils.clamp(0, 1, (progress - FADE_START) / (1 - FADE_START));
+      media.style.transform = dive > 0 ? `scale(${1 + (DIVE_SCALE - 1) * easeIn(dive)})` : '';
+      fade.style.opacity = String(easeInOut(melt));
     };
 
-    if (video.readyState >= 1) {
-      setupScrollTrigger();
-    } else {
-      video.addEventListener('loadedmetadata', setupScrollTrigger);
-    }
+    let rafId = 0;
+    let lastSeek = 0;
+
+    const ctx = gsap.context(() => {
+      const trigger = ScrollTrigger.create({
+        trigger: container,
+        start: 'top top',
+        // Video 4,4 sn; mesafe eski 5 sn'lik videonun hızını koruyor
+        end: mobile ? '+=1320' : '+=2640',
+        pin: true,
+        // Sayfadaki ilk pin; sonraki pin'lerden önce ölçülmeli
+        refreshPriority: 2,
+        scrub: mobile ? 2 : 0.5,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            // Mobilde çok küçük değişimlerde kare aranmıyor (çözme maliyeti);
+            // görsel geçiş ise her güncellemede çiziliyor, uçta takılı kalmasın.
+            const seekStep = mobile ? 0.008 : 0;
+            if (video.duration && (Math.abs(progress - lastSeek) >= seekStep || progress === 0 || progress === 1)) {
+              video.currentTime = progress * video.duration;
+              lastSeek = progress;
+            }
+            const opacity = Math.max(0, 1 - progress * 3);
+            welcome.style.opacity = String(opacity);
+            shade.style.opacity = String(opacity);
+            // Solmuş düğmeler görünmez olsa da tıklanabiliyordu
+            welcome.style.pointerEvents = opacity < 0.2 ? 'none' : '';
+            drawTransition(progress);
+          });
+        },
+      });
+      // Sayfa aşağıda bir konumda açılırsa (yenileme, geri tuşu) geçiş o
+      // konuma göre çizilmiş başlasın
+      drawTransition(trigger.progress);
+    }, container);
 
     return () => {
       cancelAnimationFrame(rafId);
-      video.removeEventListener('loadedmetadata', setupScrollTrigger);
-      if (ctx) ctx.revert();
+      video.removeEventListener('loadeddata', reveal);
+      video.removeEventListener('seeked', reveal);
+      window.removeEventListener('load', preloadAll);
+      window.removeEventListener('resize', aimAtCell);
+      ctx.revert();
     };
-  }, [onVideoEnd]);
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen"
+      className="relative w-full h-screen overflow-hidden"
       style={{ backgroundColor: '#000' }}
     >
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        muted
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-      />
-      <div className="absolute inset-0 bg-black/30" />
-      {/* Yazının durduğu tarafı biraz daha koyulaştıran örtüler: masaüstünde
-          soldan, mobilde alttan. Videonun hangi karesi gelirse gelsin metin
-          okunur kalıyor, mikroskobun durduğu orta kısım ise açık kalıyor. */}
-      <div
-        className="absolute inset-0 hidden lg:block"
-        style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 34%, rgba(0,0,0,0) 52%)' }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 lg:hidden"
-        style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 65%)' }}
-        aria-hidden="true"
-      />
+      {/* Poster ve video tek katmanda: dalışta birlikte büyüyorlar */}
+      <div ref={mediaRef} className="absolute inset-0 will-change-transform">
+        {/* Poster: ekrana uygun ilk kare, HTML'de olduğu için JavaScript
+            beklenmeden yükleniyor. Öncelik verilmiyor: telefondaki fotoğrafla
+            (sayfanın LCP öğesi) bant genişliği için yarışıyordu. */}
+        <picture>
+          <source media={PORTRAIT_QUERY} srcSet={heroVideo.portrait.first} />
+          <img
+            src={heroVideo.landscape.first}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </picture>
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover opacity-0"
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+      </div>
 
-      {/* Yalnızca görsel örtü: görünmezken bile üstte durduğu için
-          tıklamaları yutmamalı, yoksa hero'daki düğmeler çalışmıyor. */}
+      {/* Yazıyı okunur tutan örtüler; yazıyla birlikte soluyorlar */}
+      <div ref={shadeRef} className="absolute inset-0" aria-hidden="true">
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Masaüstünde soldan, mobilde alttan biraz daha koyu: metnin
+            durduğu taraf. Mikroskobun durduğu orta kısım açık kalıyor. */}
+        <div
+          className="absolute inset-0 hidden lg:block"
+          style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 34%, rgba(0,0,0,0) 52%)' }}
+        />
+        <div
+          className="absolute inset-0 lg:hidden"
+          style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 65%)' }}
+        />
+      </div>
+
+      {/* Geçişin sonu: görüntü sitenin arka plan rengine eriyor. En üstte
+          duruyor ki kaydırma ipucu da onunla birlikte kaybolsun. */}
       <div
-        ref={blackoutRef}
-        className="absolute inset-0 bg-background z-20 opacity-0 pointer-events-none"
+        ref={fadeRef}
+        className="absolute inset-0 z-20 pointer-events-none"
+        style={{ background: 'var(--background)', opacity: 0 }}
+        aria-hidden="true"
       />
 
       {/*
