@@ -4,7 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, X, MessageCircle, Bot, User, Check, SkipForward, CornerDownRight, RotateCcw } from 'lucide-react';
 import { type SectionId, type VisitorPath } from '@/lib/chat/responses';
 import { containsProfanity } from '@/lib/chat/profanity';
-import { emptyContext, type ConversationContext } from '@/lib/chat/matcher';
+// Yalnızca bağlam dosyası: eşleştiriciyi import etmek onun bağımlılıklarını
+// da tarayıcı paketine taşıyordu
+import { emptyContext, type ConversationContext } from '@/lib/chat/context';
 import ChatMessage from './ChatMessage';
 import { useLanguage } from '@/context/LanguageContext';
 import { scrollToSection as smoothScrollToSection } from '@/lib/scroll';

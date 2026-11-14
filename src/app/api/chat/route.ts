@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findBestMatch, sanitizeContext, emptyContext } from '@/lib/chat/matcher';
-import { topicCatalog, pathTopics, type VisitorPath } from '@/lib/chat/responses';
+import { findBestMatch } from '@/lib/chat/matcher';
+import { sanitizeContext, emptyContext } from '@/lib/chat/context';
+import { suggestionFor, pathTopics, type VisitorPath } from '@/lib/chat/responses';
 import { containsProfanity } from '@/lib/chat/profanity';
 import { translate, type Language } from '@/i18n/translations';
 
@@ -49,9 +50,9 @@ function typingDelayFor(response: string): number {
 function toSuggestions(topics: string[] | undefined, lang: Language) {
   if (!topics) return [];
   return topics
-    .filter((id) => topicCatalog[id])
-    .slice(0, 4)
-    .map((id) => ({ id, label: topicCatalog[id].label[lang], query: topicCatalog[id].query }));
+    .map((key) => suggestionFor(key, lang))
+    .filter((s): s is NonNullable<typeof s> => s !== null)
+    .slice(0, 4);
 }
 
 function isVisitorPath(value: unknown): value is VisitorPath {
