@@ -392,7 +392,7 @@ export default function MusicPlayer() {
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
             style={{ backgroundColor: 'var(--accent)', color: '#000' }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -445,7 +445,10 @@ export default function MusicPlayer() {
 
           {/* Info Button */}
           <button
+            type="button"
             onClick={toggleInfo}
+            aria-label={t('music.infoButton')}
+            aria-expanded={showInfo}
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all hover:scale-110"
             style={{
               backgroundColor: showInfo ? 'var(--accent)' : 'rgba(128, 128, 128, 0.3)',
@@ -497,17 +500,21 @@ export default function MusicPlayer() {
         {/* Controls */}
         <div className="flex items-center justify-center gap-6">
           <button
+            type="button"
             onClick={skipBackward}
             className="p-2 opacity-60 hover:opacity-100 transition-opacity"
             style={{ color: 'var(--background)' }}
             title={t('music.back10')}
+            aria-label={t('music.back10')}
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z" />
             </svg>
           </button>
           <button
+            type="button"
             onClick={toggleMusic}
+            aria-label={isPlaying ? t('music.pause') : t('music.play')}
             className="p-4 rounded-full transition-all hover:scale-105 active:scale-95"
             style={{
               backgroundColor: 'var(--accent)',
@@ -526,10 +533,12 @@ export default function MusicPlayer() {
             )}
           </button>
           <button
+            type="button"
             onClick={skipForward}
             className="p-2 opacity-60 hover:opacity-100 transition-opacity"
             style={{ color: 'var(--background)' }}
             title={t('music.forward10')}
+            aria-label={t('music.forward10')}
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />

@@ -143,6 +143,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.lyrics.placeholder': '♪ Müzik başladığında sözler burada gözükecek ♪',
     'music.back10': '10 saniye geri',
     'music.forward10': '10 saniye ileri',
+    'music.infoButton': 'Şarkı hakkında',
+    'music.play': 'Müziği çal',
+    'music.pause': 'Müziği durdur',
+    'a11y.skipToContent': 'İçeriğe geç',
+    'nav.footer': 'Site menüsü',
 
     // Social
     'social.email': 'E-posta',
@@ -310,6 +315,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.lyrics.placeholder': '♪ Lyrics will appear here when music starts ♪',
     'music.back10': '10 seconds back',
     'music.forward10': '10 seconds forward',
+    'music.infoButton': 'About this song',
+    'music.play': 'Play music',
+    'music.pause': 'Pause music',
+    'a11y.skipToContent': 'Skip to content',
+    'nav.footer': 'Site menu',
 
     // Social
     'social.email': 'Email',

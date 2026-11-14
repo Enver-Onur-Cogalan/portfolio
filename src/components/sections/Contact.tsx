@@ -14,16 +14,42 @@ export default function Contact() {
   const { t } = useLanguage();
   const [previewOpen, setPreviewOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Önizleme açıkken sayfa kaymasın, Escape kapatsın, odak içeride başlasın
+  /*
+    Önizleme açıkken: sayfa kaymaz, Escape kapatır, odak içeride başlar
+    ve içeride kalır (Tab son öğeden ilke, Shift+Tab ilkten sona döner).
+    Kapanınca odak, önizlemeyi açan düğmeye geri gider. Eskiden Tab
+    ziyaretçiyi pencerenin arkasındaki sayfaya götürüyordu, kapanınca
+    da odak sayfanın başına düşüyordu.
+  */
   useEffect(() => {
     if (!previewOpen) return;
 
+    const trigger = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPreviewOpen(false);
+      if (e.key === 'Escape') {
+        setPreviewOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>('button, a[href], [tabindex]:not([tabindex="-1"])')
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !dialogRef.current.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     const focusTimer = setTimeout(() => closeButtonRef.current?.focus(), 100);
@@ -32,6 +58,7 @@ export default function Contact() {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', onKeyDown);
       clearTimeout(focusTimer);
+      trigger?.focus();
     };
   }, [previewOpen]);
 
@@ -111,6 +138,7 @@ export default function Contact() {
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-8"
           style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+          ref={dialogRef}
           onClick={() => setPreviewOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -134,9 +162,15 @@ export default function Contact() {
                 varken bazı tarayıcılar gömülü görüntüleyiciyi hiç yüklemeyip
                 boş bir alan bırakıyordu. */}
             <div className="relative w-full h-full rounded-[1.1rem] overflow-hidden bg-white">
+              {/* Tab sırasında değil: PDF görüntüleyicinin içine giren odak
+                  orada sıkışıyordu; Tab ve Escape iframe'den sayfaya
+                  ulaşmadığı için klavyeyle pencere kapatılamıyordu. Fareyle
+                  kaydırma çalışıyor; klavye ve ekran okuyucu için alttaki
+                  "Yeni sekmede aç" PDF'i tarayıcının kendi görüntüleyicisinde açar. */}
               <iframe
                 src={CV_PATH}
                 title={t('resume.preview')}
+                tabIndex={-1}
                 className="w-full h-full border-0"
               />
             </div>

@@ -94,6 +94,10 @@ export default function Folder({
         style={folderStyle}
         onClick={toggle}
         onKeyDown={(e) => {
+          // Yalnızca klasörün kendisinde: içindeki kâğıt düğmelerinde Enter'a
+          // basmak da klasörü kapatıyordu; düğme ortadan kalkınca odak
+          // sayfanın gövdesine düşüyor, açtığı pencere odaksız kalıyordu.
+          if (e.target !== e.currentTarget) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             toggle();

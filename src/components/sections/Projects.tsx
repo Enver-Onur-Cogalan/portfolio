@@ -16,9 +16,26 @@ export default function Projects() {
     const section = sectionRef.current;
     if (!section) return;
 
+    // Hareket kısıtlıysa kartlar olduğu gibi kalır; animasyon kurulmaz
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // DOM dinleyicileri GSAP context'inin geri alacağı şeyler değil;
+    // eskiden hiç kaldırılmıyordu, bileşen her kurulduğunda birikiyordu
+    const cleanups: Array<() => void> = [];
+    const listen = (el: Element, type: string, handler: () => void) => {
+      el.addEventListener(type, handler);
+      cleanups.push(() => el.removeEventListener(type, handler));
+    };
+
     const ctx = gsap.context(() => {
       const cards = section.querySelectorAll('.project-card');
+      if (cards.length === 0) return;
 
+      // Kartlar HTML'de görünür; gizleme ve beliriş JavaScript'ten.
+      // Eskiden satır içi opacity: 0 ile başlıyorlardı ve JavaScript
+      // çalışmazsa sonsuza dek görünmez kalıyorlardı. Bir kez belirip
+      // kalıyorlar: yukarı kaydırınca sönmeleri ("reverse") geri dönüp
+      // okuyanın önündeki kartı kaybettiriyordu.
       gsap.fromTo(
         cards,
         { opacity: 0, y: 60, scale: 0.95 },
@@ -32,74 +49,45 @@ export default function Projects() {
           scrollTrigger: {
             trigger: cards[0],
             start: 'top 85%',
-            toggleActions: 'play none none reverse',
+            toggleActions: 'play none none none',
           },
         }
       );
 
-      // Card hover lift animation + dot pulse
+      // Kart imleçte yükselir, durum noktası nabız atar, GitHub ikonu titrer
       cards.forEach((card) => {
         const dot = card.querySelector('.status-dot');
         const githubLink = card.querySelector('.github-link');
         const githubIcon = card.querySelector('.github-link svg');
 
-        card.addEventListener('mouseenter', () => {
-          gsap.to(card, {
-            y: -8,
-            duration: 0.4,
-            ease: 'power2.out',
-          });
-          // Dot pulse animation
-          if (dot) {
-            gsap.to(dot, {
-              opacity: 1,
-              duration: 0.8,
-              yoyo: true,
-              repeat: -1,
-              ease: 'power1.inOut',
-            });
-          }
+        listen(card, 'mouseenter', () => {
+          gsap.to(card, { y: -8, duration: 0.4, ease: 'power2.out' });
+          if (dot) gsap.to(dot, { opacity: 1, duration: 0.8, yoyo: true, repeat: -1, ease: 'power1.inOut' });
         });
-        card.addEventListener('mouseleave', () => {
-          gsap.to(card, {
-            y: 0,
-            duration: 0.5,
-            ease: 'elastic.out(1, 0.5)',
-          });
-          // Stop dot animation
+        listen(card, 'mouseleave', () => {
+          gsap.to(card, { y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
           if (dot) {
             gsap.killTweensOf(dot);
-            gsap.to(dot, {
-              opacity: 0.3,
-              duration: 0.3,
-            });
+            gsap.to(dot, { opacity: 0.3, duration: 0.3 });
           }
         });
 
-        // GitHub icon hover animation (only when hovering the link itself)
         if (githubLink && githubIcon) {
-          githubLink.addEventListener('mouseenter', () => {
-            gsap.to(githubIcon, {
-              rotation: 10,
-              duration: 0.1,
-              yoyo: true,
-              repeat: -1,
-              ease: 'power1.inOut',
-              transformOrigin: 'center center',
-            });
+          listen(githubLink, 'mouseenter', () => {
+            gsap.to(githubIcon, { rotation: 10, duration: 0.1, yoyo: true, repeat: -1, ease: 'power1.inOut', transformOrigin: 'center center' });
           });
-          githubLink.addEventListener('mouseleave', () => {
+          listen(githubLink, 'mouseleave', () => {
             gsap.killTweensOf(githubIcon);
-            gsap.to(githubIcon, {
-              rotation: 0,
-              duration: 0.3,
-            });
+            gsap.to(githubIcon, { rotation: 0, duration: 0.3 });
           });
         }
       });
     }, section);
 
-    return () => ctx.revert();
+    return () => {
+      cleanups.forEach((remove) => remove());
+      ctx.revert();
+    };
   }, []);
 
   const featured = projects.filter((project) => project.featured);
@@ -162,9 +150,8 @@ export default function Projects() {
             return (
               <div
                 key={project.id}
-                className="project-card group relative bg-background/60 backdrop-blur-md rounded-2xl overflow-hidden cursor-pointer"
+                className="project-card group relative bg-background/60 backdrop-blur-md rounded-2xl overflow-hidden"
                 style={{
-                  opacity: 0,
                   border: `1px solid ${tint('var(--secondary)', 32)}`,
                 }}
               >

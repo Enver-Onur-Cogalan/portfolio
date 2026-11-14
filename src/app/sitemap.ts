@@ -6,7 +6,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: SITE_URL,
-      lastModified: new Date('2026-08-19'),
+      // Derleme anı: her yayında güncelleniyor. Elle yazılmış bir tarih
+      // içerik değiştikçe eskiyordu.
+      lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 1,
     },

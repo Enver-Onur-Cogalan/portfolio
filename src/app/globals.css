@@ -260,16 +260,14 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
 }
 
-.neo-chip:hover,
-.neo-chip:focus-visible {
+.neo-chip:hover {
   background: color-mix(in srgb, var(--chip-accent) 28%, transparent);
   box-shadow: 0 0 0 color-mix(in srgb, var(--chip-accent) 55%, transparent);
   transform: translate(3px, 3px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .neo-chip:hover,
-  .neo-chip:focus-visible {
+  .neo-chip:hover {
     transform: none;
   }
 }
