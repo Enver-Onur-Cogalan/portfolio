@@ -223,9 +223,16 @@ export default function ScrollMask({
       wrapper.style.background = 'var(--background)';
     }
     // Bindirilmiş bölüm, sırası gelene kadar hero'nun üstünde görünmemeli
+    // Karar kaydırma olaylarına bağlı, konum karşılaştırmasına değil:
+    // Safari'de trackpad kaydırması küsuratlı konum bildiriyor (2639,6 <
+    // 2640) ve karşılaştırma bölümü kalıcı olarak gizli bırakıyordu.
+    const show = (visible: boolean) => {
+      if (overlapPrevious) wrapper.style.visibility = visible ? '' : 'hidden';
+    };
+    // Yalnızca ilk kurulum ve yeniden ölçümde konumdan karar veriliyor;
+    // burada da yarım piksellik pay bırakılıyor.
     const syncVisibility = (self: ScrollTrigger) => {
-      if (!overlapPrevious) return;
-      wrapper.style.visibility = self.scroll() >= self.start ? '' : 'hidden';
+      show(self.progress > 0 || self.scroll() >= self.start - 1);
     };
 
     // Bölüm, maske açılırken ekranda sabit tutulur (pin). Pin olmadan
@@ -249,13 +256,15 @@ export default function ScrollMask({
         refreshPriority: 1,
         scrub: smooth,
         onUpdate: (self) => apply(self.progress),
-        onEnter: syncVisibility,
-        onLeaveBack: syncVisibility,
+        onEnter: () => show(true),
+        onLeaveBack: () => show(false),
         onRefresh: syncVisibility,
         onLeave: () => {
+          show(true);
           overlay.style.visibility = 'hidden';
         },
         onEnterBack: () => {
+          show(true);
           overlay.style.visibility = 'visible';
         },
       });
