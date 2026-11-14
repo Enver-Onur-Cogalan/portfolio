@@ -61,10 +61,17 @@ const INTENT_TOPIC: Record<string, string> = {
   about: 'hakkinda', projects: 'projeler', skills: 'yetenekler', experience: 'deneyim',
   education: 'egitim', contact: 'iletisim', ai: 'ai', mobile: 'mobil', biology: 'biyoloji',
   location: 'konum', hobby: 'hobi', philosophy: 'motivasyon', availability: 'musaitlik',
-  hire: 'neden', hardest: 'zorluk', workstyle: 'calisma', cv: 'cv', whynollm: 'nollm',
+  hire: 'neden', hardest: 'zorluk', workstyle: 'calisma', cv: 'cv', whynollm: 'nollm', easteregg: 'gizli',
 };
 
 const SHOW_OPTIONS = new Set(['greet', 'help', 'info']);
+
+/*
+  Hiçbir proje hakkında olmayan sorular. Mesajda bir projenin takma adı
+  geçse bile ("is there a game on this site" → "this site" Portfolio'nun
+  takma adı) güçlü bir ifadeyle sorulduysa bunlar kazanır.
+*/
+const META_INTENTS = new Set(['easteregg', 'whynollm', 'identity', 'help', 'availability', 'contact', 'cv']);
 
 const FOLLOW_UP_STARTS = ['peki', 'ya', 'and', 've', 'what about', 'how about'];
 const PRONOUNS = new Set(['onun', 'onu', 'ona', 'bunun', 'bunu', 'it', 'its', 'that', 'this', 'projenin', 'uygulamanin', 'sirketin']);
@@ -187,6 +194,9 @@ export function findBestMatch(
   const hasPronoun = tokens.some((token) => PRONOUNS.has(token));
 
   // ─── A. Bir proje ya da şirketten bahsediliyor ─────────────
+  if (entity && general && META_INTENTS.has(general.id) && general.score >= 2 && general.score > (specific?.score ?? 0)) {
+    return generalResult(lang, general.id, context);
+  }
   if (entity) {
     if (specific && specific.score >= MIN_SCORE) {
       return entityResult(lang, entity, specific.id as EntityIntentId, context);

@@ -75,13 +75,13 @@ function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
         </strong>
       );
     } else if (match[3]) {
-      // [text](url)
+      // [text](url). Site içi bağlantı (/ ile başlayan) aynı sekmede açılır
+      const internal = match[5].startsWith('/');
       nodes.push(
         <a
           key={`${keyPrefix}-link-${match.index}`}
           href={match[5]}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(internal ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
           className="underline underline-offset-2 decoration-1 hover:opacity-80 transition-opacity"
           style={{ color: 'var(--accent)' }}
           onClick={(e) => e.stopPropagation()}

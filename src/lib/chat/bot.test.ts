@@ -260,6 +260,22 @@ const SINGLE: Case[] = [
   ['en', 'qwerty zxcv', 'fallback'],
   ['tr', 'bugün maç var mı', 'fallback'],
 
+  // ─── Gizli sürpriz: 404 oyunu ──────────────────────────
+  ['tr', 'oyun var mı', 'easteregg'],
+  ['tr', 'sıkıldım', 'easteregg'],
+  ['tr', 'canım sıkıldı', 'easteregg'],
+  ['tr', 'gizli bir şey var mı', 'easteregg'],
+  ['tr', 'gizli', 'easteregg'],
+  ['tr', 'mini oyun', 'easteregg'],
+  ['en', 'easter egg?', 'easteregg'],
+  ['en', 'is there a game on this site', 'easteregg'],
+  ['en', "I'm bored", 'easteregg'],
+  ['en', 'lets play a game', 'easteregg'],
+  // "Oyun" tek başına hâlâ hobi
+  ['tr', 'oyun oynar mısın', 'hobby'],
+  ['tr', 'oyun oynuyor mu', 'hobby'],
+  ['en', 'does he like gaming', 'hobby'],
+
   // ─── Uydurmamalı ───────────────────────────────────────
   ['tr', 'asdfgh', 'fallback'],
   ['tr', 'pizza tarifi verir misin', 'fallback'],

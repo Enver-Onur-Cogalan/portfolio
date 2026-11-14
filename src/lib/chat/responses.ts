@@ -36,6 +36,7 @@ const staticTopics: Record<string, Topic> = {
   calisma: { label: { tr: 'Nasıl çalışır?', en: 'How he works' }, query: 'çalışma tarzı' },
   cv: { label: { tr: 'CV', en: 'Resume' }, query: 'cv' },
   nollm: { label: { tr: 'Neden LLM yok?', en: 'Why no LLM?' }, query: 'neden llm yok' },
+  gizli: { label: { tr: 'Saklı olan ne? 👀', en: "What's hidden? 👀" }, query: 'gizli' },
 };
 
 // Her proje ve iş deneyimi kendi adıyla bir öneri düğmesi olabiliyor
@@ -287,11 +288,11 @@ export const generalAnswers: Record<string, (lang: Language) => Answer> = {
   hobby: (lang) => ({
     text: L(
       lang,
-      'Hakkımda bölümündeki çizgi şeridi bunun özeti: laboratuvar, klavye, kahve molası, motosiklet ve oyun. Kod yazmadığı zamanlarda büyük ihtimalle motosikletin üstünde ya da bir oyunun başında; kahve ise her sahnede sabit.',
-      "The line-art strip in the About section sums it up: lab bench, keyboard, coffee break, motorbike and games. When he isn't coding he's probably on the motorbike or in a game; the coffee is in every scene."
+      'Hakkımda bölümündeki çizgi şeridi bunun özeti: laboratuvar, klavye, kahve molası, motosiklet ve oyun. Kod yazmadığı zamanlarda büyük ihtimalle motosikletin üstünde ya da bir oyunun başında; kahve ise her sahnede sabit.\n\nBu ikisini birleştiren bir şey de bu sitede saklı. 😉',
+      "The line-art strip in the About section sums it up: lab bench, keyboard, coffee break, motorbike and games. When he isn't coding he's probably on the motorbike or in a game; the coffee is in every scene.\n\nThere's also something on this site that combines the two. 😉"
     ),
     sectionId: 'hakkimda',
-    suggests: ['motivasyon', 'hakkinda', 'projeler'],
+    suggests: ['gizli', 'motivasyon', 'hakkinda'],
   }),
 
   philosophy: (lang) => ({
@@ -410,6 +411,16 @@ export const generalAnswers: Record<string, (lang: Language) => Answer> = {
     ),
     sectionId: 'deneyimler',
     suggests: ['unimall:approach', 'ai', 'calisma'],
+  }),
+
+  // Gizli sürpriz: 404 sayfasındaki oyun. Bağlantı bilerek var olmayan bir adres
+  easteregg: (lang) => ({
+    text: L(
+      lang,
+      "Psst… Bu sitede gizli bir oyun var. Var olmayan bir sayfaya gidince motora binip kayıp sayfayı arıyorsun. Hücrelerden, kahvelerden ve bug'lardan kaç; 404. metrede seni bir sürpriz bekliyor. 🏍️\n\n[Oyuna git →](/kayip-sayfa)",
+      'Psst… There is a hidden game on this site. Go to a page that does not exist and you hop on the motorbike to look for it. Dodge the cells, the coffee and the bugs; something waits for you at 404 m. 🏍️\n\n[Go to the game →](/lost-page)'
+    ),
+    suggests: ['hobi', 'projeler'],
   }),
 
   thanks: (lang) => ({
