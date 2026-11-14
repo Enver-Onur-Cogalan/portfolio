@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/ui/LanguageToggle';
 import { useLanguage } from '@/context/LanguageContext';
-import { scrollToSection as smoothScrollToSection } from '@/lib/scroll';
+import { scrollToSection as smoothScrollToSection, scrollToTop } from '@/lib/scroll';
 
 const navKeys = [
   { key: 'nav.about', id: 'hakkimda' },
@@ -106,8 +106,26 @@ export default function Header() {
             />
           </button>
 
+          {/*
+            Logo: favicon'la aynı dosya (src/app/icon.svg), ikisi hep
+            birebir aynı. Tıklanınca sayfanın başına dönüyor.
+          */}
+          <button
+            type="button"
+            onClick={() => {
+              scrollToTop();
+              setIsMenuOpen(false);
+            }}
+            className="ml-2 md:ml-0 md:mr-8 shrink-0 rounded-lg transition-transform hover:scale-105 active:scale-95"
+            aria-label={t('nav.home')}
+            title={t('nav.home')}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- 2 KB SVG; Image optimizasyonu gerekmiyor */}
+            <img src="/icon.svg" alt="" width={32} height={32} className="block w-8 h-8 md:w-9 md:h-9 rounded-lg" />
+          </button>
+
           {/* Desktop Nav */}
-          <nav className="hidden md:flex gap-6">
+          <nav className="hidden md:flex gap-6 mr-auto">
             {navKeys.map((item) => (
               <button
                 key={item.id}

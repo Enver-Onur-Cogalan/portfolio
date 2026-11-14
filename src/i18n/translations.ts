@@ -148,6 +148,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.pause': 'Müziği durdur',
     'a11y.skipToContent': 'İçeriğe geç',
     'nav.footer': 'Site menüsü',
+    'nav.home': 'Sayfanın başına dön',
 
     // Social
     'social.email': 'E-posta',
@@ -320,6 +321,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.pause': 'Pause music',
     'a11y.skipToContent': 'Skip to content',
     'nav.footer': 'Site menu',
+    'nav.home': 'Back to the top',
 
     // Social
     'social.email': 'Email',

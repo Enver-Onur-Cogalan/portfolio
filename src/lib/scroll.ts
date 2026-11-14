@@ -58,3 +58,24 @@ export function scrollToSection(id: string, duration = 1600): void {
 
   requestAnimationFrame(step);
 }
+
+/**
+ * Sayfanın en başına yumuşak dönüş (menüdeki logo). Yol üstündeki
+ * hero videosu da geri sarılıyor; hareket azaltma tercihinde anında.
+ */
+export function scrollToTop(duration = 1600): void {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, 0);
+    return;
+  }
+  const startY = window.scrollY;
+  if (startY === 0) return;
+  const startTime = performance.now();
+  const easeInOutCubic = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+  const step = (now: number) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    window.scrollTo(0, startY * (1 - easeInOutCubic(progress)));
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
