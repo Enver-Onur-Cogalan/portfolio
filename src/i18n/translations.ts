@@ -135,7 +135,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Contact
     'contact.title': 'İletişim',
     'contact.desc': 'Beni aşağıdaki kanallardan takip edebilir veya e-posta göndererek iletişime geçebilirsiniz.',
-    'contact.footer': 'Tüm hakları saklıdır.',
+    'contact.footer': 'Kod MIT lisanslı; içerik (metin, fotoğraf, CV) tüm hakları saklı.',
 
     // Music
     'music.toggle': 'Müzik çaları aç',
@@ -307,7 +307,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Contact
     'contact.title': 'Contact',
     'contact.desc': 'Follow me on the channels below or get in touch by sending an email.',
-    'contact.footer': 'All rights reserved.',
+    'contact.footer': 'Code under the MIT license; content (text, photos, CV) all rights reserved.',
 
     // Music
     'music.toggle': 'Open music player',
