@@ -312,7 +312,7 @@ export default function About() {
           {aboutPrinciples.map((principle) => (
             <div
               key={principle.titleKey}
-              className="principle-card group relative p-6 rounded-2xl border cursor-pointer"
+              className="principle-card group relative p-6 rounded-2xl border"
               style={{
                 background: 'var(--background)',
                 borderColor: tint('var(--muted)', 35),

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude Code yetenek dosyaları: sitenin parçası değil, lint'i
+    // çıkış kodu 1 ile bitiriyordu
+    ".claude/**",
   ]),
 ]);
 

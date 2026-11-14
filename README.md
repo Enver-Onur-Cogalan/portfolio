@@ -109,4 +109,4 @@ npm run lint     # ESLint
 
 ## Lisans
 
-MIT
+Kod [MIT](LICENSE) lisanslı. İçerik (metinler, fotoğraf, CV, proje videoları ve müzik) bu lisansa dahil değil; tüm hakları saklı.

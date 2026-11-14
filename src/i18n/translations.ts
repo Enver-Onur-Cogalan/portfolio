@@ -135,7 +135,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Contact
     'contact.title': 'İletişim',
     'contact.desc': 'Beni aşağıdaki kanallardan takip edebilir veya e-posta göndererek iletişime geçebilirsiniz.',
-    'contact.footer': 'Tüm hakları saklıdır.',
+    'contact.footer': 'Kod MIT lisanslı; içerik (metin, fotoğraf, CV) tüm hakları saklı.',
 
     // Music
     'music.toggle': 'Müzik çaları aç',
@@ -143,6 +143,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.lyrics.placeholder': '♪ Müzik başladığında sözler burada gözükecek ♪',
     'music.back10': '10 saniye geri',
     'music.forward10': '10 saniye ileri',
+    'music.infoButton': 'Şarkı hakkında',
+    'music.play': 'Müziği çal',
+    'music.pause': 'Müziği durdur',
+    'a11y.skipToContent': 'İçeriğe geç',
+    'nav.footer': 'Site menüsü',
 
     // Social
     'social.email': 'E-posta',
@@ -302,7 +307,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Contact
     'contact.title': 'Contact',
     'contact.desc': 'Follow me on the channels below or get in touch by sending an email.',
-    'contact.footer': 'All rights reserved.',
+    'contact.footer': 'Code under the MIT license; content (text, photos, CV) all rights reserved.',
 
     // Music
     'music.toggle': 'Open music player',
@@ -310,6 +315,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'music.lyrics.placeholder': '♪ Lyrics will appear here when music starts ♪',
     'music.back10': '10 seconds back',
     'music.forward10': '10 seconds forward',
+    'music.infoButton': 'About this song',
+    'music.play': 'Play music',
+    'music.pause': 'Pause music',
+    'a11y.skipToContent': 'Skip to content',
+    'nav.footer': 'Site menu',
 
     // Social
     'social.email': 'Email',

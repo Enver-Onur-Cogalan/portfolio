@@ -58,8 +58,8 @@ export default function SocialLinks() {
         <a
           key={social.label}
           href={social.href}
-          target="_blank"
-          rel="noopener noreferrer"
+          // E-posta bağlantısı yeni sekmede açılınca geride boş bir sekme kalıyordu
+          {...(social.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
           className="group relative flex flex-col items-center gap-2"
           aria-label={social.label}
         >

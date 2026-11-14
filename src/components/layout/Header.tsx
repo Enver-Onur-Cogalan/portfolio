@@ -215,7 +215,7 @@ export default function Header() {
               className="text-xs text-center"
               style={{ color: 'var(--muted)' }}
             >
-              Portfolio Navigation
+              {t('nav.footer')}
             </p>
           </div>
         </div>

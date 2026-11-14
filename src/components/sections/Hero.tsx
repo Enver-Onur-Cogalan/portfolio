@@ -60,6 +60,11 @@ export default function Hero() {
     const edge = edgeRef.current;
     if (!container || !video || !welcome || !shade || !media || !fade || !edge) return;
 
+    // Hareket azaltma tercihi: kaydırmaya bağlı video, sabitleme, dalış ve
+    // erime yok. Hero ilk karenin posteriyle durağan bir ekran olarak
+    // kalıyor, video hiç indirilmiyor; sayfa normal akıyor.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const mobile = window.innerWidth < 768;
 
     // Ekrana uygun sürüm: dikey ekranlara ortadan kesilmiş dikey video

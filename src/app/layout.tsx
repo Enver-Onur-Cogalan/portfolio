@@ -6,18 +6,22 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import Header from "@/components/layout/Header";
 import MusicPlayer from "@/components/ui/MusicPlayer";
 import ChatWidget from "@/components/chat/ChatWidget";
+import SkipLink from "@/components/layout/SkipLink";
 import { socialLinks, techStack } from "@/data/portfolio";
 import { SITE_URL } from "@/data/site";
 
+// latin-ext: ş, ğ, İ gibi Türkçe harfler ayrı bir dosyada; yalnızca
+// "latin" preload edilince Türkçe başlıklar kısa bir süre yedek fontla
+// görünüp sonra kayıyordu
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
@@ -124,12 +128,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}>
         <ThemeProvider>
           <LanguageProvider>
-            <a
-              href="#hakkimda"
-              className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--accent)] focus:text-black focus:font-medium"
-            >
-              İçeriğe geç
-            </a>
+            <SkipLink />
             <Header />
             <main>{children}</main>
             <MusicPlayer />

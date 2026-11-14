@@ -63,6 +63,8 @@ export default function Experience() {
         );
       }
 
+      // Kartlar ve düğümler bir kez belirip kalıyor; yukarı kaydırınca
+      // sönmeleri ("reverse") geri dönüp okuyanın kartını kaybettiriyordu
       section.querySelectorAll('.exp-item').forEach((item) => {
         gsap.fromTo(
           item,
@@ -75,7 +77,7 @@ export default function Experience() {
             scrollTrigger: {
               trigger: item,
               start: 'top 88%',
-              toggleActions: 'play none none reverse',
+              toggleActions: 'play none none none',
             },
           }
         );
@@ -92,7 +94,7 @@ export default function Experience() {
             scrollTrigger: {
               trigger: node,
               start: 'top 88%',
-              toggleActions: 'play none none reverse',
+              toggleActions: 'play none none none',
             },
           }
         );

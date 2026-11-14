@@ -91,7 +91,6 @@ export default function Skills() {
                   {category.skills.map((skill) => (
                     <li
                       key={skill}
-                      tabIndex={0}
                       className="neo-chip text-xs sm:text-sm px-3 py-1.5 rounded-lg font-semibold cursor-default"
                       style={{ '--chip-accent': color } as React.CSSProperties}
                     >
