@@ -72,7 +72,7 @@ export default function Header() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-40 px-3 py-3 md:px-6 md:py-4"
+        className="fixed top-0 left-0 right-0 z-40 px-3 py-1.5 md:px-6 md:py-4"
         style={{ backgroundColor: 'color-mix(in srgb, var(--background) 80%, transparent)', backdropFilter: 'blur(10px)' }}
       >
         <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -80,26 +80,26 @@ export default function Header() {
           <button
             ref={hamburgerRef}
             onClick={toggleMenu}
-            className="md:hidden flex flex-col justify-center items-center w-11 h-11 gap-1.5 rounded-lg transition-colors"
+            className="md:hidden flex flex-col justify-center items-center w-9 h-9 gap-1.5 rounded-lg transition-colors"
             style={{ backgroundColor: 'color-mix(in srgb, var(--muted) 20%, transparent)' }}
             aria-label={t('nav.menu')}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
           >
             <span
-              className={`block w-6 h-0.5 rounded-full transition-all duration-300 ${
+              className={`block w-5 h-0.5 rounded-full transition-all duration-300 ${
                 isMenuOpen ? 'rotate-45 translate-y-2' : ''
               }`}
               style={{ backgroundColor: 'var(--foreground)' }}
             />
             <span
-              className={`block w-6 h-0.5 rounded-full transition-all duration-300 ${
+              className={`block w-5 h-0.5 rounded-full transition-all duration-300 ${
                 isMenuOpen ? 'opacity-0' : ''
               }`}
               style={{ backgroundColor: 'var(--foreground)' }}
             />
             <span
-              className={`block w-6 h-0.5 rounded-full transition-all duration-300 ${
+              className={`block w-5 h-0.5 rounded-full transition-all duration-300 ${
                 isMenuOpen ? '-rotate-45 -translate-y-2' : ''
               }`}
               style={{ backgroundColor: 'var(--foreground)' }}
@@ -123,7 +123,7 @@ export default function Header() {
           {/* Spacer for mobile hamburger alignment */}
           <div className="md:hidden flex-1" />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <LanguageToggle />
             <ThemeToggle />
           </div>

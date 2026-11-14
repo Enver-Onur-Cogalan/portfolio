@@ -11,3 +11,10 @@
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
   'https://enveronurcogalan.vercel.app';
+
+/**
+ * CV dosyası. Hero'daki düğme ve İletişim'deki klasör aynı dosyayı
+ * gösteriyor; dosya değişirse yalnızca burası güncellenir.
+ */
+export const CV_PATH = '/cv.pdf';
+export const CV_DOWNLOAD_NAME = 'Enver-Onur-Cogalan-CV.pdf';

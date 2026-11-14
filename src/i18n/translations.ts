@@ -26,8 +26,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.closeMenu': 'Menüyü kapat',
 
     // Hero
-    'hero.welcome': 'Hoş Geldiniz',
-    'hero.scroll': 'Keşfetmek için aşağı kaydır',
+    'hero.status': 'Yeni fırsatlara açık',
+    'hero.location': 'İzmir / Remote',
+    'hero.title': 'Yapay zekayı cebe sığdırıyorum.',
+    'hero.lead': 'Biyolog olarak başladım, şimdi deneklerim yapay\u00A0zeka modelleri.\nİyi haber: hiçbiri ısırmıyor.',
+    'hero.cv': 'CV İndir',
+    'hero.contact': 'İletişime geç',
+    'hero.scroll': 'Kaydır',
     'hero.subtitle': 'AI Engineer & Mobile Developer',
 
     // About
@@ -188,8 +193,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.closeMenu': 'Close menu',
 
     // Hero
-    'hero.welcome': 'Welcome',
-    'hero.scroll': 'Scroll down to explore',
+    'hero.status': 'Open to new roles',
+    'hero.location': 'İzmir / Remote',
+    'hero.title': 'I put AI in your pocket.',
+    'hero.lead': 'I started out as a biologist; now my test subjects are AI models.\nGood news: none of them bite.',
+    'hero.cv': 'Download CV',
+    'hero.contact': 'Get in touch',
+    'hero.scroll': 'Scroll',
     'hero.subtitle': 'AI Engineer & Mobile Developer',
 
     // About

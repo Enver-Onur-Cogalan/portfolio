@@ -15,8 +15,8 @@ export default function HeroPhone() {
   const phoneRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
-  // Girişte hafifçe belirip yerine otururken, imleç yaklaştıkça
-  // yumuşak bir eğim alır. Hareket azaltma tercihinde ikisi de kapalı.
+  // İmleç yaklaştıkça yumuşak bir eğim alır. Hareket azaltma
+  // tercihinde kapalı.
   useEffect(() => {
     const wrapper = wrapperRef.current;
     const phone = phoneRef.current;
@@ -28,11 +28,9 @@ export default function HeroPhone() {
     // uyarıyor ve giriş animasyonuyla çakışıyordu.
     gsap.set(phone, { rotateX: 0, rotateY: 0, transformPerspective: 1200 });
 
-    gsap.fromTo(
-      phone,
-      { opacity: 0, y: 40, scale: 0.94 },
-      { opacity: 1, y: 0, scale: 1, duration: 1, delay: 0.6, ease: 'power3.out' }
-    );
+    // Giriş animasyonu Hero'daki sarmalayıcıda (.hero-rise, yalnızca CSS).
+    // Burada opaklıktan başlatmak fotoğrafı JavaScript yüklenene kadar
+    // gizliyor, mobilde ana içeriğin boyanmasını saniyelerce geciktiriyordu.
 
     const quickX = gsap.quickTo(phone, 'rotateY', { duration: 0.6, ease: 'power2.out' });
     const quickY = gsap.quickTo(phone, 'rotateX', { duration: 0.6, ease: 'power2.out' });
@@ -67,6 +65,10 @@ export default function HeroPhone() {
         className="relative w-[208px] sm:w-[236px] md:w-[262px] aspect-[9/17.5] rounded-[2.4rem] p-[3px]"
         style={{
           transformStyle: 'preserve-3d',
+          // GSAP aşağıda aynı değeri yazıyor. İlk HTML'de de olmazsa
+          // hidrasyonda telefon yeni bir katmana geçiyor, tarayıcı fotoğrafı
+          // baştan boyanmış sayıp LCP'yi saniyelerce geç ölçüyordu.
+          transform: 'perspective(1200px)',
           // Metal gövde: köşelerden gelen ışık çizgileri
           background: 'linear-gradient(150deg, #4a4a52 0%, #16161a 28%, #0d0d10 60%, #3a3a42 100%)',
           boxShadow:
@@ -130,7 +132,10 @@ export default function HeroPhone() {
             <h1 className="text-white font-heading font-bold text-lg sm:text-xl leading-tight">
               Enver Onur Çoğalan
             </h1>
+            {/* Unvan İngilizce; lang="en" olmazsa Türkçe sayfada büyük harfe
+                çevrilirken "ENGİNEER" gibi noktalı İ çıkıyor. */}
             <p
+              lang="en"
               className="mt-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.08em] leading-snug"
               style={{ color: 'var(--highlight)' }}
             >

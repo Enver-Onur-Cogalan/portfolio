@@ -8,9 +8,7 @@ import SocialLinks from '@/components/ui/SocialLinks';
 import Folder from '@/components/ui/Folder';
 import { socialLinks } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
-
-const CV_PATH = '/cv.pdf';
-const CV_DOWNLOAD_NAME = 'Enver-Onur-Cogalan-CV.pdf';
+import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
 
 export default function Contact() {
   const { t } = useLanguage();
