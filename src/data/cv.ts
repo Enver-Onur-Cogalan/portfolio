@@ -74,8 +74,8 @@ export const cvBullets: Record<string, Record<Language, string[]>> = {
 
 /** Deneyim yerleri; sitede henüz gösterilmiyor */
 export const cvLocation: Record<string, Localized> = {
-  unimall: { tr: 'Hong Kong', en: 'Hong Kong' },
-  envagro: { tr: 'İstanbul', en: 'Istanbul' },
+  unimall: { tr: 'Hong Kong (Remote)', en: 'Hong Kong (Remote)' },
+  envagro: { tr: 'İstanbul (Remote)', en: 'Istanbul (Remote)' },
   appisode: { tr: 'Londra (Remote)', en: 'London (Remote)' },
   ege: { tr: 'İzmir', en: 'Izmir' },
   patika: { tr: 'İstanbul (Online)', en: 'Istanbul (Online)' },
@@ -131,3 +131,10 @@ export const cvLabels: Record<Language, Record<string, string>> = {
     location: 'Izmir, Türkiye · Remote',
   },
 };
+
+/**
+ * assets/cv-photo.jpeg için yüze odaklanan kare kesim: sol üst köşe ve
+ * kenar, fotoğrafın genişliğine/yüksekliğine oranla. Fotoğraf değişirse
+ * buradan ayarlanır.
+ */
+export const cvPhotoCrop = { x: 0.1, y: 0.24, size: 0.8 };

@@ -26,6 +26,7 @@ import {
   cvLabels,
   cvLanguages,
   cvLocation,
+  cvPhotoCrop,
   cvProjects,
   cvRole,
   cvSummary,
@@ -56,12 +57,30 @@ const period = (lang: Language, key: string, fallback: string) => {
 };
 
 function photoDataUri(): string {
-  const source = path.join(ROOT, 'public/photo.jpg');
+  // CV'ye özel fotoğraf varsa o, yoksa sitedeki avatar. assets/ sitede
+  // yayınlanmıyor; fotoğraf yalnızca PDF'in içine gömülüyor.
+  const cvPhoto = ['assets/cv-photo.jpg', 'assets/cv-photo.jpeg']
+    .map((file) => path.join(ROOT, file))
+    .find((file) => existsSync(file));
+  const source = cvPhoto ?? path.join(ROOT, 'public/photo.jpg');
   const dir = mkdtempSync(path.join(tmpdir(), 'cv-photo-'));
   const small = path.join(dir, 'photo.jpg');
   try {
-    // macOS'ta küçült: 2048 px'lik fotoğraf PDF'i gereksiz şişiriyor
-    execFileSync('sips', ['-Z', '360', source, '--out', small], { stdio: 'ignore' });
+    if (cvPhoto) {
+      // Yüze odaklanan kare kesim (cvPhotoCrop: görselin kesirleri)
+      const [width, height] = execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', source])
+        .toString()
+        .match(/\d+$/gm)!
+        .map(Number);
+      const size = Math.round(width * cvPhotoCrop.size);
+      const x = Math.round(width * cvPhotoCrop.x);
+      const y = Math.round(height * cvPhotoCrop.y);
+      execFileSync('sips', ['-c', `${size}`, `${size}`, '--cropOffset', `${y}`, `${x}`, source, '--out', small], { stdio: 'ignore' });
+      execFileSync('sips', ['-Z', '360', small], { stdio: 'ignore' });
+    } else {
+      // macOS'ta küçült: 2048 px'lik fotoğraf PDF'i gereksiz şişiriyor
+      execFileSync('sips', ['-Z', '360', source, '--out', small], { stdio: 'ignore' });
+    }
     return `data:image/jpeg;base64,${readFileSync(small).toString('base64')}`;
   } catch {
     return `data:image/jpeg;base64,${readFileSync(source).toString('base64')}`;
