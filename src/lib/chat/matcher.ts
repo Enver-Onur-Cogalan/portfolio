@@ -1,5 +1,7 @@
 import Fuse from 'fuse.js';
 import { directResponses, quickReplies, topicCatalog, type SectionId } from './responses';
+import { projects } from '@/data/portfolio';
+import { translate } from '@/i18n/translations';
 import type { Language } from '@/i18n/translations';
 
 // ─── Türkçe Normalizer ───────────────────────────────────────
@@ -37,7 +39,6 @@ const synonymMap: Record<string, string[]> = {
   'konum': ['nerede', 'nereli', 'sehir', 'lokasyon', 'ulke', 'where'],
   'hobi': ['ilgi', 'bos zaman', 'hobby', 'serbest', 'free time'],
   'motivasyon': ['felsefe', 'prensip', 'motto', 'ilke', 'neden kod', 'philosophy'],
-  'jarvis': ['asistan', 'sesli asistan', 'voice'],
   'biyoloji': ['biology', 'ege', 'kariyer degisikligi'],
   'unimall': ['e-ticaret', 'eticaret', 'ocr', 'otomasyon', 'e-commerce', 'automation'],
   // 'llm' bilerek listede yok: Envagro tek LLM işi değil (WeatherApp da
@@ -226,9 +227,9 @@ function handleContextualQuery(
     }
     if (normalized.includes('ilki') || normalized.includes('birincisi') || normalized.includes('first')) {
       return {
-        response: lang === 'tr'
-          ? 'İlk proje Jarvis — sesli komutlarla çalışan akıllı bir kişisel asistan. React Native (Expo), TypeScript ve Groq (Llama 3.x) ile geliştirildi.'
-          : 'The first project is Jarvis — a smart personal assistant powered by voice commands. Built with React Native (Expo), TypeScript, and Groq (Llama 3.x).',
+        // Sabit bir proje adı yazmak yerine verideki ilk proje: liste
+        // değişince cevap da değişsin
+        response: `${projects[0].title}: ${translate(lang, `projects.${projects[0].id}.desc`)}`,
         showOptions: false,
         sectionId: 'projeler',
         context,

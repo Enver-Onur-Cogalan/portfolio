@@ -107,30 +107,6 @@ export const projects: Project[] = [
     technologies: ['Next.js', 'React', 'TypeScript', 'TailwindCSS', 'GSAP'],
     github: 'https://github.com/Enver-Onur-Cogalan/portfolio',
   },
-  {
-    id: 'jarvis',
-    title: 'Jarvis',
-    description:
-      'Jarvis Assistant, günlük işlerinizi kolaylaştırmak ve sesli komutlarla mobil cihazınızla etkileşim kurmanıza olanak sağlamak üzere tasarlanmış akıllı bir kişisel asistandır.',
-    technologies: ['React Native (Expo)', 'TypeScript', 'Groq (Llama 3.x)', 'ElevenLabs API', 'Expo Speech'],
-    github: 'https://github.com/Enver-Onur-Cogalan/Jarvis',
-  },
-  {
-    id: 'chatapp',
-    title: 'ChatApp',
-    description:
-      'ChatApp, React Native CLI ve Socket.IO ile geliştirilmiş, gerçek zamanlı bire bir ve grup sohbet uygulamasıdır.',
-    technologies: ['React Native CLI', 'TypeScript', 'MobX', 'Node.js', 'MongoDB', 'Socket.IO'],
-    github: 'https://github.com/Enver-Onur-Cogalan/chatApp',
-  },
-  {
-    id: 'movieapp',
-    title: 'MovieApp',
-    description:
-      'React Native ile geliştirilmiş film izleme uygulaması.',
-    technologies: ['React Native CLI', 'JavaScript', 'Firebase'],
-    github: 'https://github.com/Enver-Onur-Cogalan/MovieAppRN',
-  },
 ];
 
 // ─── Deneyim Modeli ──────────────────────────────────────────
