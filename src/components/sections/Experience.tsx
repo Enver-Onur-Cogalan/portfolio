@@ -16,6 +16,7 @@ export default function Experience() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const newestFirst = [...experiences].reverse();
 
   // Vaka çalışmaları varsayılan olarak açık gelir — asıl anlatı orada,
   // kullanıcıyı tıklamaya zorlamanın anlamı yok. Her kart bağımsız açılıp
@@ -121,8 +122,13 @@ export default function Experience() {
             }}
           />
 
+          {/*
+            En yeni üstte: işe alımcı önce son işi görmek ister, CV'lerin
+            alışılmış sırası da bu. Veri dosyası kronolojik kalıyor (bot "son
+            iş" bilgisini oradan okuyor); yalnızca görünüm ters çevriliyor.
+          */}
           <ol className="space-y-10 md:space-y-14">
-            {experiences.map((exp) => (
+            {newestFirst.map((exp) => (
               <ExperienceRow
                 key={exp.id}
                 exp={exp}
