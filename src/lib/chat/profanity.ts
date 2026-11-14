@@ -31,7 +31,9 @@ const EXACT: ReadonlySet<string> = new Set([
 
 const STEMS: readonly string[] = [
   // Türkçe — çekim eki alabilen kökler
-  'siktir', 'sikeyim', 'sikerim', 'siktig', 'sikil', 'sikici', 'sikis',
+  // 'sikil' ve 'sikici' bilerek yok: Türkçe klavyesiz yazılan "sikildim"
+  // (sıkıldım) ve "sikici" (sıkıcı) çok daha sık masum anlamda geliyor
+  'siktir', 'sikeyim', 'sikerim', 'siktig', 'sikis',
   'amina', 'aminak', 'aminak', 'amcik', 'amcig', 'amina',
   'orospu', 'orosbu', 'pezeven', 'pezevenk',
   'yarrag', 'yarrak', 'gotver', 'gotlek', 'gotoglan',
@@ -55,6 +57,12 @@ const SAFE: ReadonlySet<string> = new Set([
   'assembly', 'dumbbell', 'ananas', 'gotur', 'goturmek', 'picture',
   'country', 'countries', 'document', 'canada',
 ]);
+
+// "sık" ile "sik" yalnızca ı/i noktasıyla ayrılıyor; harf sadeleştirme
+// ikisini aynı yere düşürünce "sık sık", "sıkı", "sıkıştım" engelleniyordu.
+// Kelime noktasız ı ile ("sık…") yazılmışsa bu girişler eşleşmez.
+// "siktir" ailesi bu listede değil: "sıktır" yazımı yine yakalanıyor.
+const DOTLESS_SIK: ReadonlySet<string> = new Set(['sik', 'siki', 'sikim', 'sikis']);
 
 // Leetspeak → harf
 const LEET: Record<string, string> = {
@@ -89,11 +97,16 @@ function foldTurkish(word: string): string {
     .join('');
 }
 
+function writtenDotless(normalized: string): boolean {
+  return normalized.startsWith('sı');
+}
+
 function isProfaneWord(raw: string): boolean {
   if (!raw) return false;
 
   const normalized = normalizeWord(raw);
   const folded = foldTurkish(normalized);
+  const dotless = writtenDotless(normalized);
 
   // Güvenlik ağı önce çalışır
   if (SAFE.has(normalized) || SAFE.has(folded)) return false;
@@ -108,8 +121,8 @@ function isProfaneWord(raw: string): boolean {
 
   for (const variant of variants) {
     if (SAFE.has(variant)) continue;
-    if (EXACT.has(variant)) return true;
-    if (STEMS.some((stem) => variant.startsWith(stem))) return true;
+    if (EXACT.has(variant) && !(dotless && DOTLESS_SIK.has(variant))) return true;
+    if (STEMS.some((stem) => variant.startsWith(stem) && !(dotless && DOTLESS_SIK.has(stem)))) return true;
   }
 
   return false;
@@ -128,7 +141,8 @@ export function containsProfanity(text: string): boolean {
   const squashed = normalizeWord(text.replace(/[^\p{L}\p{N}]+/gu, ''));
   if (squashed.length <= 24) {
     const folded = foldTurkish(squashed);
-    if (EXACT.has(squashed) || EXACT.has(folded)) return true;
+    const skip = writtenDotless(squashed) && DOTLESS_SIK.has(folded);
+    if (!skip && (EXACT.has(squashed) || EXACT.has(folded))) return true;
   }
 
   return false;

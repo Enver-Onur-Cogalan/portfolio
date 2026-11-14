@@ -16,6 +16,10 @@ const MUST_PASS = [
   'iletişim bilgilerin', 'deneyimlerin neler', 'bootcamp', 'password',
   'Jarvis asistan', 'AI Engineer', 'benchmark', 'aptalca bir hata',
   'Canada', 'assessment',
+  // ı/i sadeleştirmesi yüzünden takılan masum "sık-" kelimeleri
+  'sıkıldım', 'canım sıkıldı', 'sıkılmak', 'sikildim', 'çok sıkıcı',
+  'sikici', 'sık sık', 'sıkı çalışırım', 'sıkıştım', 'sıkıntı yok',
+  'sıkıştırma', 'sıkı',
 ];
 
 const MUST_BLOCK = [
@@ -25,6 +29,7 @@ const MUST_BLOCK = [
   'motherfucker', 'nigger', 'faggot', 'retarded',
   's1kt1r', '4mk', 'siiiktir', 'şerefsiz', 'pezevenk', 'kahpe',
   'göt', 'mal', 'salak', 'dumbass', 'whore',
+  'sik', 'sikim', 'sıktır', 'sıktır git', 'sikiş', 's.i.k',
 ];
 
 test('masum ifadeler engellenmiyor', () => {

@@ -85,6 +85,13 @@ const DEFS: IntentDef[] = [
     id: 'hobby',
     keywords: ['hobi', 'bos zaman', 'ilgi alan', 'hobby', 'hobbies', 'free time', 'your free time', 'spare time', 'fun', 'something fun', 'fun fact', 'eglence', 'motosiklet', 'motorbike', 'motorcycle', 'oyun', 'gaming', 'kahve', 'coffee', 'disinda ne yapar'],
   },
+  {
+    // Gizli sürpriz: 404 sayfasındaki motosiklet oyunu. Önerilerde yok,
+    // soran buluyor. "Oyun oynar mısın" hobiye gidiyor (tek "oyun" kelimesi
+    // hobinin); burada "oyun var mı" gibi çok kelimeli ifadeler kazanıyor.
+    id: 'easteregg',
+    keywords: ['oyun var mi', 'oyun var', 'mini oyun', 'gizli oyun', '404 oyunu', 'oynayalim', 'oyun oynayalim', 'sikildim', 'canim sikildi', 'gizli', 'saklı', 'surpriz', 'easter egg', 'secret', 'hidden', 'is there a game', 'any game', 'lets play', 'play a game', 'bored', 'im bored'],
+  },
   { id: 'philosophy', keywords: ['felsefe', 'prensip', 'ilke', 'motto', 'philosophy', 'principle', 'values', 'degerler'] },
   {
     id: 'workstyle',
