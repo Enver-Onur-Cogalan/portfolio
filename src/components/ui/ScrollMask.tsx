@@ -222,17 +222,19 @@ export default function ScrollMask({
       wrapper.style.marginTop = '-100vh';
       wrapper.style.background = 'var(--background)';
     }
-    // Bindirilmiş bölüm, sırası gelene kadar hero'nun üstünde görünmemeli
-    // Karar kaydırma olaylarına bağlı, konum karşılaştırmasına değil:
-    // Safari'de trackpad kaydırması küsuratlı konum bildiriyor (2639,6 <
-    // 2640) ve karşılaştırma bölümü kalıcı olarak gizli bırakıyordu.
-    const show = (visible: boolean) => {
-      if (overlapPrevious) wrapper.style.visibility = visible ? '' : 'hidden';
-    };
-    // Yalnızca ilk kurulum ve yeniden ölçümde konumdan karar veriliyor;
-    // burada da yarım piksellik pay bırakılıyor.
-    const syncVisibility = (self: ScrollTrigger) => {
-      show(self.progress > 0 || self.scroll() >= self.start - 1);
+    // Bindirilmiş bölüm, sırası gelene kadar hero'nun üstünde görünmemeli.
+    //
+    // Karar, bölümün ekrandaki gerçek konumundan veriliyor: tepesi ekranın
+    // üstüne dayanmışsa (pin'li ya da geçilmiş) görünür, aşağıdaysa gizli.
+    // Önce kaydırma konumunu başlangıçla karşılaştırdık, sonra GSAP'in
+    // giriş/çıkış olaylarına bağladık; ikisi de gerçek Safari'de (kaydırma
+    // ayrı iş parçacığında, momentumlu) bölümü yanlış durumda bıraktı.
+    // Konuma bakmak olayların sırasından bağımsız: her kaydırmada yeniden
+    // hesaplanıyor, yanlış bir durum en geç bir sonraki kaydırmada düzeliyor.
+    const syncVisibility = () => {
+      if (!overlapPrevious) return;
+      const top = wrapper.getBoundingClientRect().top;
+      wrapper.style.visibility = top <= 1 ? '' : 'hidden';
     };
 
     // Bölüm, maske açılırken ekranda sabit tutulur (pin). Pin olmadan
@@ -255,20 +257,20 @@ export default function ScrollMask({
         // düşük bir öncelik alıyoruz.
         refreshPriority: 1,
         scrub: smooth,
-        onUpdate: (self) => apply(self.progress),
-        onEnter: () => show(true),
-        onLeaveBack: () => show(false),
+        onUpdate: (self) => {
+          apply(self.progress);
+          syncVisibility();
+        },
+        onToggle: syncVisibility,
         onRefresh: syncVisibility,
         onLeave: () => {
-          show(true);
           overlay.style.visibility = 'hidden';
         },
         onEnterBack: () => {
-          show(true);
           overlay.style.visibility = 'visible';
         },
       });
-      syncVisibility(trigger);
+      syncVisibility();
     }, wrapper);
 
     // Pin, kendisinden sonraki her şeyin sayfa konumunu kaydırır. İçerideki
@@ -280,10 +282,12 @@ export default function ScrollMask({
     // Ekran döndüğünde (dikey/yatay) hücreler yeni yerleşime göre çizilsin
     const onResize = () => apply(trigger?.progress ?? 0);
     if (variant === 'cells') window.addEventListener('resize', onResize);
+    if (overlapPrevious) window.addEventListener('scroll', syncVisibility, { passive: true });
 
     return () => {
       clearTimeout(refreshTimer);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', syncVisibility);
       ctx.revert();
       wrapper.style.marginTop = '';
       wrapper.style.background = '';
