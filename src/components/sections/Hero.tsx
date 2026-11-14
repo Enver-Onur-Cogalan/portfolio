@@ -112,7 +112,7 @@ export default function Hero() {
         // Video 4,4 sn; mesafe eski 5 sn'lik videonun hızını koruyor
         end: mobile ? '+=1320' : '+=2640',
         pin: true,
-        // Sayfadaki ilk pin — ScrollMask'ten önce ölçülmeli
+        // Sayfadaki ilk pin; sonraki pin'lerden önce ölçülmeli
         refreshPriority: 2,
         scrub: mobile ? 2 : 0.5,
         onUpdate: (self) => {
