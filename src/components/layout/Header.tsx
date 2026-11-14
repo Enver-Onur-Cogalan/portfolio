@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/ui/LanguageToggle';
@@ -16,6 +17,8 @@ const navKeys = [
 
 export default function Header() {
   const { t } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -24,8 +27,10 @@ export default function Header() {
 
   const scrollToSection = (id: string) => {
     // Ortak yardımcı: sabitlenmiş (pin) bölümlerin yol açtığı konum
-    // kaymasını da hesaba katıyor.
-    smoothScrollToSection(id);
+    // kaymasını da hesaba katıyor. Bölüm bu sayfada yoksa (ör. 404)
+    // ana sayfadaki bölüme gidilir.
+    if (document.getElementById(id)) smoothScrollToSection(id);
+    else router.push(`/#${id}`);
     setIsMenuOpen(false);
   };
 
@@ -61,6 +66,19 @@ export default function Header() {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isMenuOpen]);
+
+  /*
+    /#projeler gibi bir adresle gelindiyse (404 sayfasındaki düğmeler,
+    paylaşılan bağlantılar): tarayıcının kendi atlaması hero sabitlenmeden
+    önce oluyor ve yanlış yere iniyor. Sayfa oturunca bölüme yeniden gidilir.
+    Menü sayfalar arasında yeniden kurulmadığı için sayfa değişimi izleniyor.
+  */
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!navKeys.some((item) => item.id === id)) return;
+    const timer = setTimeout(() => smoothScrollToSection(id, 900), 500);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   // Bileşen kaldırılırsa sayfa kaydırması kilitli kalmasın
   useEffect(() => {

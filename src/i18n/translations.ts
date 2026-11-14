@@ -149,6 +149,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'a11y.skipToContent': 'İçeriğe geç',
     'nav.footer': 'Site menüsü',
     'nav.home': 'Sayfanın başına dön',
+    'notFound.title': 'Bu sayfayı mikroskopla bile bulamadık.',
+    'notFound.desc': 'Adres yanlış yazılmış ya da sayfa taşınmış olabilir. Hücreler burada değil ama gerisi şu tarafta:',
+    'notFound.home': 'Ana sayfa',
+    'error.title': 'Bir şeyler ters gitti.',
+    'error.desc': 'Bu kısım yüklenirken bir hata oldu. Çoğu zaman tekrar denemek yetiyor.',
+    'error.retry': 'Tekrar dene',
 
     // Social
     'social.email': 'E-posta',
@@ -322,6 +328,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'a11y.skipToContent': 'Skip to content',
     'nav.footer': 'Site menu',
     'nav.home': 'Back to the top',
+    'notFound.title': 'Not even the microscope could find this page.',
+    'notFound.desc': 'The address may be mistyped, or the page has moved. No cells here, but the rest is this way:',
+    'notFound.home': 'Home',
+    'error.title': 'Something went wrong.',
+    'error.desc': 'This part failed to load. Trying again usually does the trick.',
+    'error.retry': 'Try again',
 
     // Social
     'social.email': 'Email',
