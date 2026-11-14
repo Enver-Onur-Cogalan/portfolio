@@ -11,13 +11,22 @@ import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
 import { heroVideo, PORTRAIT_QUERY, type HeroVideoSource } from '@/data/heroVideo';
 
 /**
- * Hakkımda'ya geçiş, kaydırmanın bu noktasından sonra başlıyor: kamera
- * büyük hücrenin içine dalıyor, ardından görüntü sitenin arka plan
- * rengine eriyor. Pin bittiğinde ekran düz arka plan rengi olduğu için
- * Hakkımda normal akışla, hiçbir örtü ya da maske olmadan gelir.
+ * Hakkımda'ya geçiş iki parça:
+ *
+ * - Dalış: pin'in bu noktasından sonra kamera büyük hücrenin içine dalıyor.
+ * - Erime: görüntü sitenin arka plan rengine eriyor. Pin bitmeden biraz
+ *   önce başlıyor, hero ekrandan çıkarken bitiyor. Erime pin içinde
+ *   tamamlandığında hero'nun son ekranı düz renk kalıyor ve Hakkımda
+ *   gelene kadar bir ekran boyu boşluk geçiyordu; şimdi hücre yukarı kayıp
+ *   erirken Hakkımda hemen altından yükseliyor.
+ *
+ * İkisi de yalnızca kaydırma konumuna bağlı; açılıp kapanan bir durum yok.
  */
 const DIVE_START = 0.78;
-const FADE_START = 0.86;
+/** Erime, pin'in son %10'unda başlıyor */
+const MELT_BEFORE_END = 0.1;
+/** ve hero ekran yüksekliğinin %55'i kadar yukarı çıktığında bitiyor */
+const MELT_AFTER_END = 0.55;
 /** Dalışın sonunda video kaç kat büyümüş olacak */
 const DIVE_SCALE = 2.4;
 
@@ -38,6 +47,7 @@ export default function Hero() {
   const shadeRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const fadeRef = useRef<HTMLDivElement>(null);
+  const edgeRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -47,7 +57,8 @@ export default function Hero() {
     const shade = shadeRef.current;
     const media = mediaRef.current;
     const fade = fadeRef.current;
-    if (!container || !video || !welcome || !shade || !media || !fade) return;
+    const edge = edgeRef.current;
+    if (!container || !video || !welcome || !shade || !media || !fade || !edge) return;
 
     const mobile = window.innerWidth < 768;
 
@@ -95,11 +106,15 @@ export default function Hero() {
     // kaydırma konumunda, hangi yönden gelinirse gelinsin ve araya ne
     // kadar takılma girerse girsin, ekranda hep aynı şey var. Açılıp
     // kapanan bir durum (göster/gizle) yok; bozulabilecek bir şey de yok.
-    const drawTransition = (progress: number) => {
+    const drawDive = (progress: number) => {
       const dive = gsap.utils.clamp(0, 1, (progress - DIVE_START) / (1 - DIVE_START));
-      const melt = gsap.utils.clamp(0, 1, (progress - FADE_START) / (1 - FADE_START));
       media.style.transform = dive > 0 ? `scale(${1 + (DIVE_SCALE - 1) * easeIn(dive)})` : '';
-      fade.style.opacity = String(easeInOut(melt));
+    };
+    const drawMelt = (progress: number) => {
+      fade.style.opacity = String(easeInOut(progress));
+      // Hero ekrandan çıkarken alt kenarı Hakkımda'nın zeminine sert bir
+      // çizgiyle değiyordu; kenar erimenin başında yumuşuyor.
+      edge.style.opacity = String(gsap.utils.clamp(0, 1, progress * 4));
     };
 
     let rafId = 0;
@@ -131,13 +146,28 @@ export default function Hero() {
             shade.style.opacity = String(opacity);
             // Solmuş düğmeler görünmez olsa da tıklanabiliyordu
             welcome.style.pointerEvents = opacity < 0.2 ? 'none' : '';
-            drawTransition(progress);
+            drawDive(progress);
           });
         },
       });
+
+      // Erime ayrı bir tetikleyicide: aralığı pin'in sonunu aşıyor. Yumuşatma
+      // yok, doğrudan kaydırma konumunu izliyor.
+      const melt = ScrollTrigger.create({
+        trigger: container,
+        start: () => trigger.end - (trigger.end - trigger.start) * MELT_BEFORE_END,
+        end: () => trigger.end + window.innerHeight * MELT_AFTER_END,
+        // Pin'den sonra ölçülmeli: aralığı pin'in bittiği yere göre
+        refreshPriority: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => drawMelt(self.progress),
+        onRefresh: (self) => drawMelt(self.progress),
+      });
+
       // Sayfa aşağıda bir konumda açılırsa (yenileme, geri tuşu) geçiş o
       // konuma göre çizilmiş başlasın
-      drawTransition(trigger.progress);
+      drawDive(trigger.progress);
+      drawMelt(melt.progress);
     }, container);
 
     return () => {
@@ -195,6 +225,14 @@ export default function Hero() {
           style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 65%)' }}
         />
       </div>
+
+      {/* Alt kenarı arka plan rengine karıştıran geçiş (erimeyle görünür) */}
+      <div
+        ref={edgeRef}
+        className="absolute inset-x-0 bottom-0 h-2/5 z-20 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, transparent, var(--background))', opacity: 0 }}
+        aria-hidden="true"
+      />
 
       {/* Geçişin sonu: görüntü sitenin arka plan rengine eriyor. En üstte
           duruyor ki kaydırma ipucu da onunla birlikte kaybolsun. */}
