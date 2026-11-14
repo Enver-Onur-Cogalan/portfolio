@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { Download } from 'lucide-react';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/ui/LanguageToggle';
 import { useLanguage } from '@/context/LanguageContext';
 import { scrollToSection as smoothScrollToSection, scrollToTop } from '@/lib/scroll';
-import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
 
 const navKeys = [
   { key: 'nav.about', id: 'hakkimda' },
@@ -144,17 +142,6 @@ export default function Header() {
           <div className="md:hidden flex-1" />
 
           <div className="flex items-center gap-2 md:gap-3">
-            {/* CV: hero'daki dolgulu düğmeyle yarışmasın diye çerçeveli */}
-            <a
-              href={CV_PATH}
-              download={CV_DOWNLOAD_NAME}
-              className="inline-flex items-center gap-1.5 h-9 md:h-11 px-3 md:px-4 rounded-full text-xs md:text-sm font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_14%,transparent)]"
-              style={{ border: '1.5px solid var(--accent)', color: 'var(--foreground)' }}
-              aria-label={t('nav.resumeDownload')}
-            >
-              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ color: 'var(--accent)' }} aria-hidden="true" />
-              {t('nav.resume')}
-            </a>
             <LanguageToggle />
             <ThemeToggle />
           </div>

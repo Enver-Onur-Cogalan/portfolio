@@ -149,7 +149,6 @@ export const translations: Record<Language, Record<string, string>> = {
     'a11y.skipToContent': 'İçeriğe geç',
     'nav.footer': 'Site menüsü',
     'nav.home': 'Sayfanın başına dön',
-    'nav.resumeDownload': 'CV indir',
 
     // Social
     'social.email': 'E-posta',
@@ -323,7 +322,6 @@ export const translations: Record<Language, Record<string, string>> = {
     'a11y.skipToContent': 'Skip to content',
     'nav.footer': 'Site menu',
     'nav.home': 'Back to the top',
-    'nav.resumeDownload': 'Download CV',
 
     // Social
     'social.email': 'Email',
