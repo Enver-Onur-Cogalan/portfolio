@@ -168,7 +168,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       */}
       <div
         ref={welcomeRef}
-        className="absolute inset-x-0 top-0 h-svh lg:h-full z-10 px-5 md:px-12 lg:px-[6vw] pt-16 pb-14 lg:py-0"
+        className="absolute inset-x-0 top-0 h-svh lg:h-full z-10 px-5 md:px-12 lg:px-[6vw] pt-12 md:pt-16 pb-14 lg:py-0"
       >
         <div className="h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-5 lg:gap-10">
           <div className="hero-rise shrink-0 lg:order-2 lg:mr-[2vw]">
