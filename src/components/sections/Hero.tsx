@@ -8,111 +8,102 @@ import { scrollToSection } from '@/lib/scroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { socialLinks } from '@/data/portfolio';
 import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
+import { heroVideo, PORTRAIT_QUERY } from '@/data/heroVideo';
 
-interface HeroProps {
-  /** Video kaydırması bittiğinde tetiklenir */
-  onVideoEnd?: () => void;
-}
-
-export default function Hero({ onVideoEnd }: HeroProps) {
+export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const welcomeRef = useRef<HTMLDivElement>(null);
-  const blackoutRef = useRef<HTMLDivElement>(null);
-  const hasLeftRef = useRef(false);
+  const shadeRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
-
-  // Set correct video source based on device
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const mobile = window.innerWidth < 768;
-    const correctSrc = mobile ? '/scroll-video-mobile.mp4' : '/scroll-video-opt.mp4';
-
-    if (!video.src.endsWith(correctSrc)) {
-      video.src = correctSrc;
-      video.load();
-    }
-  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
     const welcome = welcomeRef.current;
-    const blackout = blackoutRef.current;
-
-    if (!container || !video || !welcome || !blackout) return;
+    const shade = shadeRef.current;
+    if (!container || !video || !welcome || !shade) return;
 
     const mobile = window.innerWidth < 768;
 
+    // Ekrana uygun sürüm. Hakkımda'yı açan maske de aynı sorguyla son
+    // kareyi seçiyor; ikisi farklı dosya seçerse geçişte görüntü sıçrar.
+    const source = window.matchMedia(PORTRAIT_QUERY).matches
+      ? heroVideo.portrait
+      : heroVideo.landscape;
+    if (!video.src.endsWith(source.video)) {
+      video.src = source.video;
+      video.load();
+    }
     video.pause();
     video.currentTime = 0;
 
-    // Giriş animasyonu CSS'te (.hero-rise): ilk karede görünür olmalı ki
-    // tarayıcı ana içeriği JavaScript'i beklemeden boyayabilsin.
+    // Video ilk karesini çizene kadar görünmez; altında aynı karenin
+    // posteri duruyor. Böylece yavaş bağlantıda siyah ekran görünmüyor.
+    const reveal = () => {
+      video.style.opacity = '1';
+    };
+    video.addEventListener('loadeddata', reveal);
+    video.addEventListener('seeked', reveal);
+    if (video.readyState >= 2) reveal();
 
-    let ctx: gsap.Context;
-    let rafId: number;
+    // Video kare kare, kaydırdıkça iniyordu; yavaş bağlantıda takılıyordu.
+    // Sayfa yüklendikten sonra tamamını arka planda indir.
+    const preloadAll = () => {
+      video.preload = 'auto';
+    };
+    if (document.readyState === 'complete') preloadAll();
+    else window.addEventListener('load', preloadAll, { once: true });
+
+    let rafId = 0;
     let lastProgress = 0;
 
-    const setupScrollTrigger = () => {
-      if (!video.duration) return;
+    // Pin hemen kuruluyor, video bilgisinin gelmesi beklenmiyor: Hakkımda
+    // bu pinin bittiği yere bindiriliyor (ScrollMask overlapPrevious) ve
+    // pin geç kurulursa o arada Hakkımda hero'nun üstünde görünüyordu.
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: container,
+        start: 'top top',
+        // Video 4,4 sn; mesafe eski 5 sn'lik videonun hızını koruyor
+        end: mobile ? '+=1320' : '+=2640',
+        pin: true,
+        // Sayfadaki ilk pin — ScrollMask'ten önce ölçülmeli
+        refreshPriority: 2,
+        scrub: mobile ? 2 : 0.5,
+        onUpdate: (self) => {
+          // Mobilde küçük değişimleri atla, gereksiz kare çözmesin
+          if (mobile && Math.abs(self.progress - lastProgress) < 0.008) return;
+          lastProgress = self.progress;
 
-      ctx = gsap.context(() => {
-        ScrollTrigger.create({
-          trigger: container,
-          start: 'top top',
-          end: mobile ? '+=1500' : '+=3000',
-          pin: true,
-          // Sayfadaki ilk pin — ScrollMask'ten önce ölçülmeli
-          refreshPriority: 2,
-          scrub: mobile ? 2 : 0.5,
-          onUpdate: (self) => {
-            // On mobile, skip tiny progress changes to reduce decode calls
-            if (mobile && Math.abs(self.progress - lastProgress) < 0.008) return;
-            lastProgress = self.progress;
-
-            cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(() => {
-              if (video.duration) {
-                video.currentTime = self.progress * video.duration;
-              }
-              const opacity = Math.max(0, 1 - self.progress * 3);
-              gsap.to(welcome, { opacity, duration: 0.1 });
-              // Solmuş düğmeler görünmez olsa da tıklanabiliyordu
-              welcome.style.pointerEvents = opacity < 0.2 ? 'none' : '';
-            });
-          },
-          onLeave: () => {
-            hasLeftRef.current = true;
-            blackout.style.opacity = '1';
-            video.pause();
-            onVideoEnd?.();
-          },
-          onEnterBack: () => {
-            hasLeftRef.current = false;
-            blackout.style.opacity = '0';
-          },
-          onLeaveBack: () => {
-            hasLeftRef.current = false;
-          },
-        });
-      }, container);
-    };
-
-    if (video.readyState >= 1) {
-      setupScrollTrigger();
-    } else {
-      video.addEventListener('loadedmetadata', setupScrollTrigger);
-    }
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            if (video.duration) {
+              video.currentTime = self.progress * video.duration;
+            }
+            const opacity = Math.max(0, 1 - self.progress * 3);
+            gsap.to([welcome, shade], { opacity, duration: 0.1 });
+            // Solmuş düğmeler görünmez olsa da tıklanabiliyordu
+            welcome.style.pointerEvents = opacity < 0.2 ? 'none' : '';
+          });
+        },
+        onLeave: () => {
+          // Kaydırma yumuşatması videoyu son kareden geride bırakabiliyor;
+          // maske tam son kareyle başladığı için videoyu oraya oturt.
+          if (video.duration) video.currentTime = video.duration;
+          video.pause();
+        },
+      });
+    }, container);
 
     return () => {
       cancelAnimationFrame(rafId);
-      video.removeEventListener('loadedmetadata', setupScrollTrigger);
-      if (ctx) ctx.revert();
+      video.removeEventListener('loadeddata', reveal);
+      video.removeEventListener('seeked', reveal);
+      window.removeEventListener('load', preloadAll);
+      ctx.revert();
     };
-  }, [onVideoEnd]);
+  }, []);
 
   return (
     <div
@@ -120,35 +111,44 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       className="relative w-full h-screen"
       style={{ backgroundColor: '#000' }}
     >
+      {/* Poster: ekrana uygun ilk kare, HTML'de olduğu için JavaScript
+          beklenmeden yükleniyor. Öncelik verilmiyor: telefondaki fotoğrafla
+          (sayfanın LCP öğesi) bant genişliği için yarışıyordu. */}
+      <picture>
+        <source media={PORTRAIT_QUERY} srcSet={heroVideo.portrait.first} />
+        <img
+          src={heroVideo.landscape.first}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </picture>
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover opacity-0"
         muted
         playsInline
         preload="metadata"
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-black/30" />
-      {/* Yazının durduğu tarafı biraz daha koyulaştıran örtüler: masaüstünde
-          soldan, mobilde alttan. Videonun hangi karesi gelirse gelsin metin
-          okunur kalıyor, mikroskobun durduğu orta kısım ise açık kalıyor. */}
-      <div
-        className="absolute inset-0 hidden lg:block"
-        style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 34%, rgba(0,0,0,0) 52%)' }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 lg:hidden"
-        style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 65%)' }}
-        aria-hidden="true"
-      />
 
-      {/* Yalnızca görsel örtü: görünmezken bile üstte durduğu için
-          tıklamaları yutmamalı, yoksa hero'daki düğmeler çalışmıyor. */}
-      <div
-        ref={blackoutRef}
-        className="absolute inset-0 bg-background z-20 opacity-0 pointer-events-none"
-      />
+      {/* Yazıyı okunur tutan örtüler. Yazıyla birlikte soluyorlar: video
+          son karesine vardığında hiçbiri kalmamalı, çünkü Hakkımda'yı açan
+          maske aynı kareyi örtüsüz gösteriyor. */}
+      <div ref={shadeRef} className="absolute inset-0" aria-hidden="true">
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Masaüstünde soldan, mobilde alttan biraz daha koyu: metnin
+            durduğu taraf. Mikroskobun durduğu orta kısım açık kalıyor. */}
+        <div
+          className="absolute inset-0 hidden lg:block"
+          style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 34%, rgba(0,0,0,0) 52%)' }}
+        />
+        <div
+          className="absolute inset-0 lg:hidden"
+          style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 65%)' }}
+        />
+      </div>
 
       {/*
         Videonun ilk karesinde mikroskop yatayda kabaca %37–63 arasında,

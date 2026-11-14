@@ -4,17 +4,22 @@ import About from '@/components/sections/About';
 import Projects from '@/components/sections/Projects';
 import Experience from '@/components/sections/Experience';
 import Contact from '@/components/sections/Contact';
+import { heroCells, heroVideo, PORTRAIT_QUERY } from '@/data/heroVideo';
+
+// Örtünün zemini: hero videosunun son karesi (ekrana göre yatay ya da dikey)
+const cellsBackdrop = { ...heroVideo, portraitQuery: PORTRAIT_QUERY };
 
 export default function Home() {
   return (
     <>
       <Hero />
       {/*
-        Hero videosu bittiğinde ekran arka plan rengiyle kapalı kalıyor.
-        ScrollMask bu örtüyü kaydırmaya bağlı olarak açıp Hakkımda
-        bölümünü ortaya çıkarır; açılma bitince sayfa normal akar.
+        Hero videosu mikroskobun içindeki hücrelerde bitiyor. Hakkımda,
+        hero'nun son ekranının altına bindirilmiş durumda ve üstünde aynı
+        karenin resmi var; video bittiği anda hücreler pencereye dönüşüp
+        büyüyerek Hakkımda'yı açıyor. Açılma bitince sayfa normal akar.
       */}
-      <ScrollMask variant="grid">
+      <ScrollMask variant="cells" cells={heroCells} backdrop={cellsBackdrop} overlapPrevious>
         <About />
       </ScrollMask>
       <Projects />
