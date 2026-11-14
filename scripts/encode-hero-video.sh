@@ -17,11 +17,10 @@
 #
 # - Video kaydırmaya bağlı oynatılıyor (currentTime ile ileri geri
 #   aranıyor). Aranan kareye ulaşmak için en yakın anahtar kareden
-#   itibaren çözmek gerekir; bu yüzden anahtar kareler sık olmalı.
-#   Yatayda 6 karede bir anahtar kare yeterli: her kareyi anahtar yapmaya
-#   göre dosya yarıya iniyor, kaydırma ölçümünde fark çıkmadı.
-#   Dikeyde (telefonlar) her kare anahtar kare; zayıf işlemcide risk
-#   almıyoruz.
+#   itibaren çözmek gerekir. Her kare anahtar kare (keyint=1).
+#   6 karede bir anahtar kare denendi: dosya yarıya iniyordu ve Chrome'da
+#   sorun yoktu, ama Safari kaydırırken ara kareleri yarım çiziyordu;
+#   ekranın üstü bir kareden, altı başka bir kareden geliyordu.
 # - Dikey sürüm yataydan ortadaki 608 px'lik şerit kesilerek üretiliyor.
 #   Telefonda yatay video ekranı kaplamak için büyütüldüğünde zaten
 #   yalnızca bu şerit görünüyordu; 540×960 aynı piksel sayısıyla
@@ -52,7 +51,7 @@ x264() {
 
 echo "yatay video…"
 x264 -c:v libx264 -preset slow -profile:v high -pix_fmt yuv420p -crf 23 \
-  -x264-params keyint=6:min-keyint=6:scenecut=0:bframes=0 \
+  -x264-params keyint=1 \
   -movflags +faststart "$OUT/hero-landscape.mp4"
 
 echo "dikey video…"
