@@ -36,7 +36,6 @@ export const topicCatalog: Record<string, Topic> = {
   mobil: { label: { tr: 'Mobil tarafı', en: 'Mobile work' }, query: 'react native' },
   weather: { label: { tr: 'WeatherApp', en: 'WeatherApp' }, query: 'weatherapp' },
   memefile: { label: { tr: 'Meme File', en: 'Meme File' }, query: 'meme file' },
-  jarvis: { label: { tr: 'Jarvis', en: 'Jarvis' }, query: 'jarvis' },
   unimall: { label: { tr: 'Unimall vakası', en: 'Unimall case' }, query: 'unimall' },
   biyoloji: { label: { tr: 'Biyolojiden yazılıma', en: 'Biology to software' }, query: 'biyoloji' },
   konum: { label: { tr: 'Nerede yaşıyor?', en: 'Where is he?' }, query: 'nerede' },
@@ -342,10 +341,10 @@ export const directResponses: ResponseItem[] = [
     sectionId: 'projeler',
     keywords: ['react native', 'mobile', 'mobil', 'uygulama', 'app', 'expo', 'react'],
     response: {
-      tr: 'Mobil geliştirme Onur\'un uzmanlık alanı! WeatherApp (Skia, Reanimated ve yerel bir modelle çalışan asistan), Jarvis (sesli asistan), ChatApp (gerçek zamanlı sohbet) ve MovieApp gibi projelerinde React Native ve Expo kullandı. Kullanıcı dostu ve performanslı uygulamalar üretmeye bayılıyor.',
-      en: 'Mobile development is Onur\'s specialty! He used React Native and Expo in projects like WeatherApp (Skia, Reanimated and an assistant backed by a local model), Jarvis (voice assistant), ChatApp (real-time chat), and MovieApp. He loves building user-friendly, high-performance apps.',
+      tr: 'Mobil geliştirme Onur\'un çıkış noktası! Appisode\'da Londra merkezli bir ekiple React Native (Expo) üzerinde çalıştı; WeatherApp\'in mobil uygulamasında da Skia ve Reanimated ile akıcı bir arayüz kurdu. "Çalışıyor" ile "kullanılabilir" arasındaki farkı önemsiyor.',
+      en: 'Mobile development is where Onur started! At Appisode he worked on React Native (Expo) with a London-based team, and WeatherApp\'s mobile app uses Skia and Reanimated for a smooth interface. He cares about the gap between "it works" and "it\'s usable".',
     },
-    suggests: ['weather', 'jarvis', 'yetenekler'],
+    suggests: ['weather', 'deneyim', 'yetenekler'],
   },
   // WeatherApp
   {
@@ -377,17 +376,6 @@ export const directResponses: ResponseItem[] = [
       en: `Meme File is a Windows desktop app Onur built: a library for reaction videos. It watches your folders, builds a thumbnail and a scrubbable preview for every clip; you tag them with chips, find one in a second and drag it straight into Discord. It never moves your files — it only adds a tagging layer on top.\n\nOn the engineering side: the UI is sandboxed and cannot touch the file system, and videos stream through a custom protocol that serves only library folders. Files are identified by a content hash, so a moved video keeps its tags. For Discord's 10 MB limit, bitrate is derived from the clip length.\n\nMeasured during development, a search over 5,000 videos takes 2 ms. The installer is published and updates itself.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/meme-file`,
     },
     suggests: ['weather', 'projeler', 'yetenekler'],
-  },
-  // Jarvis
-  {
-    topic: 'jarvis',
-    sectionId: 'projeler',
-    keywords: ['jarvis', 'asistan', 'sesli asistan', 'voice assistant'],
-    response: {
-      tr: `Jarvis, Onur'un en kapsamlı projelerinden biri! Sesli komutlarla mobil cihazınızla etkileşim kurmanızı sağlayan akıllı bir kişisel asistan. React Native (Expo), TypeScript, Groq (Llama 3.x), ElevenLabs API kullanılarak geliştirildi.\n\nGitHub: ${socialLinks.github}`,
-      en: `Jarvis is one of Onur's most comprehensive projects! A smart personal assistant that lets you interact with your mobile device via voice commands. Built with React Native (Expo), TypeScript, Groq (Llama 3.x), and ElevenLabs API.\n\nGitHub: ${socialLinks.github}`,
-    },
-    suggests: ['projeler', 'mobil', 'ai'],
   },
   // Biyoloji
   {

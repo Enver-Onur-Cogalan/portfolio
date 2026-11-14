@@ -5,6 +5,7 @@ import { Download, Maximize2 } from 'lucide-react';
 import { tint, type Project } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
+import ProjectMedia from '@/components/ui/ProjectMedia';
 
 /*
   Öne çıkan proje kartı.
@@ -14,7 +15,7 @@ import { gsap } from '@/lib/gsap';
   kalıbının aynısı — Problem/Yaklaşım/Sonuç bir tıklama arkasında.
 
   İki hâli var, vitrin (FeaturedShowcase) hangisinde olacağını söylüyor:
-    · wide    → rozet, açıklama, vaka çalışması, teknolojiler
+    · wide    → rozet, açıklama, vaka çalışması, teknolojiler, video
     · compact → tek satır: başlık, iddia cümlesi, bağlantılar
 
   Başlık, durum noktası ve GitHub bağlantısı iki hâlde de ağaçta AYNI
@@ -248,185 +249,204 @@ export default function FeaturedProject({
       </div>
 
       <div className={isWide ? 'p-6 sm:p-8' : 'px-5 py-4 sm:px-6'}>
-        <div className={`flex items-start justify-between gap-4 ${isWide ? 'mb-4' : ''}`}>
-          <div className="min-w-0">
-            {isWide && (
-              <span
-                className="featured-fade inline-block text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-md mb-3"
-                style={{
-                  background: tint('var(--secondary)', 14),
-                  border: `1px solid ${tint('var(--secondary)', 42)}`,
-                  color: 'var(--secondary)',
-                }}
-              >
-                {t('projects.featured.badge')}
-              </span>
-            )}
-            <div className="flex items-center gap-2.5">
-              <span
-                className="status-dot w-3 h-3 rounded-full opacity-30 shrink-0"
-                style={{ background: 'var(--secondary)' }}
-                aria-hidden="true"
-              />
-              <h3
-                className={`${isWide ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'} font-bold font-heading tracking-tight`}
-                style={{ color: 'var(--foreground)' }}
-                onMouseEnter={(e) => handleTitleHover(e, true)}
-                onMouseLeave={(e) => handleTitleHover(e, false)}
-              >
-                {project.title.split('').map((letter, i) => (
+        {/*
+          Geniş kartta metin solda, video sağda; dar ekranda video altta.
+          Sarmalayıcılar iki hâlde de var (yalnızca sınıflar değişiyor):
+          başlığın ağaçtaki yeri değişmesin, hover dinleyicileri kopmasın.
+        */}
+        <div className={isWide && project.media ? 'lg:flex lg:items-start lg:gap-10' : ''}>
+          <div className="min-w-0 flex-1">
+            <div className={`flex items-start justify-between gap-4 ${isWide ? 'mb-4' : ''}`}>
+              <div className="min-w-0">
+                {isWide && (
                   <span
-                    key={i}
-                    className="title-letter inline-block"
-                    style={{ display: letter === ' ' ? 'inline' : 'inline-block' }}
+                    className="featured-fade inline-block text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-md mb-3"
+                    style={{
+                      background: tint('var(--secondary)', 14),
+                      border: `1px solid ${tint('var(--secondary)', 42)}`,
+                      color: 'var(--secondary)',
+                    }}
                   >
-                    {letter === ' ' ? ' ' : letter}
+                    {t('projects.featured.badge')}
                   </span>
-                ))}
-              </h3>
-            </div>
-            {project.headline && (
-              <p
-                className={isWide ? 'mt-2 text-base sm:text-lg font-medium' : 'mt-0.5 text-sm font-medium truncate'}
-                style={{ color: 'var(--secondary)' }}
-              >
-                {label('headline')}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {project.download && (
-              <a
-                href={project.download}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`download-link inline-flex items-center gap-2 rounded-xl text-sm font-medium transition-transform duration-300 hover:scale-105 ${
-                  isWide ? 'px-3.5 py-2.5' : 'p-2.5'
-                }`}
-                style={{ ...iconButtonStyle, color: 'var(--foreground)' }}
-                // Yazı dar ekranda gizleniyor; ad her durumda ekran okuyucuya gitsin
-                aria-label={`${project.title} — ${t('projects.download.windows')}`}
-              >
-                <Download className="w-4 h-4 shrink-0" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
-                {isWide && <span className="hidden sm:inline">{t('projects.download.windows')}</span>}
-              </a>
-            )}
-
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="github-link p-2.5 rounded-xl transition-transform duration-300 hover:scale-110"
-              style={iconButtonStyle}
-              aria-label={`${project.title} GitHub`}
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
-              </svg>
-            </a>
-
-            {!isWide && onPromote && (
-              <button
-                type="button"
-                onClick={onPromote}
-                className="p-2.5 rounded-xl transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{ ...iconButtonStyle, outlineColor: 'var(--secondary)' }}
-                aria-label={`${project.title} — ${t('projects.showcase.expand')}`}
-              >
-                <Maximize2 className="w-4 h-4" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {isWide && (
-          <div className="featured-fade">
-            <p
-              className="text-sm sm:text-base leading-relaxed max-w-3xl"
-              style={{ color: 'var(--foreground)', opacity: 0.85 }}
-            >
-              {label('desc')}
-            </p>
-
-            {project.caseStudy && project.caseStudy.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  onClick={toggleDetails}
-                  aria-expanded={isOpen}
-                  aria-controls={`case-${project.id}`}
-                  className="mt-7 inline-flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 -ml-3 transition-colors hover:bg-[color-mix(in_srgb,var(--muted)_10%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2"
-                  style={{ color: 'var(--secondary)', outlineColor: 'var(--secondary)' }}
-                >
-                  {isOpen ? t('experience.collapse') : t('experience.expand')}
-                  <svg
-                    className="w-4 h-4 transition-transform duration-300"
-                    style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                )}
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="status-dot w-3 h-3 rounded-full opacity-30 shrink-0"
+                    style={{ background: 'var(--secondary)' }}
                     aria-hidden="true"
+                  />
+                  <h3
+                    className={`${isWide ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'} font-bold font-heading tracking-tight`}
+                    style={{ color: 'var(--foreground)' }}
+                    onMouseEnter={(e) => handleTitleHover(e, true)}
+                    onMouseLeave={(e) => handleTitleHover(e, false)}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {/*
-                  Yükseklik yerine `grid-template-rows` geçişi: içeriğin
-                  yüksekliğini önceden ölçmeye gerek kalmıyor ve metin
-                  uzunluğu dile göre değiştiğinde animasyon bozulmuyor.
-                */}
-                <div
-                  id={`case-${project.id}`}
-                  className="grid transition-[grid-template-rows] duration-500 ease-out motion-reduce:transition-none"
-                  style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
-                >
-                  <div className="overflow-hidden">
-                    <div className="pt-4 space-y-5 max-w-3xl">
-                      {project.caseStudy.map((block) => (
-                        <div
-                          key={block}
-                          className="pl-4 border-l-2"
-                          style={{ borderColor: tint('var(--secondary)', 40) }}
-                        >
-                          <h4
-                            className="text-[11px] font-bold uppercase tracking-[0.14em] mb-1.5"
-                            style={{ color: 'var(--secondary)' }}
-                          >
-                            {t(`experience.block.${block}`)}
-                          </h4>
-                          <p
-                            className="text-sm leading-relaxed"
-                            style={{ color: 'var(--foreground)', opacity: 0.85 }}
-                          >
-                            {label(block)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                    {project.title.split('').map((letter, i) => (
+                      <span
+                        key={i}
+                        className="title-letter inline-block"
+                        style={{ display: letter === ' ' ? 'inline' : 'inline-block' }}
+                      >
+                        {letter === ' ' ? ' ' : letter}
+                      </span>
+                    ))}
+                  </h3>
                 </div>
-              </>
-            )}
+                {project.headline && (
+                  <p
+                    className={isWide ? 'mt-2 text-base sm:text-lg font-medium' : 'mt-0.5 text-sm font-medium truncate'}
+                    style={{ color: 'var(--secondary)' }}
+                  >
+                    {label('headline')}
+                  </p>
+                )}
+              </div>
 
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
-                <li
-                  key={tech}
-                  className="text-xs px-3 py-1.5 rounded-lg font-medium"
-                  style={{
-                    background: tint('var(--secondary)', 14),
-                    border: `1px solid ${tint('var(--secondary)', 40)}`,
-                    color: 'var(--foreground)',
-                  }}
+              <div className="flex items-center gap-2 shrink-0">
+                {project.download && (
+                  <a
+                    href={project.download}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`download-link inline-flex items-center gap-2 rounded-xl text-sm font-medium transition-transform duration-300 hover:scale-105 ${
+                      isWide ? 'px-3.5 py-2.5' : 'p-2.5'
+                    }`}
+                    style={{ ...iconButtonStyle, color: 'var(--foreground)' }}
+                    // Yazı dar ekranda gizleniyor; ad her durumda ekran okuyucuya gitsin
+                    aria-label={`${project.title} — ${t('projects.download.windows')}`}
+                  >
+                    <Download className="w-4 h-4 shrink-0" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
+                    {isWide && <span className="hidden sm:inline">{t('projects.download.windows')}</span>}
+                  </a>
+                )}
+
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="github-link p-2.5 rounded-xl transition-transform duration-300 hover:scale-110"
+                  style={iconButtonStyle}
+                  aria-label={`${project.title} GitHub`}
                 >
-                  {tech}
-                </li>
-              ))}
-            </ul>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+                  </svg>
+                </a>
+
+                {!isWide && onPromote && (
+                  <button
+                    type="button"
+                    onClick={onPromote}
+                    className="p-2.5 rounded-xl transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2"
+                    style={{ ...iconButtonStyle, outlineColor: 'var(--secondary)' }}
+                    aria-label={`${project.title} — ${t('projects.showcase.expand')}`}
+                  >
+                    <Maximize2 className="w-4 h-4" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {isWide && (
+              <div className="featured-fade">
+                <p
+                  className="text-sm sm:text-base leading-relaxed max-w-3xl"
+                  style={{ color: 'var(--foreground)', opacity: 0.85 }}
+                >
+                  {label('desc')}
+                </p>
+
+                {project.caseStudy && project.caseStudy.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={toggleDetails}
+                      aria-expanded={isOpen}
+                      aria-controls={`case-${project.id}`}
+                      className="mt-7 inline-flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-2 -ml-3 transition-colors hover:bg-[color-mix(in_srgb,var(--muted)_10%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2"
+                      style={{ color: 'var(--secondary)', outlineColor: 'var(--secondary)' }}
+                    >
+                      {isOpen ? t('experience.collapse') : t('experience.expand')}
+                      <svg
+                        className="w-4 h-4 transition-transform duration-300"
+                        style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/*
+                      Yükseklik yerine `grid-template-rows` geçişi: içeriğin
+                      yüksekliğini önceden ölçmeye gerek kalmıyor ve metin
+                      uzunluğu dile göre değiştiğinde animasyon bozulmuyor.
+                    */}
+                    <div
+                      id={`case-${project.id}`}
+                      className="grid transition-[grid-template-rows] duration-500 ease-out motion-reduce:transition-none"
+                      style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="pt-4 space-y-5 max-w-3xl">
+                          {project.caseStudy.map((block) => (
+                            <div
+                              key={block}
+                              className="pl-4 border-l-2"
+                              style={{ borderColor: tint('var(--secondary)', 40) }}
+                            >
+                              <h4
+                                className="text-[11px] font-bold uppercase tracking-[0.14em] mb-1.5"
+                                style={{ color: 'var(--secondary)' }}
+                              >
+                                {t(`experience.block.${block}`)}
+                              </h4>
+                              <p
+                                className="text-sm leading-relaxed"
+                                style={{ color: 'var(--foreground)', opacity: 0.85 }}
+                              >
+                                {label(block)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <ul className="mt-6 flex flex-wrap gap-2">
+                  {project.technologies.map((tech) => (
+                    <li
+                      key={tech}
+                      className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                      style={{
+                        background: tint('var(--secondary)', 14),
+                        border: `1px solid ${tint('var(--secondary)', 40)}`,
+                        color: 'var(--foreground)',
+                      }}
+                    >
+                      {tech}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
+
+          {isWide && project.media && (
+            <div
+              className={`featured-fade mt-8 lg:mt-0 shrink-0 ${
+                project.media.frame === 'phone' ? '' : 'lg:w-[46%]'
+              }`}
+            >
+              <ProjectMedia projectId={project.id} title={project.title} media={project.media} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Alt vurgu çizgisi — ızgaradaki kartlarla aynı */}

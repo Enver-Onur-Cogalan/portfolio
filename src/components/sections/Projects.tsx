@@ -148,7 +148,10 @@ export default function Projects() {
         */}
         {featured.length > 0 && <FeaturedShowcase projects={featured} />}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Izgarada tek kart kalırsa üçte birlik sütunda yalnız kalmasın;
+            hiç kart yoksa (hepsi vitrindeyse) boş ızgara boşluk bırakmasın */}
+        {rest.length > 0 && (
+        <div className={`grid grid-cols-1 gap-5 ${rest.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : ''}`}>
           {/*
             Kartlar tek hue kullanıyor: mavi. Eskiden renk `index % 3`
             ile seçiliyordu — dört proje, üç renk; hiçbir örüntü tutmuyor
@@ -257,6 +260,7 @@ export default function Projects() {
             );
           })}
         </div>
+        )}
       </div>
     </SectionWrapper>
   );
