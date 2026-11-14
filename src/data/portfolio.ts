@@ -34,6 +34,17 @@ export const socialLinks = {
   email: 'eonurcogalan@gmail.com',
 };
 
+/**
+ * Vitrindeki kısa video. Dosyalar public/projects/<id>/ altında
+ * (demo.mp4 + poster.webp), scripts/encode-project-media.sh ile üretiliyor.
+ * `frame` projenin doğduğu ortam: telefon, masaüstü penceresi ya da tarayıcı.
+ */
+export interface ProjectMedia {
+  frame: 'phone' | 'desktop' | 'browser';
+  width: number;
+  height: number;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -52,6 +63,8 @@ export interface Project {
   headline?: boolean;
   /** Anlatı bloklarının çeviri anahtarı sonekleri */
   caseStudy?: string[];
+  /** Geniş kartta gösterilen video */
+  media?: ProjectMedia;
 }
 
 export const projects: Project[] = [
@@ -76,6 +89,7 @@ export const projects: Project[] = [
     featured: true,
     headline: true,
     caseStudy: ['problem', 'approach', 'result'],
+    media: { frame: 'phone', width: 392, height: 850 },
   },
   {
     id: 'memefile',
@@ -98,14 +112,19 @@ export const projects: Project[] = [
     featured: true,
     headline: true,
     caseStudy: ['problem', 'approach', 'result'],
+    media: { frame: 'desktop', width: 860, height: 538 },
   },
   {
     id: 'portfolio',
     title: 'Portfolio',
     description:
-      'Modern animasyonlar ve interaktif sohbet botu ile kişisel portfolyo websitesi. Hakkımda, projeler, deneyimler ve iletişim bölümlerini içeren Next.js uygulaması.',
-    technologies: ['Next.js', 'React', 'TypeScript', 'TailwindCSS', 'GSAP'],
+      'Next.js ve GSAP ile yazdığım kişisel sitem: kaydırdıkça mikroskoba yaklaşan bir video, kendi çizgi animasyon motoru ve bilerek LLM kullanmayan bir sohbet botu.',
+    technologies: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'GSAP', 'SVG'],
     github: 'https://github.com/Enver-Onur-Cogalan/portfolio',
+    featured: true,
+    headline: true,
+    caseStudy: ['problem', 'approach', 'result'],
+    media: { frame: 'browser', width: 960, height: 540 },
   },
 ];
 

@@ -346,12 +346,12 @@ export default function About() {
               />
 
               <div className="relative z-10 pt-4">
-                <h4
+                <h3
                   className="text-lg font-bold mb-3 font-heading"
                   style={{ color: 'var(--foreground)' }}
                 >
                   {t(principle.titleKey)}
-                </h4>
+                </h3>
                 <p className="text-sm opacity-70 italic">&ldquo;{t(principle.quoteKey)}&rdquo;</p>
               </div>
             </div>
