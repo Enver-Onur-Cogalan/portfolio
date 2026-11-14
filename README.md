@@ -60,7 +60,8 @@ src/
 ├── context/                   # Theme and language providers
 ├── data/
 │   ├── portfolio.ts           # Projects, experience, tech list
-│   ├── site.ts                # Site URL, CV path
+│   ├── site.ts                # Site URL, CV files
+│   ├── cv.ts                  # CV-only copy: summary, bullet points
 │   ├── heroVideo.ts           # Hero video sources
 │   └── music.ts               # Lyric timestamps
 ├── i18n/translations.ts       # TR/EN dictionary (single source)
@@ -70,6 +71,7 @@ src/
     ├── gsap.ts                # GSAP plugin registration
     └── scroll.ts
 scripts/
+├── build-cv.ts                # CV PDFs (TR + EN) from the site's data
 ├── encode-hero-video.sh       # Hero video encodes + posters
 └── encode-project-media.sh    # Project demo videos + posters
 ```
@@ -118,7 +120,12 @@ npm run dev      # http://localhost:3000
 npm run build    # production build
 npm test         # unit tests (bot golden set, profanity filter)
 npm run lint     # ESLint
+npm run cv       # rebuild public/cv.pdf (TR) and public/cv-en.pdf (EN)
 ```
+
+### CV
+
+The CV is generated from the same data as the site: companies, roles, dates, projects, skills and links come from `src/data/portfolio.ts` and the translations; only the CV's own short copy (summary, bullet points) lives in `src/data/cv.ts`. `scripts/build-cv.ts` renders a one-page, ATS-friendly HTML page and prints it to PDF with the local Chrome, so there is no extra dependency. Add an experience, run `npm run cv`, and the site, the bot and both CVs agree.
 
 ### Media
 

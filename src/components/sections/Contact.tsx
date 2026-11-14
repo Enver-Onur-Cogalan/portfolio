@@ -8,10 +8,11 @@ import SocialLinks from '@/components/ui/SocialLinks';
 import Folder from '@/components/ui/Folder';
 import { socialLinks } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
-import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
+import { CV_FILES } from '@/data/site';
 
 export default function Contact() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const cv = CV_FILES[lang];
   const [previewOpen, setPreviewOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -93,8 +94,8 @@ export default function Contact() {
             items={[
               <a
                 key="download"
-                href={CV_PATH}
-                download={CV_DOWNLOAD_NAME}
+                href={cv.path}
+                download={cv.downloadName}
                 className={paperClass}
                 style={{ outlineColor: 'var(--accent)' }}
               >
@@ -168,7 +169,7 @@ export default function Contact() {
                   kaydırma çalışıyor; klavye ve ekran okuyucu için alttaki
                   "Yeni sekmede aç" PDF'i tarayıcının kendi görüntüleyicisinde açar. */}
               <iframe
-                src={CV_PATH}
+                src={cv.path}
                 title={t('resume.preview')}
                 tabIndex={-1}
                 className="w-full h-full border-0"
@@ -178,7 +179,7 @@ export default function Contact() {
             {/* PDF'i sayfa içinde gösteremeyen tarayıcılar için her zaman
                 erişilebilir bir çıkış yolu */}
             <a
-              href={CV_PATH}
+              href={cv.path}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute -bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold shadow-lg whitespace-nowrap"

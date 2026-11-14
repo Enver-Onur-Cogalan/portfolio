@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import ./scripts/test-resolve.mjs --test \"src/**/*.test.ts\""
+    "test": "node --import ./scripts/test-resolve.mjs --test \"src/**/*.test.ts\"",
+    "cv": "node --import ./scripts/test-resolve.mjs scripts/build-cv.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

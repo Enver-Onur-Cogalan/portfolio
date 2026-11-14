@@ -75,8 +75,9 @@ function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
         </strong>
       );
     } else if (match[3]) {
-      // [text](url). Site içi bağlantı (/ ile başlayan) aynı sekmede açılır
-      const internal = match[5].startsWith('/');
+      // [text](url). Site içi sayfa (/ ile başlayan) aynı sekmede açılır;
+      // PDF ise yeni sekmede, sohbet kaybolmasın
+      const internal = match[5].startsWith('/') && !match[5].endsWith('.pdf');
       nodes.push(
         <a
           key={`${keyPrefix}-link-${match.index}`}

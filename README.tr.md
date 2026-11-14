@@ -62,7 +62,10 @@ npm run dev      # http://localhost:3000
 npm run build    # üretim derlemesi
 npm test         # birim testleri (botun altın seti, küfür filtresi)
 npm run lint     # ESLint
+npm run cv       # public/cv.pdf (TR) ve public/cv-en.pdf (EN) yeniden üretilir
 ```
+
+CV de sitenin verisinden üretiliyor: şirket, unvan, tarih, projeler ve beceriler `src/data/portfolio.ts`'ten; yalnızca CV'ye özel kısa metinler (özet, maddeler) `src/data/cv.ts`'te. Yeni bir deneyim eklenince `npm run cv` site, bot ve iki CV'yi aynı hizaya getirir.
 
 Videolar için [ffmpeg](https://ffmpeg.org/) gerekli: `scripts/encode-hero-video.sh` ve `scripts/encode-project-media.sh`. Her kodlama kararının gerekçesi betiklerin başında yazıyor.
 
