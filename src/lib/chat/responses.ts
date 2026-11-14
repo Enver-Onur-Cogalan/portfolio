@@ -1,31 +1,23 @@
-import { projects, skillCategories, experiences, socialLinks } from '@/data/portfolio';
+import { projects, skillCategories, experiences, socialLinks, aboutPrinciples } from '@/data/portfolio';
 import { translate, type Language } from '@/i18n/translations';
+import { entitySuggestion, type Answer } from './knowledge';
 
-/** Sayfadaki bölüm kimlikleri — bot yanıtı hangi bölüme kaydıracağını söyler. */
+/** Sayfadaki bölüm kimlikleri: bot cevabı hangi bölüme kaydıracağını söyler. */
 export type SectionId = 'hakkimda' | 'yetenekler' | 'projeler' | 'deneyimler' | 'iletisim';
 
-export interface ResponseItem {
-  /** Bağlam takibi için konu etiketi */
-  topic?: string;
-  keywords: string[];
-  response: Record<Language, string>;
-  showOptions?: boolean;
-  autoScrollDelay?: number;
-  sectionId?: SectionId;
-  /** Bu yanıttan sonra önerilecek konular (topicCatalog anahtarları) */
-  suggests?: string[];
-}
+const t = translate;
+const L = (lang: Language, tr: string, en: string) => (lang === 'tr' ? tr : en);
 
-// ─── Konu Kataloğu ───────────────────────────────────────────
-// Öneri düğmeleri ve ziyaretçi yolları buradan beslenir. `query`,
-// düğmeye basıldığında bota gönderilen metindir; eşleştirici hem
-// Türkçe hem İngilizce anahtar kelimeleri tanıdığı için tek değer yeterli.
+// ─── Öneri düğmeleri ─────────────────────────────────────────
+// `query`, düğmeye basılınca bota gönderilen metin. Projeler ve
+// "weatherapp:tech" gibi varlık soruları veriden üretiliyor.
+
 export interface Topic {
   label: Record<Language, string>;
   query: string;
 }
 
-export const topicCatalog: Record<string, Topic> = {
+const staticTopics: Record<string, Topic> = {
   hakkinda: { label: { tr: 'Hakkında', en: 'About' }, query: 'kendini tanıt' },
   projeler: { label: { tr: 'Projeler', en: 'Projects' }, query: 'projeler' },
   yetenekler: { label: { tr: 'Yetenekler', en: 'Skills' }, query: 'yetenekler' },
@@ -34,9 +26,6 @@ export const topicCatalog: Record<string, Topic> = {
   iletisim: { label: { tr: 'İletişim', en: 'Contact' }, query: 'iletişim' },
   ai: { label: { tr: 'AI tarafı', en: 'AI work' }, query: 'yapay zeka' },
   mobil: { label: { tr: 'Mobil tarafı', en: 'Mobile work' }, query: 'react native' },
-  weather: { label: { tr: 'WeatherApp', en: 'WeatherApp' }, query: 'weatherapp' },
-  memefile: { label: { tr: 'Meme File', en: 'Meme File' }, query: 'meme file' },
-  unimall: { label: { tr: 'Unimall vakası', en: 'Unimall case' }, query: 'unimall' },
   biyoloji: { label: { tr: 'Biyolojiden yazılıma', en: 'Biology to software' }, query: 'biyoloji' },
   konum: { label: { tr: 'Nerede yaşıyor?', en: 'Where is he?' }, query: 'nerede' },
   hobi: { label: { tr: 'Boş zamanları', en: 'Free time' }, query: 'hobi' },
@@ -44,19 +33,40 @@ export const topicCatalog: Record<string, Topic> = {
   musaitlik: { label: { tr: 'Müsaitlik', en: 'Availability' }, query: 'müsait mi' },
   neden: { label: { tr: 'Neden Onur?', en: 'Why Onur?' }, query: 'neden seni işe alayım' },
   zorluk: { label: { tr: 'En zor problem', en: 'Hardest problem' }, query: 'en zor problem' },
-  calisma: { label: { tr: 'Nasıl çalışır?', en: 'How he works' }, query: 'nasıl çalışıyor' },
+  calisma: { label: { tr: 'Nasıl çalışır?', en: 'How he works' }, query: 'çalışma tarzı' },
   cv: { label: { tr: 'CV', en: 'Resume' }, query: 'cv' },
+  nollm: { label: { tr: 'Neden LLM yok?', en: 'Why no LLM?' }, query: 'neden llm yok' },
 };
+
+// Her proje ve iş deneyimi kendi adıyla bir öneri düğmesi olabiliyor
+const entityTopics: Record<string, Topic> = Object.fromEntries(
+  [...projects.map((p) => [p.id, p.title]), ...experiences.filter((e) => e.type === 'work').map((e) => [e.id, e.title])].map(
+    ([id, title]) => [id, { label: { tr: title, en: title }, query: title }]
+  )
+);
+
+export const topicCatalog: Record<string, Topic> = { ...staticTopics, ...entityTopics };
+
+/** Bir öneri anahtarını düğmeye çevirir; tanınmıyorsa null */
+export function suggestionFor(key: string, lang: Language): { id: string; label: string; query: string } | null {
+  if (key.includes(':')) {
+    const s = entitySuggestion(key, lang);
+    return s ? { id: key, ...s } : null;
+  }
+  const topic = topicCatalog[key];
+  return topic ? { id: key, label: topic.label[lang], query: topic.query } : null;
+}
 
 /** Ziyaretçinin geliş amacına göre ilk öneri seti */
 export type VisitorPath = 'hiring' | 'technical' | 'browsing';
 
 export const pathTopics: Record<VisitorPath, string[]> = {
   hiring: ['deneyim', 'neden', 'musaitlik', 'cv', 'iletisim'],
-  technical: ['weather', 'memefile', 'unimall', 'ai', 'yetenekler'],
+  technical: [...projects.map((p) => p.id), 'nollm', 'yetenekler'],
   browsing: ['hakkinda', 'biyoloji', 'projeler', 'hobi', 'motivasyon'],
 };
 
+// ─── Hızlı yanıtlar (kullanıcının yazdığı metinler) ─────────
 export interface QuickReplyOption {
   id: string;
   label: Record<Language, string>;
@@ -66,64 +76,7 @@ export interface QuickReplyOption {
   sectionId?: SectionId;
 }
 
-// ─── Veriden metin üreten yardımcılar ────────────────────────
-// Bu listeler eskiden İngilizce için elle yazılıydı; yeni bir proje veya
-// deneyim eklendiğinde bot bunları görmüyordu. Artık tek kaynak veri +
-// çeviri sözlüğü.
-
-function listProjects(lang: Language): string {
-  return projects
-    .map((p) => `• ${p.title}: ${translate(lang, `projects.${p.id}.desc`)}`)
-    .join('\n\n');
-}
-
-function listExperiences(lang: Language, type: 'work' | 'education'): string {
-  return experiences
-    .filter((e) => e.type === type)
-    .map((e) => {
-      const period = translate(lang, e.periodKey);
-      const desc = translate(lang, `experience.${e.id}.desc`);
-      return `• ${e.title} (${period})\n  ${desc}`;
-    })
-    .join('\n\n');
-}
-
-function listTech(lang: Language): string {
-  return skillCategories
-    .map((c) => `${translate(lang, c.titleKey)}\n  ${c.skills.join(' · ')}`)
-    .join('\n\n');
-}
-
-/** Vaka çalışması olan bir deneyimi başlık + metrik + sonuç olarak anlatır. */
-function describeCaseStudy(lang: Language, id: string): string {
-  const exp = experiences.find((e) => e.id === id);
-  if (!exp) return '';
-
-  const parts = [
-    `${exp.title} — ${translate(lang, `experience.${id}.headline`)}`,
-    `${translate(lang, `experience.${id}.subtitle`)} · ${translate(lang, exp.periodKey)}`,
-    '',
-    translate(lang, `experience.${id}.desc`),
-  ];
-
-  if (exp.metrics?.length) {
-    parts.push(
-      '',
-      exp.metrics
-        .map((m) => `• ${m.value} — ${translate(lang, `experience.${id}.metric.${m.key}`)}`)
-        .join('\n')
-    );
-  }
-
-  if (exp.tech?.length) {
-    parts.push('', `${lang === 'tr' ? 'Kullanılan teknolojiler' : 'Tech used'}: ${exp.tech.join(', ')}`);
-  }
-
-  return parts.join('\n');
-}
-
-// ─── Quick Replies (kullanıcının yazdığı yanıtlara dokunulmadı, EN eklendi) ───
-const quickReplies: QuickReplyOption[] = [
+export const quickReplies: QuickReplyOption[] = [
   {
     id: '1',
     sectionId: 'hakkimda',
@@ -181,330 +134,314 @@ const quickReplies: QuickReplyOption[] = [
   },
 ];
 
-// ─── Bio ─────────────────────────────────────────────────────
-// Bölümdeki tam metin beş paragraf; sohbet balonunda okunması zor
-// olduğu için bot kısa sürümü kullanıyor.
-const bio = (lang: Language) => translate(lang, 'about.bioShort');
-
-// ─── Direct Responses ────────────────────────────────────────
-export const directResponses: ResponseItem[] = [
-  // Selamlaşma
-  {
-    topic: 'selamlama',
-    keywords: ['merhaba', 'selam', 'hi', 'hey', 'selamün aleyküm', 'good morning', 'good afternoon', 'good evening', 'günaydın', 'iyi geceler', 'sa', 'slm', 'hello'],
-    response: {
-      tr: 'Selam! Onur\'un portfolyosuna hoş geldin. Burada onun hakkında her şeyi öğrenebilirsin — projelerinden yeteneklerine, deneyimlerinden iletişim bilgilerine kadar. Ne merak ediyorsun?',
-      en: 'Hello! Welcome to Onur\'s portfolio. You can learn everything about him here — from projects to skills, experience to contact info. What are you curious about?',
-    },
-    showOptions: true,
-    suggests: ['hakkinda', 'projeler', 'deneyim', 'iletisim'],
-  },
-  {
-    topic: 'selamlama',
-    keywords: ['nasılsın', 'nasıl', 'iyi misin', 'ne haber', 'naber', 'nbr', 'nasilsin', 'how are you'],
-    response: {
-      tr: 'Gayet iyiyim, sorduğun için sağ ol! Ben bir bot olsam da moralim her zaman yerinde. Sana nasıl yardımcı olabilirim?',
-      en: 'I\'m doing great, thanks for asking! Even though I\'m a bot, my morale is always high. How can I help you?',
-    },
-    suggests: ['hakkinda', 'projeler', 'deneyim', 'iletisim'],
-  },
-  // Kimlik
-  {
-    topic: 'hakkinda',
-    sectionId: 'hakkimda',
-    keywords: ['kimsin', 'sen kim', 'kimdir', 'hakkında', 'who are you', 'tell me about yourself', 'tanışalım', 'kendini tanıt'],
-    response: {
-      tr: `${bio('tr')}\n\nKısacası: Karmaşıklığı sadeleştirmeyi seven, AI ve mobil teknolojileri birleştirerek anlamlı ürünler ortaya koyan bir geliştirici. Başka merak ettiğin bir şey var mı?`,
-      en: `${bio('en')}\n\nIn short: A developer who loves simplifying complexity and creating meaningful products by combining AI and mobile technologies. Anything else you'd like to know?`,
-    },
-    suggests: ['biyoloji', 'projeler', 'yetenekler'],
-  },
-  {
-    topic: 'meslek',
-    sectionId: 'hakkimda',
-    keywords: ['ne yapıyorsun', 'ne iş yapıyorsun', 'mesleğin', 'profession', 'occupation', 'job', 'ne is', 'neyle uğraşıyorsun', 'what do you do'],
-    response: {
-      tr: 'Onur şu anda AI Engineer & Mobile Developer olarak çalışıyor. React Native ile mobil uygulamalar geliştirirken, LLM, STT ve TTS modellerini üretime taşıyan sistemler kuruyor. İki dünyayı birleştiren bir profil diyebiliriz!',
-      en: 'Onur currently works as an AI Engineer & Mobile Developer. He builds mobile apps with React Native while shipping systems that bring LLM, STT and TTS models into production. A profile that bridges two worlds!',
-    },
-    suggests: ['unimall', 'ai', 'deneyim'],
-  },
-  {
-    topic: 'kimlik',
-    keywords: ['adın', 'ismin', 'ismin ne', 'senin adın', 'what is your name', 'bot musun', 'your name'],
-    response: {
-      tr: 'Ben Onur\'un portfolyo chatbotuyum! LLM falan yok bende, ama Onur hakkında bildiklerimi seninle paylaşmaktan mutluluk duyarım. Sor bakalım!',
-      en: 'I\'m Onur\'s portfolio chatbot! No LLM here, but I\'m happy to share what I know about Onur. Go ahead and ask!',
-    },
-    suggests: ['hakkinda', 'projeler', 'yardim'],
-  },
-  // Bilgi isteme
-  {
-    topic: 'bilgi',
-    keywords: ['bilgi', 'ver', 'bana bilgi', 'söyle', 'daha fazla', 'detay', 'detaylı bilgi', 'anlat', 'anlatır mısın', 'more info', 'tell me more'],
-    response: {
-      tr: 'Tabii ki! Hangi konu ilgini çekiyor? Aşağıdakilerden birini seç, seni hemen bilgilendirelim.',
-      en: 'Of course! What topic interests you? Pick one below and I\'ll fill you in right away.',
-    },
-    showOptions: true,
-    suggests: ['hakkinda', 'projeler', 'deneyim', 'yetenekler'],
-  },
-  {
-    topic: 'hakkinda',
-    sectionId: 'hakkimda',
-    keywords: ['hakkımda bilgi', 'about me', 'kendinden bahset', 'biraz anlat'],
-    response: {
-      tr: `${bio('tr')}\n\nDaha fazla detay ister misin? Yetenekleri, projeleri veya deneyimleri sorabilirsin!`,
-      en: `${bio('en')}\n\nWant more details? You can ask about skills, projects, or experience!`,
-    },
-    showOptions: true,
-  },
-  // İletişim
-  {
-    topic: 'iletisim',
-    sectionId: 'iletisim',
-    keywords: ['iletişim', 'contact', 'email', 'mail', 'telefon', 'telefon numarası', 'ulaş', 'ulas', 'iletisim', 'nasıl ulaşırım', 'bağlantı', 'reach'],
-    response: {
-      tr: `Onur'a ulaşabileceğin kanallar:\n\n📧 E-posta: ${socialLinks.email}\n💻 GitHub: ${socialLinks.github}\n💼 LinkedIn: ${socialLinks.linkedin}\n📝 Medium: ${socialLinks.medium}\n\nHer zaman bir mesaj uzağında!`,
-      en: `Here's how you can reach Onur:\n\n📧 Email: ${socialLinks.email}\n💻 GitHub: ${socialLinks.github}\n💼 LinkedIn: ${socialLinks.linkedin}\n📝 Medium: ${socialLinks.medium}\n\nAlways just a message away!`,
-    },
-    suggests: ['musaitlik', 'cv', 'projeler'],
-  },
-  // Projeler
-  {
-    topic: 'projeler',
-    sectionId: 'projeler',
-    keywords: ['proje', 'projelerin', 'çalışmaların', 'yaptığın iş', 'projects', 'portfolio', 'neler yaptın', 'github'],
-    response: {
-      tr: `İşte Onur'un öne çıkan projeleri:\n\n${listProjects('tr')}\n\nDaha fazlası için GitHub: ${socialLinks.github}`,
-      en: `Here are Onur's featured projects:\n\n${listProjects('en')}\n\nMore on GitHub: ${socialLinks.github}`,
-    },
-    suggests: ['weather', 'memefile', 'unimall'],
-  },
-  // Yetenekler
-  {
-    topic: 'yetenekler',
-    sectionId: 'yetenekler',
-    keywords: ['yetenek', 'yeteneklerin', 'teknoloji', 'teknolojilerin', 'stack', 'skills', 'bilgin', 'tech stack', 'ne biliyorsun'],
-    response: {
-      tr: `Onur'un teknoloji araç kutusu:\n\n${listTech('tr')}\n\nAI mühendisliği ve mobil geliştirmeyi birleştiren bir profil. Öğrenme hızı da cabası!`,
-      en: `Onur's tech toolbox:\n\n${listTech('en')}\n\nA profile that combines AI engineering with mobile development. Fast learner too!`,
-    },
-    suggests: ['ai', 'mobil', 'projeler'],
-  },
-  // Deneyim
-  {
-    topic: 'deneyim',
-    sectionId: 'deneyimler',
-    keywords: ['deneyim', 'deneyimlerin', 'iş', 'career', 'work', 'iş deneyimi', 'tecrübe', 'çalıştığın yerler', 'experience'],
-    response: {
-      tr: `Onur'un kariyer yolculuğu:\n\n${listExperiences('tr', 'work')}\n\nHer adımda yeni şeyler öğrenerek büyümeye devam ediyor!`,
-      en: `Onur's career journey:\n\n${listExperiences('en', 'work')}\n\nContinuously growing and learning at every step!`,
-    },
-    suggests: ['unimall', 'neden', 'egitim'],
-  },
-  // Eğitim
-  {
-    topic: 'egitim',
-    sectionId: 'deneyimler',
-    keywords: ['eğitim', 'egitim', 'okul', 'üniversite', 'education', 'school', 'university', 'bootcamp', 'patika', 'mezun'],
-    response: {
-      tr: `Onur'un eğitim serüveni:\n\n${listExperiences('tr', 'education')}\n\nBiyolojiden yazılıma geçiş, ona farklı bir bakış açısı ve analitik düşünme becerisi kazandırmış.`,
-      en: `Onur's education journey:\n\n${listExperiences('en', 'education')}\n\nThe transition from biology to software gave him a unique analytical perspective.`,
-    },
-    suggests: ['biyoloji', 'deneyim', 'yetenekler'],
-  },
-  // Konum
-  {
-    topic: 'konum',
-    keywords: ['nerede', 'nerelisin', 'lokasyon', 'location', 'city', 'şehir', 'ülke', 'istanbul', 'türkiye', 'turkey', 'where are you', 'nereden', 'where'],
-    response: {
-      tr: 'Onur Türkiye\'den çalışıyor ve remote olarak dünya genelinde projelere katkıda bulunuyor. Daha önce Londra merkezli bir şirketle de remote çalıştı. Fiziksel sınırlar onu durduramaz!',
-      en: 'Onur works from Turkey and contributes to projects worldwide remotely. He previously worked remotely with a London-based company. Physical borders can\'t stop him!',
-    },
-    suggests: ['musaitlik', 'iletisim'],
-  },
-  // AI
-  {
-    topic: 'ai',
-    sectionId: 'deneyimler',
-    keywords: ['ai', 'yapay zeka', 'yapay', 'zeka', 'artificial intelligence', 'machine learning', 'ml', 'llm', 'stt', 'tts', 'model', 'envagro', 'benchmark', 'araştırma', 'research'],
-    response: {
-      tr: 'AI, Onur\'un en büyük tutkularından biri! Şu anda STT (konuşmayı metne çevirme), TTS (metni sese çevirme) ve LLM (büyük dil modelleri) üzerine derinlemesine araştırmalar yapıyor. Açık kaynak ve ticari modelleri karşılaştırıp benchmark çalışmaları yürütüyor.',
-      en: 'AI is one of Onur\'s biggest passions! He\'s currently conducting deep research on STT (Speech-to-Text), TTS (Text-to-Speech), and LLM (Large Language Models). He compares open-source and commercial models and runs benchmark studies.',
-    },
-    suggests: ['unimall', 'zorluk', 'yetenekler'],
-  },
-  // Mobil
-  {
-    topic: 'mobil',
-    sectionId: 'projeler',
-    keywords: ['react native', 'mobile', 'mobil', 'uygulama', 'app', 'expo', 'react'],
-    response: {
-      tr: 'Mobil geliştirme Onur\'un çıkış noktası! Appisode\'da Londra merkezli bir ekiple React Native (Expo) üzerinde çalıştı; WeatherApp\'in mobil uygulamasında da Skia ve Reanimated ile akıcı bir arayüz kurdu. "Çalışıyor" ile "kullanılabilir" arasındaki farkı önemsiyor.',
-      en: 'Mobile development is where Onur started! At Appisode he worked on React Native (Expo) with a London-based team, and WeatherApp\'s mobile app uses Skia and Reanimated for a smooth interface. He cares about the gap between "it works" and "it\'s usable".',
-    },
-    suggests: ['weather', 'deneyim', 'yetenekler'],
-  },
-  // WeatherApp
-  {
-    topic: 'weather',
-    sectionId: 'projeler',
-    keywords: [
-      'weatherapp', 'weather app', 'hava', 'hava durumu', 'hava uygulaması',
-      'weather', 'yerel llm', 'local llm', 'ollama', 'gemma', 'yerel model',
-      'on-device', 'on device', 'on device llm', 'offline llm', 'çevrimdışı llm',
-      'kendi makinende', 'self hosted', 'kendi sunucunda', 'açık hava', 'ne zaman çıkmalı',
-    ],
-    response: {
-      tr: `WeatherApp, Onur'un en kapsamlı projesi. Havanın ne olduğunu değil, ne zaman dışarı çıkman gerektiğini söylüyor: sen hangi koşullarda çıkacağını tanımlıyorsun, uygulama hepsini birden karşılayan saat aralıklarını buluyor.\n\nAsıl ilginç kısım mimaride: soruyu yorumlayan model, kendi kurduğun makinede yerel olarak koşuyor — barındırılan bir servis yok, API anahtarı yok, dışarı çıkan istek yok. Model gördüğün hiçbir sayıyı hesaplamıyor; puanlama testleri yazılmış Python, model yalnızca cümleyi yorumluyor ve cevabı ifade ediyor. Aralarında yedi doğrulama kapısı var.\n\nÖlçülmüş sonuç: 20/20 değerlendirme koşusu geçti, kullanıcıya ulaşan hatalı yanıt sıfır. 329 test CI'da koşuyor.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/WeatherApp`,
-      en: `WeatherApp is Onur's most comprehensive project. It answers a different question: not what the weather is, but when to go out. You set the conditions you will actually go out in, and it finds the stretches that clear all of them.\n\nThe interesting part is the architecture: the model that reads your question runs locally, on the machine you host it on — no hosted service, no API key, no request leaving that machine. The model never computes a number you see; scoring is tested Python, and the model only interprets your sentence and phrases the answer. Seven validation gates stand between them.\n\nMeasured: 20 of 20 evaluation runs pass, and zero wrong answers reach the user. 329 tests run in CI.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/WeatherApp`,
-    },
-    suggests: ['projeler', 'ai', 'mobil'],
-  },
-  // Meme File
-  {
-    topic: 'memefile',
-    sectionId: 'projeler',
-    keywords: [
-      'meme file', 'memefile', 'meme', 'tepki videosu', 'tepki videoları', 'reaction video',
-      'discord', 'electron', 'masaüstü uygulama', 'masaüstü', 'desktop app', 'ffmpeg',
-      'windows uygulaması', 'windows app',
-    ],
-    response: {
-      tr: `Meme File, Onur'un Windows için yaptığı masaüstü uygulaması: tepki videoları kütüphanesi. Klasörleri izliyor, her klibe kapak ve fareyle sarılabilen önizleme üretiyor; chip'lerle etiketliyorsun, saniyede buluyorsun, kartı doğrudan Discord'a sürüklüyorsun. Dosyalarına dokunmuyor, üstüne yalnızca bir etiket katmanı ekliyor.\n\nMühendislik tarafında: arayüz sandbox içinde ve dosya sistemine erişemiyor, videolar yalnızca kütüphane klasörlerini servis eden özel bir protokolden akıyor. Dosyalar içerik hash'iyle tanındığı için taşınan video etiketlerini kaybetmiyor. Discord'un 10 MB sınırı için bit hızı klip süresinden hesaplanıyor.\n\nGeliştirme sırasındaki ölçümlerde 5.000 videoda arama 2 ms. Kurulum dosyası yayında ve kendini güncelliyor.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/meme-file`,
-      en: `Meme File is a Windows desktop app Onur built: a library for reaction videos. It watches your folders, builds a thumbnail and a scrubbable preview for every clip; you tag them with chips, find one in a second and drag it straight into Discord. It never moves your files — it only adds a tagging layer on top.\n\nOn the engineering side: the UI is sandboxed and cannot touch the file system, and videos stream through a custom protocol that serves only library folders. Files are identified by a content hash, so a moved video keeps its tags. For Discord's 10 MB limit, bitrate is derived from the clip length.\n\nMeasured during development, a search over 5,000 videos takes 2 ms. The installer is published and updates itself.\n\nGitHub: https://github.com/Enver-Onur-Cogalan/meme-file`,
-    },
-    suggests: ['weather', 'projeler', 'yetenekler'],
-  },
-  // Biyoloji
-  {
-    topic: 'biyoloji',
-    sectionId: 'deneyimler',
-    keywords: ['biyoloji', 'biology', 'ege üniversitesi', 'ege', 'kariyer değişikliği', 'neden yazılım'],
-    response: {
-      tr: 'Onur, Ege Üniversitesi Biyoloji bölümünden 3.05/4 ortalamayla mezun oldu. Biyolojideki analitik düşünme ve problem çözme becerileri, yazılım dünyasında ona büyük avantaj sağlıyor. Hücrelerin mükemmel düzenini kodlarına taşımayı hedefliyor!',
-      en: 'Onur graduated from Ege University\'s Biology department with a 3.05/4 GPA. His analytical thinking and problem-solving skills from biology give him a huge advantage in software. He aims to bring the perfect order of cells into his code!',
-    },
-    suggests: ['egitim', 'calisma', 'motivasyon'],
-  },
-  // Hobi
-  {
-    topic: 'hobi',
-    keywords: ['hobi', 'ilgi', 'boş zaman', 'hobby', 'interest', 'ne yaparsın', 'serbest zaman'],
-    response: {
-      tr: 'Onur boş zamanlarında da kod yazıyor dersek yanlış olmaz! Bunun dışında AI araştırmaları, Medium\'da yazı yazmak ve yeni teknolojileri keşfetmek en sevdiği aktiviteler arasında. Kahve tüketimi de sınırsız!',
-      en: 'It wouldn\'t be wrong to say Onur codes in his free time too! Besides that, AI research, writing on Medium, and exploring new technologies are among his favorite activities. Coffee consumption: unlimited!',
-    },
-    suggests: ['motivasyon', 'hakkinda', 'projeler'],
-  },
-  // Motivasyon
-  {
-    topic: 'motivasyon',
-    keywords: ['motivasyon', 'felsefe', 'prensip', 'ilke', 'motto', 'neden kod', 'niye yazılım', 'philosophy', 'motivation'],
-    response: {
-      tr: 'Onur\'un felsefesi üç temel üzerine kurulu:\n\n• "Karmaşıklığı sadeleştirmek bir tercih değil, bir sanat biçimidir."\n• "En iyi kod, yazılmasına gerek kalmayan koddur."\n• "Hücrelerin mükemmel düzenini, yazdığım her satıra taşımayı hedefliyorum."\n\nBiyoloji ve yazılımı birleştiren güzel bir bakış açısı!',
-      en: 'Onur\'s philosophy is built on three pillars:\n\n• "Simplifying complexity is not a choice, it\'s an art form."\n• "The best code is the code that never needs to be written."\n• "I aim to bring the perfect order of cells into every line I write."\n\nA beautiful perspective combining biology and software!',
-    },
-    suggests: ['calisma', 'biyoloji', 'hakkinda'],
-  },
-  // Teşekkür
-  {
-    topic: 'tesekkur',
-    keywords: ['teşekkür', 'tesekkur', 'thanks', 'thank you', 'sağol', 'saol', 'eyvallah', 'tşk', 'eyv'],
-    response: {
-      tr: 'Rica ederim, ne demek! Başka merak ettiğin bir şey olursa çekinmeden sor. Buradayım!',
-      en: 'You\'re welcome! If you have any other questions, don\'t hesitate to ask. I\'m here!',
-    },
-    suggests: ['projeler', 'iletisim'],
-  },
-  // Veda
-  {
-    topic: 'veda',
-    keywords: ['görüşürüz', 'hoşça kal', 'hoşçakal', 'bye', 'goodbye', 'see you', 'gittim', 'bb', 'güle güle'],
-    response: {
-      tr: 'Görüşmek üzere! Umarım faydalı olabilmişimdir. Tekrar uğramak istersen buradayım, kapı her zaman açık!',
-      en: 'See you later! I hope I\'ve been helpful. Come back anytime — the door is always open!',
-    },
-    suggests: ['iletisim', 'projeler'],
-  },
-  // Unimall vaka çalışması
-  {
-    topic: 'unimall',
-    sectionId: 'deneyimler',
-    keywords: ['unimall', 'e-ticaret', 'eticaret', 'ocr', 'otomasyon', 'e-commerce', 'automation', 'agent', 'ai agent', '22 milyon'],
-    response: {
-      tr: `${describeCaseStudy('tr', 'unimall')}\n\nDetaylı anlatımı deneyimler bölümünde bulabilirsin!`,
-      en: `${describeCaseStudy('en', 'unimall')}\n\nYou can find the full write-up in the experience section!`,
-    },
-    suggests: ['zorluk', 'ai', 'deneyim'],
-  },
-  // ─── İşe alım odaklı konular ──────────────────────────────
-  {
-    topic: 'musaitlik',
-    sectionId: 'iletisim',
-    keywords: ['müsait', 'musait', 'uygun musun', 'iş arıyor', 'is ariyor', 'açık mısın', 'çalışma şekli', 'remote', 'uzaktan', 'hibrit', 'ofis', 'availability', 'available', 'open to work', 'work setup', 'freelance', 'maaş', 'maas', 'ücret', 'ucret', 'salary', 'rate', 'beklenti'],
-    response: {
-      tr: `Müsaitlik ve çalışma şekli dönemsel değiştiği için en doğru cevabı Onur'un kendisi verir: ${socialLinks.email}\n\nGeçmişe bakarsan uzaktan çalışma düzeni ona tanıdık — Appisode'da Londra merkezli bir ekiple tamamen remote çalıştı.`,
-      en: `Availability and working setup change over time, so the most accurate answer comes from Onur himself: ${socialLinks.email}\n\nFor context, remote work is familiar territory — at Appisode he worked fully remotely with a London-based team.`,
-    },
-    suggests: ['iletisim', 'deneyim', 'cv'],
-  },
-  {
-    topic: 'neden',
-    sectionId: 'deneyimler',
-    keywords: ['neden seni', 'neden onur', 'neden işe', 'neden ise', 'ne katar', 'artısı', 'farkı ne', 'hire', 'why hire', 'why you', 'what makes', 'strengths', 'güçlü yön', 'işe alım', 'ise alim'],
-    response: {
-      tr: `Üç şey öne çıkıyor:\n\n• **Sistem düşünüyor.** Biyolojiden geldiği için problemi tek tek özellik olarak değil, birbirine bağlı bir bütün olarak ele alıyor.\n• **Ölçüyor, tahmin etmiyor.** Envagro'da model seçimini sezgiden çıkarıp benchmark'a bağladı.\n• **Ürün tarafını biliyor.** Mobil geçmişi sayesinde "çalışıyor" ile "kullanılabilir" arasındaki farkı önemsiyor.\n\nSomut karşılığı: son projesinde 22 milyon kayıtlı bir operasyonu otomatikleştirdi, operasyonel maliyet %40 düştü.`,
-      en: `Three things stand out:\n\n• **He thinks in systems.** Coming from biology, he treats a problem as an interconnected whole rather than a list of features.\n• **He measures instead of guessing.** At Envagro he moved model selection from intuition to benchmarks.\n• **He knows the product side.** His mobile background means he cares about the gap between "it works" and "it's usable".\n\nConcretely: on his last project he automated an operation holding 22 million records and cut operational cost by 40%.`,
-    },
-    suggests: ['unimall', 'deneyim', 'iletisim'],
-  },
-  {
-    topic: 'zorluk',
-    sectionId: 'deneyimler',
-    keywords: ['en zor', 'zorlandığın', 'zorlandigin', 'zor problem', 'challenge', 'hardest', 'difficult', 'toughest', 'zorluk'],
-    response: {
-      tr: `Unimall'daki ölçek problemi: üç ayrı satış kanalında 22 milyondan fazla ürün kaydı ve neredeyse tamamen manuel yürüyen bir süreç.\n\nZor kısım tek bir şeyi otomatikleştirmek değil, hangi katmanın önce çözüleceğine karar vermekti. Süreci üçe ayırdı: veri senkronizasyonu, içerik üretimi, müşteri iletişimi. OCR entegrasyonu tek başına operasyonel maliyette %40 tasarruf getirdi.`,
-      en: `The scale problem at Unimall: over 22 million product records across three separate sales channels, with almost everything running manually.\n\nThe hard part wasn't automating one thing — it was deciding which layer to solve first. He split the process into three: data synchronization, content generation, customer communication. The OCR integration alone delivered a 40% saving in operational costs.`,
-    },
-    suggests: ['unimall', 'ai', 'calisma'],
-  },
-  {
-    topic: 'calisma',
-    sectionId: 'hakkimda',
-    keywords: ['nasıl çalış', 'nasil calis', 'çalışma tarzı', 'calisma tarzi', 'yaklaşımı', 'yaklasimi', 'metodoloji', 'how do you work', 'work style', 'approach', 'process'],
-    response: {
-      tr: `Üç prensibi var:\n\n• "Karmaşıklığı sadeleştirmek bir tercih değil, bir sanat biçimidir."\n• "En iyi kod, yazılmasına gerek kalmayan koddur."\n• "Hücrelerin mükemmel düzenini, yazdığım her satıra taşımayı hedefliyorum."\n\nPratikte şuna dönüşüyor: önce ölçer, sonra karar verir. Envagro'da onlarca modeli aynı koşullarda karşılaştırıp seçimi ölçülebilir bir karara dönüştürmesi bunun örneği.`,
-      en: `He works on three principles:\n\n• "Simplifying complexity is not a choice, it's an art form."\n• "The best code is the code that never needs to be written."\n• "I aim to bring the perfect order of cells into every line I write."\n\nIn practice: measure first, decide after. At Envagro he compared dozens of models under identical conditions, turning selection into a measurable decision.`,
-    },
-    suggests: ['zorluk', 'motivasyon', 'yetenekler'],
-  },
-  {
-    topic: 'cv',
-    sectionId: 'iletisim',
-    keywords: ['cv', 'özgeçmiş', 'ozgecmis', 'resume', 'curriculum', 'pdf indir', 'download cv'],
-    response: {
-      tr: `CV sayfada hazır — iletişim bölümündeki klasöre tıklayınca hem indirebilir hem de siteden çıkmadan önizleyebilirsin.\n\nDaha ayrıntısı için deneyimler bölümü Unimall ve Envagro'yu problem, yaklaşım ve sonuç kırılımıyla anlatıyor.`,
-      en: `The resume is right here — open the folder in the contact section to download it or preview it without leaving the site.\n\nFor more depth, the experience section breaks down Unimall and Envagro into problem, approach and result.`,
-    },
-    suggests: ['deneyim', 'iletisim', 'neden'],
-  },
-  // Yardım
-  {
-    topic: 'yardim',
-    keywords: ['yardım', 'help', 'ne yapabilirsin', 'neler biliyorsun', 'komutlar', 'özellikler', 'nasıl kullanılır', 'what can you do'],
-    response: {
-      tr: 'Sana Onur hakkında birçok konuda bilgi verebilirim! Hakkında bilgi, yetenekleri, projeleri, iş deneyimleri, eğitimi, iletişim bilgileri, AI araştırmaları ve daha fazlası. Aşağıdaki seçeneklerden başlayabilirsin.',
-      en: 'I can tell you about Onur on many topics! About him, skills, projects, work experience, education, contact info, AI research, and more. You can start with the options below.',
-    },
-    showOptions: true,
-    suggests: ['neden', 'unimall', 'yetenekler', 'iletisim'],
-  },
-];
-
 export function getQuickReplyById(id: string): QuickReplyOption | undefined {
-  return quickReplies.find(qr => qr.id === id);
+  return quickReplies.find((qr) => qr.id === id);
 }
 
-export { quickReplies };
+// ─── Veriden metin üreten yardımcılar ────────────────────────
+
+const work = experiences.filter((e) => e.type === 'work');
+const latestWork = work[work.length - 1];
+const projectNames = projects.map((p) => p.title);
+
+function listNames(lang: Language, names: string[]): string {
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} ${L(lang, 've', 'and')} ${names[names.length - 1]}`;
+}
+
+/** "Yeni fırsatlara açık" → cümle içinde küçük harfle */
+function status(lang: Language): string {
+  const value = t(lang, 'hero.status');
+  const first = lang === 'tr' ? value.charAt(0).toLocaleLowerCase('tr') : value.charAt(0).toLowerCase();
+  return first + value.slice(1);
+}
+
+function listProjects(lang: Language): string {
+  return projects
+    .map((p) => {
+      const headline = p.headline ? t(lang, `projects.${p.id}.headline`) : '';
+      return `• ${p.title}${headline ? `: ${headline}` : ''}`;
+    })
+    .join('\n');
+}
+
+function listExperiences(lang: Language, type: 'work' | 'education'): string {
+  // En yeni üstte
+  return [...experiences]
+    .filter((e) => e.type === type)
+    .reverse()
+    .map((e) => `• ${e.title} · ${t(lang, `experience.${e.id}.subtitle`)} (${t(lang, e.periodKey)})`)
+    .join('\n');
+}
+
+function listTech(lang: Language): string {
+  return skillCategories.map((c) => `${t(lang, c.titleKey)}\n  ${c.skills.join(' · ')}`).join('\n\n');
+}
+
+function principles(lang: Language): string {
+  return aboutPrinciples.map((p) => `• "${t(lang, p.quoteKey)}"`).join('\n');
+}
+
+function socials(lang: Language): string {
+  return [
+    `📧 ${L(lang, 'E-posta', 'Email')}: ${socialLinks.email}`,
+    `💻 GitHub: ${socialLinks.github}`,
+    `💼 LinkedIn: ${socialLinks.linkedin}`,
+    `📝 Medium: ${socialLinks.medium}`,
+  ].join('\n');
+}
+
+// ─── Genel niyetlerin cevapları ──────────────────────────────
+
+export const generalAnswers: Record<string, (lang: Language) => Answer> = {
+  greet: (lang) => ({
+    text: L(
+      lang,
+      "Selam! Onur'un portfolyosuna hoş geldin. Projelerinden deneyimlerine, iletişimden müsaitliğine kadar sorabilirsin. Ne merak ediyorsun?",
+      "Hello! Welcome to Onur's portfolio. Ask about his projects, experience, contact details or availability. What are you curious about?"
+    ),
+    suggests: ['hakkinda', 'projeler', 'deneyim', 'iletisim'],
+  }),
+
+  howareyou: (lang) => ({
+    text: L(
+      lang,
+      'Gayet iyiyim, sorduğun için sağ ol! Bot olsam da moralim hep yerinde; çalışma maliyetim de sıfıra yakın. Sana nasıl yardımcı olabilirim?',
+      "Doing great, thanks for asking! I'm a bot, but my morale is always high, and my running costs are close to zero. How can I help?"
+    ),
+    suggests: ['hakkinda', 'projeler', 'nollm'],
+  }),
+
+  identity: (lang) => ({
+    text: L(
+      lang,
+      "Ben Onur'un portfolyo botuyum. İçimde LLM yok, bilerek: sana Onur hakkında bildiklerimi anında ve hiç uydurmadan anlatmak için kurallarla çalışıyorum. Sor bakalım!",
+      "I'm Onur's portfolio bot. There's no LLM inside me, on purpose: I run on rules so I can tell you what I know about Onur instantly and without making anything up. Go ahead and ask!"
+    ),
+    suggests: ['nollm', 'hakkinda', 'projeler'],
+  }),
+
+  whynollm: (lang) => ({
+    text: L(
+      lang,
+      `Bilerek LLM yok. Bu sitede sorulabilecek soruların cevabı belli: projeler, deneyimler, iletişim. Kural tabanlı bir eşleştirici bunları anında, ücretsiz ve hiç uydurmadan cevaplıyor; bir model aynı işi her soruda token ödeyerek ve arada bir yanlış bilgiyle yapardı.\n\nOnur'un yaklaşımı bu: her probleme model atmak yerine önce maliyetine ve riskine bakmak. Model gereken yerde kullanıyor; WeatherApp'te yerel bir model, yedi doğrulama kapısının arkasında çalışıyor.`,
+      `No LLM, on purpose. The questions this site gets have known answers: projects, experience, contact. A rule-based matcher answers them instantly, for free and without ever making things up; a model would do the same job paying for tokens on every question, and get it wrong now and then.\n\nThat's Onur's approach: look at the cost and the risk before throwing a model at a problem. He uses one where it earns its place; in WeatherApp a local model runs behind seven validation gates.`
+    ),
+    suggests: ['weatherapp', 'ai', 'projeler'],
+  }),
+
+  help: (lang) => ({
+    text: L(
+      lang,
+      `Onur hakkında şunları sorabilirsin: projeleri (${listNames(lang, projectNames)}), deneyimleri, yetenekleri, eğitimi, müsaitliği ve iletişim bilgileri. Bir projenin linkini, teknolojilerini ya da sonucunu da sorabilirsin; "WeatherApp'in linki" gibi.`,
+      `You can ask about Onur's projects (${listNames(lang, projectNames)}), experience, skills, education, availability and contact details. You can also ask for a project's link, tech or results, like "WeatherApp's link".`
+    ),
+    suggests: ['projeler', 'deneyim', 'musaitlik', 'iletisim'],
+  }),
+
+  about: (lang) => ({
+    text: `${t(lang, 'about.bioShort')}\n\n${L(lang, 'Başka merak ettiğin bir şey var mı?', 'Anything else you would like to know?')}`,
+    sectionId: 'hakkimda',
+    suggests: ['biyoloji', 'projeler', 'yetenekler'],
+  }),
+
+  profession: (lang) => ({
+    text: L(
+      lang,
+      `Onur bir AI Engineer & Mobile Developer. React Native ile mobil uygulamalar geliştiriyor; LLM, STT ve TTS modellerini ölçerek seçip ürüne taşıyor. Son olarak ${latestWork.title}'da ${t(lang, `experience.${latestWork.id}.subtitle`)} olarak çalıştı; şu an ${status(lang)}.`,
+      `Onur is an AI Engineer & Mobile Developer. He builds mobile apps with React Native and takes LLM, STT and TTS models to production after measuring which one fits. Most recently he was ${t(lang, `experience.${latestWork.id}.subtitle`)} at ${latestWork.title}; right now he's ${status(lang)}.`
+    ),
+    sectionId: 'hakkimda',
+    suggests: [latestWork.id, 'musaitlik', 'deneyim'],
+  }),
+
+  education: (lang) => ({
+    text: L(
+      lang,
+      `Onur'un eğitimi:\n\n${listExperiences(lang, 'education')}\n\nBiyolojiden yazılıma geçiş ona farklı bir bakış açısı kazandırmış.`,
+      `Onur's education:\n\n${listExperiences(lang, 'education')}\n\nMoving from biology to software gave him a different angle on problems.`
+    ),
+    sectionId: 'deneyimler',
+    suggests: ['biyoloji', 'deneyim', 'yetenekler'],
+  }),
+
+  biology: (lang) => ({
+    text: L(
+      lang,
+      'Onur Ege Üniversitesi Biyoloji bölümünden 3.05/4 ortalamayla mezun oldu; laboratuvarda değil, kodun içinde buldu kendini. Biyolojiden kalan alışkanlık: problemi tek tek parçalar olarak değil, birbirine bağlı bir sistem olarak görmek. Sitenin girişindeki mikroskop da oradan geliyor.',
+      'Onur graduated in Biology from Ege University with a 3.05/4 GPA, and found himself in code rather than in the lab. The habit biology left him: seeing a problem as a connected system rather than a list of parts. The microscope at the top of this site comes from there.'
+    ),
+    sectionId: 'deneyimler',
+    suggests: ['egitim', 'calisma', 'motivasyon'],
+  }),
+
+  location: (lang) => ({
+    text: L(
+      lang,
+      `${t(lang, 'hero.location')}. Onur İzmir'de yaşıyor ve uzaktan çalışmaya alışık: Appisode'da Londra merkezli bir ekiple tamamen remote çalıştı.`,
+      `${t(lang, 'hero.location')}. Onur lives in İzmir and is used to working remotely: at Appisode he worked fully remote with a London-based team.`
+    ),
+    suggests: ['musaitlik', 'iletisim'],
+  }),
+
+  hobby: (lang) => ({
+    text: L(
+      lang,
+      'Hakkımda bölümündeki çizgi şeridi bunun özeti: laboratuvar, klavye, kahve molası, motosiklet ve oyun. Kod yazmadığı zamanlarda büyük ihtimalle motosikletin üstünde ya da bir oyunun başında; kahve ise her sahnede sabit.',
+      "The line-art strip in the About section sums it up: lab bench, keyboard, coffee break, motorbike and games. When he isn't coding he's probably on the motorbike or in a game; the coffee is in every scene."
+    ),
+    sectionId: 'hakkimda',
+    suggests: ['motivasyon', 'hakkinda', 'projeler'],
+  }),
+
+  philosophy: (lang) => ({
+    text: L(lang, `Onur'un üç ilkesi:\n\n${principles(lang)}`, `Onur's three principles:\n\n${principles(lang)}`),
+    sectionId: 'hakkimda',
+    suggests: ['calisma', 'biyoloji', 'nollm'],
+  }),
+
+  workstyle: (lang) => ({
+    text: L(
+      lang,
+      `Kısaca: önce ölçer, sonra karar verir. Envagro'da onlarca STT, TTS ve LLM modelini aynı koşullarda karşılaştırıp seçimi ölçülebilir bir karara dönüştürdü; WeatherApp'te de modelin hiçbir sayıyı hesaplamasına izin vermeyip hesabı test edilmiş koda bıraktı.\n\nİlkeleri:\n${principles(lang)}`,
+      `In short: measure first, decide after. At Envagro he compared dozens of STT, TTS and LLM models under identical conditions and turned model choice into a measurable decision; in WeatherApp the model is never allowed to compute a number, the maths stays in tested code.\n\nHis principles:\n${principles(lang)}`
+    ),
+    suggests: ['zorluk', 'nollm', 'envagro'],
+  }),
+
+  skills: (lang) => ({
+    text: L(lang, `Onur'un araç kutusu:\n\n${listTech(lang)}`, `Onur's toolbox:\n\n${listTech(lang)}`),
+    sectionId: 'yetenekler',
+    suggests: ['ai', 'mobil', 'projeler'],
+  }),
+
+  ai: (lang) => ({
+    text: L(
+      lang,
+      'AI tarafında üç somut iş var:\n\n• Envagro: STT, TTS ve LLM modellerini aynı koşullarda benchmark edip seçilenleri ürüne taşıdı.\n• Unimall: ilan metni üreten bir AI agent, OCR destekli veri girişi ve agentic bir destek botu kurdu.\n• WeatherApp: yerel bir modeli yedi doğrulama kapısının arkasında çalıştırıyor; kullanıcıya ulaşan hatalı yanıt sıfır.',
+      'Three concrete pieces of AI work:\n\n• Envagro: benchmarked STT, TTS and LLM models under identical conditions and shipped the chosen ones.\n• Unimall: built an AI agent that writes listings, OCR-backed data entry and an agentic support bot.\n• WeatherApp: runs a local model behind seven validation gates; zero wrong answers reach the user.'
+    ),
+    sectionId: 'deneyimler',
+    suggests: ['unimall', 'envagro', 'weatherapp'],
+  }),
+
+  mobile: (lang) => ({
+    text: L(
+      lang,
+      'Mobil geliştirme Onur\'un çıkış noktası! Appisode\'da Londra merkezli bir ekiple React Native (Expo) üzerinde çalıştı; WeatherApp\'in mobil uygulamasında da Skia ve Reanimated ile akıcı bir arayüz kurdu. "Çalışıyor" ile "kullanılabilir" arasındaki farkı önemsiyor.',
+      'Mobile development is where Onur started! At Appisode he worked on React Native (Expo) with a London-based team, and WeatherApp\'s mobile app uses Skia and Reanimated for a smooth interface. He cares about the gap between "it works" and "it\'s usable".'
+    ),
+    sectionId: 'projeler',
+    suggests: ['weatherapp', 'appisode', 'yetenekler'],
+  }),
+
+  projects: (lang) => ({
+    text: L(
+      lang,
+      `Onur'un projeleri:\n\n${listProjects(lang)}\n\nBirinin adını yazarsan detayına gireyim; linkini, teknolojilerini ya da sonucunu da sorabilirsin.`,
+      `Onur's projects:\n\n${listProjects(lang)}\n\nType one's name and I'll go into detail; you can also ask for its link, tech or results.`
+    ),
+    sectionId: 'projeler',
+    suggests: projects.map((p) => p.id),
+  }),
+
+  experience: (lang) => ({
+    text: L(
+      lang,
+      `Onur'un iş deneyimi (en yenisi üstte):\n\n${listExperiences(lang, 'work')}\n\nBirinin adını yazarsan detayına gireyim.`,
+      `Onur's work experience (latest first):\n\n${listExperiences(lang, 'work')}\n\nType one's name and I'll go into detail.`
+    ),
+    sectionId: 'deneyimler',
+    suggests: [...[...work].reverse().map((e) => e.id).slice(0, 2), 'egitim'],
+  }),
+
+  contact: (lang) => ({
+    text: L(lang, `Onur'a ulaşabileceğin kanallar:\n\n${socials(lang)}\n\nHer zaman bir mesaj uzağında!`, `Here's how to reach Onur:\n\n${socials(lang)}\n\nAlways just a message away!`),
+    sectionId: 'iletisim',
+    suggests: ['musaitlik', 'cv', 'projeler'],
+  }),
+
+  // Belirli bir proje söylenmeden "github linkin?" sorulunca
+  socials: (lang) => ({
+    text: L(
+      lang,
+      `GitHub: ${socialLinks.github}\nLinkedIn: ${socialLinks.linkedin}\n\nBelirli bir projenin kodunu arıyorsan adını yaz: ${listNames(lang, projectNames)}.`,
+      `GitHub: ${socialLinks.github}\nLinkedIn: ${socialLinks.linkedin}\n\nLooking for a specific project's code? Type its name: ${listNames(lang, projectNames)}.`
+    ),
+    sectionId: 'iletisim',
+    suggests: projects.map((p) => `${p.id}:link`).slice(0, 3),
+  }),
+
+  cv: (lang) => ({
+    text: L(
+      lang,
+      'CV hazır: ilk ekrandaki "CV İndir" düğmesinden ya da iletişim bölümündeki klasörden indirebilirsin. Klasörde siteden çıkmadan önizleme de var.',
+      'The resume is ready: download it from the "Download CV" button on the first screen, or from the folder in the contact section, which also has a preview.'
+    ),
+    sectionId: 'iletisim',
+    suggests: ['deneyim', 'musaitlik', 'iletisim'],
+  }),
+
+  availability: (lang) => ({
+    text: L(
+      lang,
+      `Kısaca: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nUzaktan çalışma ona tanıdık; Appisode'da Londra merkezli bir ekiple tamamen remote çalıştı. Rol, başlangıç ve ücret gibi detaylar için en hızlı yol: ${socialLinks.email}`,
+      `In short: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nRemote work is familiar ground; at Appisode he worked fully remote with a London-based team. For role, start date and salary, the quickest route is: ${socialLinks.email}`
+    ),
+    sectionId: 'iletisim',
+    suggests: ['cv', 'iletisim', 'neden'],
+  }),
+
+  hire: (lang) => ({
+    text: L(
+      lang,
+      'Üç şey öne çıkıyor:\n\n• Sistem düşünüyor. Biyolojiden geldiği için problemi parçalar listesi değil, birbirine bağlı bir bütün olarak ele alıyor.\n• Ölçüyor, tahmin etmiyor. Envagro\'da model seçimini sezgiden çıkarıp benchmark\'a bağladı.\n• Ürün tarafını biliyor. Mobil geçmişi sayesinde "çalışıyor" ile "kullanılabilir" arasındaki farkı önemsiyor.\n\nSomut karşılığı: Unimall\'da 22 milyondan fazla ürün kaydı olan bir operasyonu otomatikleştirdi; yalnızca OCR entegrasyonu operasyonel maliyette %40 tasarruf sağladı.',
+      'Three things stand out:\n\n• He thinks in systems. Coming from biology, he treats a problem as a connected whole rather than a list of parts.\n• He measures instead of guessing. At Envagro he moved model choice from intuition to benchmarks.\n• He knows the product side. His mobile background makes him care about the gap between "it works" and "it\'s usable".\n\nConcretely: at Unimall he automated an operation with over 22 million product records; the OCR integration alone cut operational cost by 40%.'
+    ),
+    sectionId: 'deneyimler',
+    suggests: ['unimall', 'cv', 'iletisim'],
+  }),
+
+  hardest: (lang) => ({
+    text: L(
+      lang,
+      "Unimall'daki ölçek problemi: üç ayrı satış kanalında 22 milyondan fazla ürün kaydı ve neredeyse tamamen manuel yürüyen bir süreç.\n\nZor kısım tek bir şeyi otomatikleştirmek değil, hangi katmanın önce çözüleceğine karar vermekti. Süreci üçe ayırdı: veri senkronizasyonu, içerik üretimi, müşteri iletişimi. OCR entegrasyonu tek başına operasyonel maliyette %40 tasarruf getirdi.",
+      "The scale problem at Unimall: over 22 million product records across three sales channels, with almost everything done by hand.\n\nThe hard part wasn't automating one thing, it was deciding which layer to solve first. He split the process into three: data sync, content generation, customer communication. The OCR integration alone cut operational cost by 40%."
+    ),
+    sectionId: 'deneyimler',
+    suggests: ['unimall:approach', 'ai', 'calisma'],
+  }),
+
+  thanks: (lang) => ({
+    text: L(lang, 'Rica ederim! Başka merak ettiğin bir şey olursa buradayım.', "You're welcome! I'm here if you have more questions."),
+    suggests: ['projeler', 'iletisim'],
+  }),
+
+  bye: (lang) => ({
+    text: L(lang, 'Görüşmek üzere! Umarım faydalı olmuşumdur; kapı her zaman açık.', 'See you! I hope I helped; the door is always open.'),
+    suggests: ['iletisim', 'cv'],
+  }),
+
+  info: (lang) => ({
+    text: L(lang, 'Tabii! Hangi konu ilgini çekiyor?', 'Sure! Which topic interests you?'),
+    suggests: ['hakkinda', 'projeler', 'deneyim', 'yetenekler'],
+  }),
+};
+
+/** Anlaşılamayan mesaj: tahmin varsa "şunu mu demek istedin", yoksa başlangıç konuları */
+export function fallbackAnswer(lang: Language, guesses: string[]): Answer {
+  if (guesses.length > 0) {
+    return {
+      text: L(lang, 'Tam olarak anlayamadım. Bunlardan birini mi kastettin?', "I couldn't quite place that. Did you mean one of these?"),
+      suggests: guesses,
+    };
+  }
+  return {
+    text: L(
+      lang,
+      'Hmm, bunu bilmiyorum; uydurmak yerine söyleyeyim. Şunları sorabilirsin:',
+      "Hmm, I don't know that one, and I'd rather say so than make something up. You can ask about:"
+    ),
+    suggests: ['hakkinda', 'projeler', 'deneyim', 'iletisim'],
+  };
+}
