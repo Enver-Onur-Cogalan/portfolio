@@ -13,8 +13,11 @@ export const SITE_URL =
   'https://enveronurcogalan.vercel.app';
 
 /**
- * CV dosyası. Hero'daki düğme ve İletişim'deki klasör aynı dosyayı
- * gösteriyor; dosya değişirse yalnızca burası güncellenir.
+ * CV dosyaları, dile göre. Hero'daki düğme, İletişim'deki klasör ve
+ * önizleme seçili dilin dosyasını gösteriyor. İkisi de sitenin verisinden
+ * üretiliyor: npm run cv (scripts/build-cv.ts).
  */
-export const CV_PATH = '/cv.pdf';
-export const CV_DOWNLOAD_NAME = 'Enver-Onur-Cogalan-CV.pdf';
+export const CV_FILES = {
+  tr: { path: '/cv.pdf', downloadName: 'Enver-Onur-Cogalan-CV.pdf' },
+  en: { path: '/cv-en.pdf', downloadName: 'Enver-Onur-Cogalan-CV-EN.pdf' },
+} as const;

@@ -7,7 +7,7 @@ import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { scrollToSection } from '@/lib/scroll';
 import { useLanguage } from '@/context/LanguageContext';
 import { socialLinks } from '@/data/portfolio';
-import { CV_PATH, CV_DOWNLOAD_NAME } from '@/data/site';
+import { CV_FILES } from '@/data/site';
 import { heroVideo, PORTRAIT_QUERY, type HeroVideoSource } from '@/data/heroVideo';
 
 /**
@@ -48,7 +48,8 @@ export default function Hero() {
   const mediaRef = useRef<HTMLDivElement>(null);
   const fadeRef = useRef<HTMLDivElement>(null);
   const edgeRef = useRef<HTMLDivElement>(null);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const cv = CV_FILES[lang];
 
   useEffect(() => {
     const container = containerRef.current;
@@ -298,8 +299,8 @@ export default function Hero() {
 
             <div className="mt-4 lg:mt-7 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 md:gap-3">
               <a
-                href={CV_PATH}
-                download={CV_DOWNLOAD_NAME}
+                href={cv.path}
+                download={cv.downloadName}
                 className="inline-flex items-center gap-2 rounded-full bg-[#2EE07C] px-5 py-2.5 md:py-3 text-sm md:text-base font-semibold text-[#05140b] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-white"
               >
                 <Download className="w-4 h-4" aria-hidden="true" />

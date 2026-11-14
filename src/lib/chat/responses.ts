@@ -376,8 +376,8 @@ export const generalAnswers: Record<string, (lang: Language) => Answer> = {
   cv: (lang) => ({
     text: L(
       lang,
-      'CV hazır: ilk ekrandaki "CV İndir" düğmesinden ya da iletişim bölümündeki klasörden indirebilirsin. Klasörde siteden çıkmadan önizleme de var.',
-      'The resume is ready: download it from the "Download CV" button on the first screen, or from the folder in the contact section, which also has a preview.'
+      'CV hazır: ilk ekrandaki "CV İndir" düğmesinden ya da iletişim bölümündeki klasörden indirebilirsin. Klasörde siteden çıkmadan önizleme de var. İngilizcesi de hazır: [CV (EN)](/cv-en.pdf)',
+      'The resume is ready: download it from the "Download CV" button on the first screen, or from the folder in the contact section, which also has a preview. A Turkish version is there too: [CV (TR)](/cv.pdf)'
     ),
     sectionId: 'iletisim',
     suggests: ['deneyim', 'musaitlik', 'iletisim'],
