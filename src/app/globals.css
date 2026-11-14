@@ -517,9 +517,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Telefonda maket biraz daha küçük; düğmeler başparmağın rahat
+   uzandığı yere çıkıyor. */
+@media (max-width: 767px) {
+  .hero-phone-size {
+    zoom: 0.66;
+  }
+}
+
 @media (max-width: 1023px) and (max-height: 760px) {
   .hero-phone-size {
-    zoom: 0.58;
+    zoom: 0.54;
   }
 }
 

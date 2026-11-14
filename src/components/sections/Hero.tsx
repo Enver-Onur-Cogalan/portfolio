@@ -159,12 +159,16 @@ export default function Hero({ onVideoEnd }: HeroProps) {
         kapsayıcı metni yine mikroskobun üstüne itiyordu. lg'den küçük
         ekranlarda yan yana yer olmadığı için alt alta geçer.
 
+        Mobilde yükseklik svh: iOS Safari'de 100vh adres çubuğu gizliyken
+        ölçülüyor, içerik görünen alanın altına kayıp düğmeler aşağıda
+        kalıyordu.
+
         Telefon "kim" sorusunu cevaplıyor (fotoğraf, isim, unvan); yanındaki
         metin "ne yapıyor, neden ilgilenmeliyim, nasıl ulaşırım" sorularını.
       */}
       <div
         ref={welcomeRef}
-        className="absolute inset-0 z-10 px-5 md:px-12 lg:px-[6vw] pt-16 pb-14 lg:py-0"
+        className="absolute inset-x-0 top-0 h-svh lg:h-full z-10 px-5 md:px-12 lg:px-[6vw] pt-16 pb-14 lg:py-0"
       >
         <div className="h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-5 lg:gap-10">
           <div className="hero-rise shrink-0 lg:order-2 lg:mr-[2vw]">
@@ -242,7 +246,7 @@ export default function Hero({ onVideoEnd }: HeroProps) {
       </div>
 
       <div
-        className="absolute bottom-4 md:bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 text-white/70 pointer-events-none"
+        className="absolute top-[calc(100svh-4rem)] lg:top-auto lg:bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 text-white/70 pointer-events-none"
         aria-hidden="true"
       >
         <span className="text-[10px] md:text-xs uppercase tracking-[0.2em]">{t('hero.scroll')}</span>
