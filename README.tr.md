@@ -16,7 +16,7 @@ Bu benim kişisel sitem. İçinde LLM'siz konuşan bir sohbet botu, kaydırma te
 - **Kaydırmaya bağlı hero.** Mikroskop videosu kaydırma konumuyla ileri geri sarılıyor. Hakkımda'ya geçiş (hücreye dalış, sonra sayfaya erime) tamamen kaydırma konumunun fonksiyonu. Aşağı da yukarı da, Safari'de de aynı davranıyor.
 - **Çizgi şerit.** Hakkımda bölümünde mikroskop, masa, kahve, oyun ve motosiklet arasında gezen, gece-gündüz döngüsü olan bir çizgi figür var.
 - **Gizli oyun.** Var olmayan bir sayfaya git. (Ya da bota sıkıldığını söyle.)
-- **Küçük ve hızlı.** Next/React dışındaki tek çalışma zamanı bağımlılıkları GSAP ve Lucide. Lighthouse masaüstü: 100 / 100 / 100 / 100.
+- **Küçük ve hızlı.** Next/React dışındaki tek çalışma zamanı bağımlılıkları GSAP, Lucide ve Vercel Analytics (çerezsiz, ~1 KB). Lighthouse masaüstü: 100 / 100 / 100 / 100.
 - **Güvenlik başlıkları.** Sıkı CSP (yalnızca `'self'`), çerçeveleme koruması ve kısıtlı Permissions-Policy.
 
 ---
@@ -33,6 +33,7 @@ Bu benim kişisel sitem. İçinde LLM'siz konuşan bir sohbet botu, kaydırma te
 | İkonlar | Lucide React |
 | Testler | Node'un yerleşik test çalıştırıcısı |
 | Dağıtım | Vercel |
+| Analitik | Vercel Web Analytics (çerezsiz, anonim) |
 
 Proje yapısı, botun dosya dosya mimarisi ve API örnekleri için [İngilizce README](README.md)'ye bak; kod yorumları zaten Türkçe.
 

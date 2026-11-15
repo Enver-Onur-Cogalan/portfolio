@@ -145,6 +145,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'contact.title': 'İletişim',
     'contact.desc': 'Beni aşağıdaki kanallardan takip edebilir veya e-posta göndererek iletişime geçebilirsiniz.',
     'contact.footer': 'Kod MIT lisanslı; içerik (metin, fotoğraf, CV) tüm hakları saklı.',
+    'contact.analytics': 'Ziyaretler çerezsiz ve anonim olarak sayılıyor (Vercel Web Analytics). Kim olduğunu bilmiyorum, sadece uğradığını.',
 
     // Music
     'music.toggle': 'Müzik çaları aç',
@@ -348,6 +349,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'contact.title': 'Contact',
     'contact.desc': 'Follow me on the channels below or get in touch by sending an email.',
     'contact.footer': 'Code under the MIT license; content (text, photos, CV) all rights reserved.',
+    'contact.analytics': 'Visits are counted without cookies, anonymously (Vercel Web Analytics). I don\'t know who you are, just that you stopped by.',
 
     // Music
     'music.toggle': 'Open music player',

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -135,6 +136,9 @@ export default function RootLayout({
             <ChatWidget />
           </LanguageProvider>
         </ThemeProvider>
+        {/* Çerezsiz, anonim sayfa görüntüleme sayımı; betik sitenin kendi
+            adresinden (/_vercel/insights) gelir, CSP değişikliği gerekmez */}
+        <Analytics />
       </body>
     </html>
   );
