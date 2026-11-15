@@ -131,6 +131,7 @@ export default function Contact() {
           style={{ borderColor: 'var(--muted)', color: 'var(--muted)' }}
         >
           <p>&copy; {new Date().getFullYear()} Enver Onur Çoğalan. {t('contact.footer')}</p>
+          <p className="mt-2 text-xs">{t('contact.analytics')}</p>
         </footer>
       </div>
 

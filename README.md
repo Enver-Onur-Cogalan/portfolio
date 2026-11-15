@@ -16,7 +16,7 @@ This is my personal site. It has a chatbot that talks without an LLM, a microsco
 - **Scroll-driven hero.** The microscope video is scrubbed by scroll position. The transition into About (diving into the cell, then melting into the page) is a pure function of scroll, so it behaves the same scrolling down or up, in Safari too.
 - **Ink strip.** The About section has a line-art figure who walks between a microscope, a desk, coffee, games and a motorbike, with a day/night cycle.
 - **Hidden game.** Visit a page that doesn't exist. (Or ask the bot whether it's bored.)
-- **Small and fast.** The only runtime dependencies besides Next/React are GSAP and Lucide. Lighthouse desktop: 100 / 100 / 100 / 100.
+- **Small and fast.** The only runtime dependencies besides Next/React are GSAP, Lucide and Vercel Analytics (cookieless, ~1 KB). Lighthouse desktop: 100 / 100 / 100 / 100.
 - **Security headers.** Strict CSP (`'self'` only), frame protection and a locked-down Permissions-Policy.
 
 ---
@@ -33,6 +33,7 @@ This is my personal site. It has a chatbot that talks without an LLM, a microsco
 | Icons | Lucide React |
 | Tests | Node's built-in test runner |
 | Hosting | Vercel |
+| Analytics | Vercel Web Analytics (cookieless, anonymous) |
 
 ---
 
