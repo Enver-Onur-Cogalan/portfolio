@@ -1,6 +1,7 @@
 import { projects, experiences, type Project, type Experience } from '@/data/portfolio';
 import { translate, type Language } from '@/i18n/translations';
 import { normalize, tokenize } from './normalize';
+import { experiencePlace } from '@/lib/experience';
 import type { SectionId } from './responses';
 
 /*
@@ -213,10 +214,16 @@ export function answerAbout(lang: Language, entity: Entity, intent: EntityIntent
 
   const headline = maybe(lang, `experience.${e.id}.headline`);
   return {
-    text: [`${e.title} · ${subtitle} · ${period}`, headline, desc].filter(Boolean).join('\n\n'),
+    text: [`${e.title} · ${subtitle} · ${period}${placeLabel(lang, e)}`, headline, desc].filter(Boolean).join('\n\n'),
     sectionId,
     suggests: experienceSuggests(e, 'detail'),
   };
+}
+
+/** " · Hong Kong (Remote)" — konum yoksa boş */
+function placeLabel(lang: Language, e: Experience): string {
+  const p = experiencePlace(lang, e);
+  return p ? ` · ${p.city}${p.mode ? ` (${p.mode})` : ''}` : '';
 }
 
 /** Öneri düğmesi etiketi ve gönderilecek metin: "weatherapp:tech" gibi anahtarlar için */

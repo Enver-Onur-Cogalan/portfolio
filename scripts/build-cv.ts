@@ -25,16 +25,22 @@ import {
   cvEducationTitle,
   cvLabels,
   cvLanguages,
-  cvLocation,
   cvPhotoCrop,
   cvProjects,
   cvRole,
   cvSummary,
 } from '@/data/cv';
 import { translate, type Language } from '@/i18n/translations';
+import { experiencePlace } from '@/lib/experience';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NAME = 'Enver Onur Çoğalan';
+
+/** "Hong Kong (Remote)": konum sitenin verisinden, CV'de parantezli. */
+const placeOf = (lang: Language, e: (typeof experiences)[number]): string => {
+  const p = experiencePlace(lang, e);
+  return p ? `${p.city}${p.mode ? ` (${p.mode})` : ''}` : '';
+};
 
 const CHROME =
   process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -100,7 +106,7 @@ function render(lang: Language, photo: string | null): string {
       return `
         <article class="item">
           <div class="row">
-            <h3>${escape(translate(lang, `experience.${e.id}.subtitle`) || e.subtitle)} <span class="at">· ${escape(e.title)} · ${escape(cvLocation[e.id]?.[lang] ?? '')}</span></h3>
+            <h3>${escape(translate(lang, `experience.${e.id}.subtitle`) || e.subtitle)} <span class="at">· ${escape(e.title)} · ${escape(placeOf(lang, e))}</span></h3>
             <span class="meta">${escape(period(lang, e.periodKey, e.period))}</span>
           </div>
           <ul>${bullets.map((b) => `<li>${escape(b)}</li>`).join('')}</ul>
@@ -129,7 +135,7 @@ function render(lang: Language, photo: string | null): string {
       (e) => `
         <article class="item edu">
           <div class="row">
-            <h3>${escape(cvEducationTitle[e.id]?.[lang] ?? e.title)}<span class="note">${escape(cvEducationNote[e.id]?.[lang] ?? '')} · ${escape(cvLocation[e.id]?.[lang] ?? '')}</span></h3>
+            <h3>${escape(cvEducationTitle[e.id]?.[lang] ?? e.title)}<span class="note">${escape(cvEducationNote[e.id]?.[lang] ?? '')} · ${escape(placeOf(lang, e))}</span></h3>
             <span class="meta">${escape(period(lang, e.periodKey, e.period))}</span>
           </div>
         </article>`

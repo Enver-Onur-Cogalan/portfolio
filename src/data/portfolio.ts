@@ -144,6 +144,9 @@ export interface ExperienceMetric {
   key: string;
 }
 
+/** Nasıl çalışıldı: ekip başka şehirdeyse remote, eğitim çevrim içiyse online. */
+export type WorkMode = 'remote' | 'online';
+
 export interface Experience {
   id: string;
   /** Dönem etiketinin çeviri anahtarı */
@@ -160,6 +163,13 @@ export interface Experience {
   caseStudy?: string[];
   metrics?: ExperienceMetric[];
   tech?: string[];
+  /**
+   * Şirketin ya da okulun şehri (Türkçe). İngilizcesi
+   * experience.<id>.location anahtarında. Site kartı, bot ve CV
+   * hepsi buradan okuyor.
+   */
+  location?: string;
+  mode?: WorkMode;
 }
 
 export const experiences: Experience[] = [
@@ -171,6 +181,7 @@ export const experiences: Experience[] = [
     subtitle: 'Biyoloji Bölümü',
     description: 'Not ortalaması: 3.05/4',
     type: 'education',
+    location: 'İzmir',
   },
   {
     id: 'patika',
@@ -181,6 +192,8 @@ export const experiences: Experience[] = [
     description:
       'Seçkin ve yoğun içerikli bir yazılım bootcamp\'ini başarıyla tamamladım. React Native, JavaScript ve Git teknolojilerine odaklanarak, gerçek dünya problemlerine çözüm sağlayan mobil uygulama projeleri geliştirdim.',
     type: 'education',
+    location: 'İstanbul',
+    mode: 'online',
   },
   {
     id: 'appisode',
@@ -189,8 +202,10 @@ export const experiences: Experience[] = [
     title: 'Appisode',
     subtitle: 'Freelance React Native FullStack Developer',
     description:
-      'London, UK (Remote). React Native tabanlı Expo framework\'ü kullanarak mobil uygulama geliştirme üzerinde çalıştım. Yeni özellikler geliştirdim, UI/UX iyileştirmeleri ve performans optimizasyonları yaptım.',
+      'React Native tabanlı Expo framework\'ü kullanarak mobil uygulama geliştirme üzerinde çalıştım. Yeni özellikler geliştirdim, UI/UX iyileştirmeleri ve performans optimizasyonları yaptım.',
     type: 'work',
+    location: 'Londra',
+    mode: 'remote',
   },
   {
     id: 'envagro',
@@ -204,6 +219,8 @@ export const experiences: Experience[] = [
     caseStudy: ['context', 'approach', 'result'],
     tech: ['STT', 'TTS', 'LLM', 'Benchmarking', 'API Design'],
     type: 'work',
+    location: 'İstanbul',
+    mode: 'remote',
   },
   {
     id: 'unimall',
@@ -222,6 +239,8 @@ export const experiences: Experience[] = [
     ],
     tech: ['AI Agents', 'OCR', 'Webhooks', 'Cronjob', 'Python', 'RAG'],
     type: 'work',
+    location: 'Hong Kong',
+    mode: 'remote',
   },
 ];
 
