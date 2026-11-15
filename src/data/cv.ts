@@ -79,8 +79,8 @@ export const cvProjects: Record<string, Localized> = {
     en: 'A weather app that tells you when to go out; the model that interprets questions runs locally.',
   },
   memefile: {
-    tr: 'Tepki videoları için masaüstü kütüphanesi: etiketle, tam metin aramayla saniyede bul, Discord\'a sürükle.',
-    en: 'A desktop library for reaction videos: tag clips, find them in a second with full-text search, drag into Discord.',
+    tr: 'Tepki videoları için masaüstü kütüphanesi: etiketle, tam metin aramayla saniyede bul, tek hareketle sohbete sürükle.',
+    en: 'A desktop library for reaction videos: tag clips, find them in a second with full-text search, drag them straight into a chat.',
   },
   portfolio: {
     tr: 'Kişisel sitem; bilerek LLM kullanmayan, 250+ vakalık testle korunan iki dilli bir sohbet botu dahil.',
