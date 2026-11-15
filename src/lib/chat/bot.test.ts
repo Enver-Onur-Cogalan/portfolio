@@ -108,6 +108,15 @@ const SINGLE: Case[] = [
   ['tr', 'weatherapp repo', 'link', 'weatherapp'],
   ['en', 'meme file source code', 'link', 'memefile'],
   ['tr', "Meme File'ı nereden indirebilirim", 'download', 'memefile'],
+  // Projenin kendi sitesi
+  ['tr', "Meme File'ın sitesi var mı", 'website', 'memefile'],
+  ['tr', 'meme file web sitesi', 'website', 'memefile'],
+  ['tr', 'memefile websitesi', 'website', 'memefile'],
+  ['en', 'does meme file have a website', 'website', 'memefile'],
+  ['en', 'meme file site', 'website', 'memefile'],
+  ['tr', 'weatherapp sitesi', 'website', 'weatherapp'],
+  ['tr', 'bu site neyle yapıldı', 'tech', 'portfolio'],
+  ['tr', 'bu sitenin kodu', 'link', 'portfolio'],
   ['en', 'download meme file', 'download', 'memefile'],
   ['tr', "WeatherApp'te hangi teknolojiler var", 'tech', 'weatherapp'],
   ['tr', 'meme file ne ile yazıldı', 'tech', 'memefile'],
@@ -305,6 +314,15 @@ test('altın test seti: tek mesajlık sorular', () => {
 
 type Turn = [message: string, intent: string, entity?: string];
 const CONVERSATIONS: Array<{ name: string; lang: 'tr' | 'en'; turns: Turn[] }> = [
+  {
+    name: 'projeden sonra sitesini sorma: "sitesi var mı?"',
+    lang: 'tr',
+    turns: [
+      ['Meme File nedir', 'detail', 'memefile'],
+      ['sitesi var mı?', 'website', 'memefile'],
+      ['bu sitenin kodu nerede', 'link', 'portfolio'],
+    ],
+  },
   {
     name: 'zamirle takip: "onun linki"',
     lang: 'tr',

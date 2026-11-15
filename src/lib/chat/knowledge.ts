@@ -84,15 +84,26 @@ function projectDesc(lang: Language, p: Project): string {
   return maybe(lang, `projects.${p.id}.desc`) || p.description;
 }
 
+// Türkçe iyelik eki okunuşa göre: "Meme File" [meym fayl] → 'ın
+const POSSESSIVE_SUFFIX: Record<string, string> = { memefile: "'ın", portfolio: "'nun" };
+const possessive = (p: Project) => `${p.title}${POSSESSIVE_SUFFIX[p.id] ?? "'in"}`;
+
 function projectLinks(lang: Language, p: Project): string {
   const lines = [`GitHub: ${p.github}`];
+  if (p.website) lines.unshift(L(lang, `Site: ${p.website}`, `Website: ${p.website}`));
   if (p.download) lines.push(L(lang, `İndir (Windows): ${p.download}`, `Download (Windows): ${p.download}`));
   return lines.join('\n');
 }
 
 /** Bir projeyle ilgili bir sonraki mantıklı sorular */
 function projectSuggests(p: Project, except: string): string[] {
-  const options = [`${p.id}:approach`, `${p.id}:result`, `${p.id}:tech`, `${p.id}:link`].filter((s) => !s.endsWith(except));
+  const options = [
+    ...(p.website ? [`${p.id}:website`] : []),
+    `${p.id}:approach`,
+    `${p.id}:result`,
+    `${p.id}:tech`,
+    `${p.id}:link`,
+  ].filter((s) => !s.endsWith(except));
   return [...options.slice(0, 2), 'projeler'];
 }
 
@@ -102,7 +113,7 @@ function experienceSuggests(e: Experience, except: string): string[] {
   return [...options.filter((s) => !s.endsWith(except)).slice(0, 2), 'deneyim'];
 }
 
-export type EntityIntent = 'detail' | 'link' | 'tech' | 'problem' | 'approach' | 'result' | 'download';
+export type EntityIntent = 'detail' | 'link' | 'tech' | 'problem' | 'approach' | 'result' | 'download' | 'website';
 
 /** Bir varlık hakkında belirli bir soruya cevap */
 export function answerAbout(lang: Language, entity: Entity, intent: EntityIntent): Answer {
@@ -110,9 +121,19 @@ export function answerAbout(lang: Language, entity: Entity, intent: EntityIntent
     const p = findProject(entity.id)!;
     const sectionId: SectionId = 'projeler';
     switch (intent) {
+      case 'website':
+        return {
+          text: p.website
+            ? L(lang, `${possessive(p)} kendi sitesi var; uygulamayı oradan gezip indirebilirsin:\n${p.website}`, `${p.title} has its own site; you can tour the app and download it there:\n${p.website}`)
+            : p.id === 'portfolio'
+              ? L(lang, `Zaten buradasın 🙂 Kaynak kodu:\n${p.github}`, `You're already on it 🙂 Source code:\n${p.github}`)
+              : L(lang, `${possessive(p)} ayrı bir sitesi yok, ama kaynak kodu açık:\n${p.github}`, `${p.title} has no site of its own, but the source is open:\n${p.github}`),
+          sectionId,
+          suggests: projectSuggests(p, 'website'),
+        };
       case 'link':
         return {
-          text: L(lang, `${p.title} kaynak kodu:\n${projectLinks(lang, p)}`, `${p.title} source code:\n${projectLinks(lang, p)}`),
+          text: L(lang, `${p.title} bağlantıları:\n${projectLinks(lang, p)}`, `${p.title} links:\n${projectLinks(lang, p)}`),
           sectionId,
           suggests: projectSuggests(p, 'link'),
         };
@@ -120,7 +141,7 @@ export function answerAbout(lang: Language, entity: Entity, intent: EntityIntent
         return {
           text: p.download
             ? L(lang, `${p.title} kurulum dosyası burada; kurulan uygulama yeni sürümleri kendisi alıyor:\n${p.download}`, `${p.title} installer is here; once installed it updates itself:\n${p.download}`)
-            : L(lang, `${p.title}'in indirilebilir bir sürümü yok, ama kaynak kodu açık:\n${p.github}`, `${p.title} has no download, but the source is open:\n${p.github}`),
+            : L(lang, `${possessive(p)} indirilebilir bir sürümü yok, ama kaynak kodu açık:\n${p.github}`, `${p.title} has no download, but the source is open:\n${p.github}`),
           sectionId,
           suggests: projectSuggests(p, 'download'),
         };
@@ -210,6 +231,7 @@ export function entitySuggestion(key: string, lang: Language): { label: string; 
     link: ['GitHub linki', 'GitHub link'],
     problem: ['Hangi problemi çözüyor?', 'What problem?'],
     download: ['İndir', 'Download'],
+    website: ['Web sitesi', 'Website'],
   };
   const queries: Record<string, [string, string]> = {
     approach: ['nasıl yapıldı', 'how was it built'],
@@ -218,6 +240,7 @@ export function entitySuggestion(key: string, lang: Language): { label: string; 
     link: ['github linki', 'github link'],
     problem: ['hangi problemi çözüyor', 'what problem does it solve'],
     download: ['indir', 'download'],
+    website: ['web sitesi', 'website'],
   };
   if (!labels[intent]) return null;
   const pick = (pair: [string, string]) => (lang === 'tr' ? pair[0] : pair[1]);
