@@ -17,7 +17,7 @@ import { normalize, tokenize, phraseMatch } from './normalize';
   kelimeler ve küçük yazım hataları normalize.ts'teki kurallarla eşleşiyor.
 */
 
-export const ENTITY_INTENTS = ['detail', 'link', 'tech', 'problem', 'approach', 'result', 'download'] as const;
+export const ENTITY_INTENTS = ['detail', 'link', 'tech', 'problem', 'approach', 'result', 'download', 'website'] as const;
 export type EntityIntentId = (typeof ENTITY_INTENTS)[number];
 
 interface IntentDef {
@@ -48,6 +48,7 @@ const DEFS: IntentDef[] = [
     keywords: ['sonuc', 'result', 'metrik', 'metric', 'olcum', 'basar', 'achieve', 'accomplish', 'impact', 'etki', 'kazandirdi', 'tasarruf', 'performans', 'numbers', 'rakamlar', 'outcome'],
   },
   { id: 'download', keywords: ['indir', 'download', 'kurulum', 'install', 'installer', 'exe', 'setup'] },
+  { id: 'website', keywords: ['site', 'web sitesi', 'websitesi', 'website', 'web site', 'tanitim sitesi', 'landing page', 'homepage'] },
 
   // ─── Genel ───────────────────────────────────────────────
   { id: 'howareyou', keywords: ['nasilsin', 'naber', 'ne haber', 'nbr', 'iyi misin', 'how are you', 'whats up', 'nasil gidiyor', 'keyifler'] },

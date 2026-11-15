@@ -115,7 +115,7 @@ function render(lang: Language, photo: string | null): string {
         <article class="item project">
           <div class="row">
             <h3>${escape(p.title)}<span class="tech-inline">${p.technologies.slice(0, 5).map(escape).join(' · ')}</span></h3>
-            <span class="meta">${link(p.github)}</span>
+            <span class="meta">${link(p.website ?? p.github)}</span>
           </div>
           <p>${escape(cvProjects[p.id][lang])}</p>
         </article>`

@@ -57,6 +57,8 @@ export interface Project {
     aralarında döner; dizideki sıra başlangıç sırasıdır.
   */
   featured?: boolean;
+  /** Projenin kendi tanıtım sitesi; varsa kartta "Siteyi gör" düğmesi çıkar */
+  website?: string;
   /** Kurulabilir sürümün bağlantısı; varsa kartta indirme düğmesi çıkar */
   download?: string;
   /** Başlığın altındaki tek cümlelik iddia: projects.<id>.headline */
@@ -108,6 +110,7 @@ export const projects: Project[] = [
       'GitHub Actions',
     ],
     github: 'https://github.com/Enver-Onur-Cogalan/meme-file',
+    website: 'https://memefile.vercel.app',
     download: 'https://github.com/Enver-Onur-Cogalan/meme-file/releases/latest',
     featured: true,
     headline: true,

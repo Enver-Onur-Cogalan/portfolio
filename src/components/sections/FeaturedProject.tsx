@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Download, Maximize2 } from 'lucide-react';
+import { Download, Globe, Maximize2 } from 'lucide-react';
 import { tint, type Project } from '@/data/portfolio';
 import { useLanguage } from '@/context/LanguageContext';
 import { gsap } from '@/lib/gsap';
@@ -277,7 +277,8 @@ export default function FeaturedProject({
                     aria-hidden="true"
                   />
                   <h3
-                    className={`${isWide ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'} font-bold font-heading tracking-tight`}
+                    // Harfler ayrı kutular; nowrap olmazsa dar ekranda kelimenin ortasından kırılıyor
+                    className={`${isWide ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'} font-bold font-heading tracking-tight whitespace-nowrap`}
                     style={{ color: 'var(--foreground)' }}
                     onMouseEnter={(e) => handleTitleHover(e, true)}
                     onMouseLeave={(e) => handleTitleHover(e, false)}
@@ -303,14 +304,32 @@ export default function FeaturedProject({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {project.website && (
+                  <a
+                    href={project.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 rounded-xl text-sm font-medium transition-transform duration-300 hover:scale-105 ${
+                      isWide ? 'px-3.5 py-2.5' : 'p-2.5'
+                    }`}
+                    style={{ ...iconButtonStyle, color: 'var(--foreground)' }}
+                    aria-label={`${project.title} — ${t('projects.website')}`}
+                  >
+                    <Globe className="w-4 h-4 shrink-0" style={{ color: 'var(--secondary)' }} aria-hidden="true" />
+                    {isWide && <span className="hidden sm:inline">{t('projects.website')}</span>}
+                  </a>
+                )}
+
                 {project.download && (
                   <a
                     href={project.download}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`download-link inline-flex items-center gap-2 rounded-xl text-sm font-medium transition-transform duration-300 hover:scale-105 ${
-                      isWide ? 'px-3.5 py-2.5' : 'p-2.5'
+                    // Telefonda dar kartta gizli: Windows kurulumu telefondan
+                    // yapılamıyor, düğmeler de başlığa yer bırakmıyordu
+                    className={`download-link items-center gap-2 rounded-xl text-sm font-medium transition-transform duration-300 hover:scale-105 ${
+                      isWide ? 'inline-flex px-3.5 py-2.5' : 'hidden sm:inline-flex p-2.5'
                     }`}
                     style={{ ...iconButtonStyle, color: 'var(--foreground)' }}
                     // Yazı dar ekranda gizleniyor; ad her durumda ekran okuyucuya gitsin

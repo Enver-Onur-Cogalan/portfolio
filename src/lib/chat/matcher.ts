@@ -43,6 +43,9 @@ export interface MatchResult {
 
 const MIN_SCORE = 0.7;
 
+/** "bu site", "senin siten", "this website": kastedilen bu sitenin kendisi */
+const OWN_SITE_WORDS = new Set(['bu', 'this', 'senin', 'your', 'portfolio', 'portfolyo']);
+
 /** Sohbet nezaketi: başka bir soruyla birlikte gelirse soruya öncelik verilir */
 const SMALL_TALK = new Set(['greet', 'howareyou', 'thanks', 'bye']);
 
@@ -177,7 +180,7 @@ export function findBestMatch(
   const normalized = normalize(trimmed);
   const tokens = tokenize(normalized);
   const scores = scoreIntents(tokens);
-  const entity = detectEntity(tokens);
+  let entity = detectEntity(tokens);
 
   const generalIds = intentOrder.filter((id) => !isEntityIntent(id));
   const specific = topIntent(scores, ENTITY_INTENTS.filter((id) => id !== 'detail'));
@@ -188,6 +191,18 @@ export function findBestMatch(
   if (general && SMALL_TALK.has(general.id)) {
     const substantive = topIntent(scores, generalIds.filter((id) => !SMALL_TALK.has(id)));
     if (substantive && substantive.score >= MIN_SCORE) general = substantive;
+  }
+
+  // "sitesi var mı?" tek başına bu siteyi (portfolio) de anlatabilir; ama
+  // az önce başka bir projeden söz edildiyse sorulan onun sitesi
+  if (
+    entity?.id === 'portfolio' &&
+    specific?.id === 'website' &&
+    !tokens.some((token) => OWN_SITE_WORDS.has(token)) &&
+    context.lastEntity &&
+    context.lastEntity !== 'portfolio'
+  ) {
+    entity = findEntity(context.lastEntity) ?? entity;
   }
 
   const isFollowUp = FOLLOW_UP_STARTS.some((start) => normalized === start || normalized.startsWith(`${start} `));
