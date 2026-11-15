@@ -97,7 +97,7 @@ export const projects: Project[] = [
     id: 'memefile',
     title: 'Meme File',
     description:
-      'Tepki videoları için Windows masaüstü kütüphanesi. Klasörlerini izler, chip\'lerle etiketlersin, saniyede bulursun, tek hareketle Discord\'a sürüklersin.',
+      'Tepki videoları için Windows masaüstü kütüphanesi. Klasörlerini izler, chip\'lerle etiketlersin, saniyede bulursun, tek hareketle sohbet uygulamana sürüklersin.',
     technologies: [
       'Electron',
       'React',
