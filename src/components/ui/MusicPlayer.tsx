@@ -5,6 +5,29 @@ import { gsap } from 'gsap';
 import { musicLyrics } from '@/data/music';
 import { useLanguage } from '@/context/LanguageContext';
 
+/*
+  Çalar paneli ve bilgi balonu temanın kendi yüzeyini kullanıyor.
+
+  Eskiden renkler ters çevrilmişti (koyu temada beyaz, açık temada
+  siyah kart): sayfadan ayrışsın diye. Ama gece koyu bir sayfada
+  birden açılan büyük beyaz bir kutu göz alıyordu ve sitede temaya
+  uymayan tek parça buydu. Artık sohbet penceresi gibi: arka plandan
+  bir ton ayrışan yüzey, ince kenarlık ve gölge.
+*/
+const PANEL = {
+  backgroundColor: 'color-mix(in srgb, var(--foreground) 4%, var(--background))',
+  color: 'var(--foreground)',
+  border: '1px solid color-mix(in srgb, var(--muted) 30%, transparent)',
+  boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+} as const;
+
+/*
+  Söz satırı yeşil, ama düz vurgu yeşili açık zeminde okunmuyor
+  (~2.9:1). Yazı rengine biraz karıştırınca açık temada koyulaşıyor,
+  koyu temada açılıyor; ikisinde de 4.5:1'in üstünde.
+*/
+const LYRIC = 'color-mix(in srgb, var(--accent) 70%, var(--foreground))';
+
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCard, setShowCard] = useState(false);
@@ -379,11 +402,9 @@ export default function MusicPlayer() {
           showInfo ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
         style={{
-          backgroundColor: 'var(--foreground)',
-          color: 'var(--background)',
+          ...PANEL,
           minWidth: '240px',
           maxWidth: 'calc(100vw - 2rem)',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
           zIndex: 60,
         }}
       >
@@ -407,9 +428,7 @@ export default function MusicPlayer() {
           showCard ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
         style={{
-          backgroundColor: 'var(--foreground)',
-          color: 'var(--background)',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+          ...PANEL,
           opacity: showCard ? 1 : 0,
           transform: showCard ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.8)',
           zIndex: 50,
@@ -451,8 +470,8 @@ export default function MusicPlayer() {
             aria-expanded={showInfo}
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all hover:scale-110"
             style={{
-              backgroundColor: showInfo ? 'var(--accent)' : 'rgba(128, 128, 128, 0.3)',
-              color: '#000',
+              backgroundColor: showInfo ? 'var(--accent)' : 'color-mix(in srgb, var(--muted) 22%, transparent)',
+              color: showInfo ? '#000' : 'var(--foreground)',
             }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,7 +488,7 @@ export default function MusicPlayer() {
           <span
             ref={lyricRef}
             className="text-sm font-medium px-2"
-            style={{ color: currentLyric ? 'var(--accent)' : 'var(--background)', opacity: currentLyric ? 1 : 0.4 }}
+            style={{ color: currentLyric ? LYRIC : 'var(--foreground)', opacity: currentLyric ? 1 : 0.45 }}
           >
             {currentLyric || t('music.lyrics.placeholder')}
           </span>
@@ -479,7 +498,7 @@ export default function MusicPlayer() {
         <div className="mb-4">
           <div
             className="h-1 rounded-full overflow-hidden cursor-pointer"
-            style={{ backgroundColor: 'rgba(128, 128, 128, 0.3)' }}
+            style={{ backgroundColor: 'color-mix(in srgb, var(--muted) 30%, transparent)' }}
             onClick={handleProgressClick}
           >
             <div
@@ -492,8 +511,8 @@ export default function MusicPlayer() {
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-xs opacity-60" style={{ color: 'var(--background)' }}>{formatTime(currentTime)}</span>
-            <span className="text-xs opacity-60" style={{ color: 'var(--background)' }}>{formatTime(duration)}</span>
+            <span className="text-xs opacity-60" style={{ color: 'var(--foreground)' }}>{formatTime(currentTime)}</span>
+            <span className="text-xs opacity-60" style={{ color: 'var(--foreground)' }}>{formatTime(duration)}</span>
           </div>
         </div>
 
@@ -503,7 +522,7 @@ export default function MusicPlayer() {
             type="button"
             onClick={skipBackward}
             className="p-2 opacity-60 hover:opacity-100 transition-opacity"
-            style={{ color: 'var(--background)' }}
+            style={{ color: 'var(--foreground)' }}
             title={t('music.back10')}
             aria-label={t('music.back10')}
           >
@@ -536,7 +555,7 @@ export default function MusicPlayer() {
             type="button"
             onClick={skipForward}
             className="p-2 opacity-60 hover:opacity-100 transition-opacity"
-            style={{ color: 'var(--background)' }}
+            style={{ color: 'var(--foreground)' }}
             title={t('music.forward10')}
             aria-label={t('music.forward10')}
           >
