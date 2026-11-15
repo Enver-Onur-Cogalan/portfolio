@@ -1,6 +1,7 @@
 import { projects, skillCategories, experiences, socialLinks, aboutPrinciples } from '@/data/portfolio';
 import { translate, type Language } from '@/i18n/translations';
 import { entitySuggestion, type Answer } from './knowledge';
+import { experiencePlace } from '@/lib/experience';
 
 /** Sayfadaki bölüm kimlikleri: bot cevabı hangi bölüme kaydıracağını söyler. */
 export type SectionId = 'hakkimda' | 'yetenekler' | 'projeler' | 'deneyimler' | 'iletisim';
@@ -192,6 +193,37 @@ function socials(lang: Language): string {
   ].join('\n');
 }
 
+/*
+  Remote çalışılan işler, en yeniden eskiye: "Unimall'da Hong Kong,
+  Envagro'da İstanbul ve Appisode'da Londra". Konumlar sitenin
+  verisinden; yeni bir remote iş eklenince cevap kendiliğinden uzuyor.
+*/
+const remoteWork = [...work].filter((e) => e.mode === 'remote').reverse();
+
+// Bulunma eki okunuşa göre: "Appisode" [epizod] → 'da
+const LOCATIVE: Record<string, string> = { appisode: "'da" };
+function locative(id: string, name: string): string {
+  if (LOCATIVE[id]) return name + LOCATIVE[id];
+  const vowel = [...name.toLowerCase()].reverse().find((c) => 'aıoueiöü'.includes(c)) ?? 'a';
+  return name + ('aıou'.includes(vowel) ? "'da" : "'de");
+}
+
+function remoteTeams(lang: Language): string {
+  return listNames(
+    lang,
+    remoteWork.map((e) => {
+      const city = experiencePlace(lang, e)?.city ?? '';
+      return lang === 'tr' ? `${locative(e.id, e.title)} ${city}` : `${city} (${e.title})`;
+    })
+  );
+}
+
+const COUNT_WORDS: Record<Language, string[]> = {
+  tr: ['hiçbir', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı'],
+  en: ['none', 'one', 'two', 'three', 'four', 'five', 'six'],
+};
+const remoteCount = (lang: Language): string => COUNT_WORDS[lang][remoteWork.length] ?? String(remoteWork.length);
+
 // ─── Genel niyetlerin cevapları ──────────────────────────────
 
 export const generalAnswers: Record<string, (lang: Language) => Answer> = {
@@ -279,8 +311,8 @@ export const generalAnswers: Record<string, (lang: Language) => Answer> = {
   location: (lang) => ({
     text: L(
       lang,
-      `${t(lang, 'hero.location')}. Onur İzmir'de yaşıyor ve uzaktan çalışmaya alışık: Appisode'da Londra merkezli bir ekiple tamamen remote çalıştı.`,
-      `${t(lang, 'hero.location')}. Onur lives in İzmir and is used to working remotely: at Appisode he worked fully remote with a London-based team.`
+      `${t(lang, 'hero.location')}. Onur İzmir'de yaşıyor ve uzaktan çalışmaya alışık: ${remoteTeams(lang)} merkezli ekiplerle, hepsinde remote çalıştı.`,
+      `${t(lang, 'hero.location')}. Onur lives in İzmir and is used to remote work: he has worked with teams based in ${remoteTeams(lang)}, all remote.`
     ),
     suggests: ['musaitlik', 'iletisim'],
   }),
@@ -386,8 +418,8 @@ export const generalAnswers: Record<string, (lang: Language) => Answer> = {
   availability: (lang) => ({
     text: L(
       lang,
-      `Kısaca: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nUzaktan çalışma ona tanıdık; Appisode'da Londra merkezli bir ekiple tamamen remote çalıştı. Rol, başlangıç ve ücret gibi detaylar için en hızlı yol: ${socialLinks.email}`,
-      `In short: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nRemote work is familiar ground; at Appisode he worked fully remote with a London-based team. For role, start date and salary, the quickest route is: ${socialLinks.email}`
+      `Kısaca: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nUzaktan çalışma ona tanıdık: ${remoteTeams(lang)} merkezli ekiplerle, ${remoteCount(lang)} işinde de remote çalıştı. Rol, başlangıç ve ücret gibi detaylar için en hızlı yol: ${socialLinks.email}`,
+      `In short: ${status(lang)} · ${t(lang, 'hero.location')}.\n\nRemote work is familiar ground: all ${remoteCount(lang)} of his jobs so far were remote, with teams based in ${remoteTeams(lang)}. For role, start date and salary, the quickest route is: ${socialLinks.email}`
     ),
     sectionId: 'iletisim',
     suggests: ['cv', 'iletisim', 'neden'],

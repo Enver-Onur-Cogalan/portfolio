@@ -72,15 +72,6 @@ export const cvBullets: Record<string, Record<Language, string[]>> = {
   },
 };
 
-/** Deneyim yerleri; sitede henüz gösterilmiyor */
-export const cvLocation: Record<string, Localized> = {
-  unimall: { tr: 'Hong Kong (Remote)', en: 'Hong Kong (Remote)' },
-  envagro: { tr: 'İstanbul (Remote)', en: 'Istanbul (Remote)' },
-  appisode: { tr: 'Londra (Remote)', en: 'London (Remote)' },
-  ege: { tr: 'İzmir', en: 'Izmir' },
-  patika: { tr: 'İstanbul (Online)', en: 'Istanbul (Online)' },
-};
-
 /** Proje başına tek satır; başlık, teknolojiler ve bağlantı portfolio.ts'ten */
 export const cvProjects: Record<string, Localized> = {
   weatherapp: {

@@ -12,7 +12,7 @@ This is my personal site. It has a chatbot that talks without an LLM, a microsco
 
 ## Highlights
 
-- **A chatbot with no LLM, on purpose.** It's rule-based and bilingual (TR/EN), so it costs nothing per message and never makes things up. Every answer is built from the same data the site renders. It handles typos, Turkish suffixes and follow-ups ("what about its link?"). A golden test set of 232 single messages and 19 conversation turns keeps it honest.
+- **A chatbot with no LLM, on purpose.** It's rule-based and bilingual (TR/EN), so it costs nothing per message and never makes things up. Every answer is built from the same data the site renders. It handles typos, Turkish suffixes and follow-ups ("what about its link?"). A golden test set of 240 single messages and 22 conversation turns keeps it honest.
 - **Scroll-driven hero.** The microscope video is scrubbed by scroll position. The transition into About (diving into the cell, then melting into the page) is a pure function of scroll, so it behaves the same scrolling down or up, in Safari too.
 - **Ink strip.** The About section has a line-art figure who walks between a microscope, a desk, coffee, games and a motorbike, with a day/night cycle.
 - **Hidden game.** Visit a page that doesn't exist. (Or ask the bot whether it's bored.)

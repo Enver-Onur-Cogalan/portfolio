@@ -12,7 +12,7 @@ Bu benim kişisel sitem. İçinde LLM'siz konuşan bir sohbet botu, kaydırma te
 
 ## Öne çıkanlar
 
-- **Bilerek LLM'siz bir bot.** Kural tabanlı ve iki dilli (TR/EN). Mesaj başına maliyeti sıfır, uydurmuyor. Her cevap sitenin gösterdiği veriden üretiliyor. Yazım hatalarını, Türkçe ekleri ve takip sorularını ("peki linki?") anlıyor. 232 tek mesaj ve 19 konuşma adımlık altın test seti onu dürüst tutuyor.
+- **Bilerek LLM'siz bir bot.** Kural tabanlı ve iki dilli (TR/EN). Mesaj başına maliyeti sıfır, uydurmuyor. Her cevap sitenin gösterdiği veriden üretiliyor. Yazım hatalarını, Türkçe ekleri ve takip sorularını ("peki linki?") anlıyor. 240 tek mesaj ve 22 konuşma adımlık altın test seti onu dürüst tutuyor.
 - **Kaydırmaya bağlı hero.** Mikroskop videosu kaydırma konumuyla ileri geri sarılıyor. Hakkımda'ya geçiş (hücreye dalış, sonra sayfaya erime) tamamen kaydırma konumunun fonksiyonu. Aşağı da yukarı da, Safari'de de aynı davranıyor.
 - **Çizgi şerit.** Hakkımda bölümünde mikroskop, masa, kahve, oyun ve motosiklet arasında gezen, gece-gündüz döngüsü olan bir çizgi figür var.
 - **Gizli oyun.** Var olmayan bir sayfaya git. (Ya da bota sıkıldığını söyle.)

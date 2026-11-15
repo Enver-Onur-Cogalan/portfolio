@@ -5,7 +5,9 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { experiences, type Experience as ExperienceItem } from '@/data/portfolio';
 import { gsap } from '@/lib/gsap';
+import { MapPin } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { experiencePlace } from '@/lib/experience';
 
 function prefersReducedMotion() {
   if (typeof window === 'undefined') return false;
@@ -15,7 +17,7 @@ function prefersReducedMotion() {
 export default function Experience() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const newestFirst = [...experiences].reverse();
 
   // Vaka çalışmaları varsayılan olarak açık gelir — asıl anlatı orada,
@@ -135,6 +137,7 @@ export default function Experience() {
                 tr={tr}
                 t={t}
                 periodLabel={tr(exp.periodKey, exp.period)}
+                place={experiencePlace(lang, exp)}
                 isOpen={openIds.has(exp.id)}
                 onToggle={() => toggleCase(exp.id)}
               />
@@ -149,13 +152,14 @@ export default function Experience() {
 interface RowProps {
   exp: ExperienceItem;
   periodLabel: string;
+  place: ReturnType<typeof experiencePlace>;
   isOpen: boolean;
   onToggle: () => void;
   tr: (key: string, fallback: string) => string;
   t: (key: string) => string;
 }
 
-function ExperienceRow({ exp, periodLabel, isOpen, onToggle, tr, t }: RowProps) {
+function ExperienceRow({ exp, periodLabel, place, isOpen, onToggle, tr, t }: RowProps) {
   const accent = exp.type === 'work' ? 'var(--accent)' : 'var(--secondary)';
   const isCaseStudy = Boolean(exp.caseStudy?.length);
 
@@ -220,6 +224,17 @@ function ExperienceRow({ exp, periodLabel, isOpen, onToggle, tr, t }: RowProps) 
           <p className="text-sm mt-1 font-medium" style={{ color: accent }}>
             {subtitle}
           </p>
+
+          {place && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: 'var(--muted)' }}>
+              <MapPin size={13} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+              <span className="sr-only">{t('experience.location.label')}: </span>
+              <span>
+                {place.city}
+                {place.mode && <> · {place.mode}</>}
+              </span>
+            </p>
+          )}
 
           {headline && (
             <p
